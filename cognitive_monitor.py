@@ -90,6 +90,68 @@ def check_monitor_health():
         }
     except Exception as e:
         return {'healthy': False, 'reason': f'error reading heartbeat: {e}'}
+
+
+def format_tokens(n):
+    """格式化Token数量显示"""
+    if n >= 1000000:
+        return f"{n/1000000:.1f}M"
+    elif n >= 1000:
+        return f"{n/1000:.1f}k"
+    return str(n)
+
+
+def format_duration_short(seconds):
+    """格式化短时长显示"""
+    if seconds < 60:
+        return f"{int(seconds)}s"
+    elif seconds < 3600:
+        return f"{int(seconds/60)}m"
+    else:
+        return f"{int(seconds/3600)}h"
+
+
+def calculate_cognitive_score(pending_count, processing_count, total_tokens, max_wait_seconds):
+    """计算认知负载评分（可测试的纯函数版本）
+    
+    评分算法：
+    - 等待评分：基于最长等待时间（0-95分）
+    - Token评分：基于处理中任务的Token量（0-80分）
+    - 基础评分：50分
+    - 处理加成：每个处理中任务+3%（最多+15%）
+    - 最终评分：max(等待评分, Token评分) + 处理加成
+    """
+    # 等待评分：基于最长等待时间
+    if max_wait_seconds == 0:
+        wait_score = 0
+    elif max_wait_seconds < 10:
+        wait_score = min(30, 20 + max_wait_seconds)
+    elif max_wait_seconds < 30:
+        wait_score = min(55, 30 + (max_wait_seconds - 10) * 1.25)
+    elif max_wait_seconds < 60:
+        wait_score = min(80, 55 + (max_wait_seconds - 30) * 0.83)
+    else:
+        wait_score = min(95, 80 + (max_wait_seconds - 60) * 0.25)
+    
+    # Token评分：基于处理中任务的Token量
+    if total_tokens < 10000:
+        token_score = total_tokens / 1000  # 10k以下线性增长
+    elif total_tokens < 50000:
+        token_score = 10 + (total_tokens - 10000) / 2000  # 10k-50k
+    elif total_tokens < 100000:
+        token_score = 30 + (total_tokens - 50000) / 2000  # 50k-100k
+    else:
+        token_score = min(80, 55 + (total_tokens - 100000) / 4000)  # 100k+
+    
+    # 处理加成
+    processing_bonus = min(15, processing_count * 3)
+    
+    # 综合评分：取最大值 + 处理加成
+    mixed_score = max(wait_score, token_score) + processing_bonus
+    return min(100, max(0, int(mixed_score)))
+
+
+# 文件缓存
 file_cache = OrderedDict()
 CACHE_TTL = 60
 
@@ -627,22 +689,6 @@ def main():
             # 计算格式化值
             total_tokens = sum(s.get('tokens', 0) for s in sessions)
             estimated_response = breakdown.get('estimated_response', 0)
-            
-            # 格式化函数
-            def format_tokens(n):
-                if n >= 1000000:
-                    return f"{n/1000000:.1f}M"
-                elif n >= 1000:
-                    return f"{n/1000:.1f}k"
-                return str(n)
-            
-            def format_duration_short(seconds):
-                if seconds < 60:
-                    return f"{int(seconds)}s"
-                elif seconds < 3600:
-                    return f"{int(seconds/60)}m"
-                else:
-                    return f"{int(seconds/3600)}h"
             
             # 构建数据
             data = {
