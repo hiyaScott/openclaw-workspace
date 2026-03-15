@@ -40,6 +40,10 @@ DB_PATH = os.environ.get('COGNITIVE_DB_PATH', '/var/lib/cognitive_monitor/histor
 HEARTBEAT_FILE = os.environ.get('COGNITIVE_HEARTBEAT_FILE', '/var/run/cognitive_monitor_heartbeat.json')
 HEARTBEAT_TIMEOUT = int(os.environ.get('COGNITIVE_HEARTBEAT_TIMEOUT', 120))  # 默认120秒超时
 
+# 算法版本
+ALGORITHM_VERSION = '1.0.0'
+ALGORITHM_NAME = 'Mixed Score Algorithm'
+
 def update_heartbeat(status='running', error=None):
     """更新心跳文件，用于自监控"""
     try:
@@ -711,7 +715,9 @@ def main():
                 "cpu_percent": cpu,
                 "memory_percent": mem,
                 "monitor_uptime": int(time.time() - start_time),
-                "monitor_cycles": cycle
+                "monitor_cycles": cycle,
+                "algorithm_version": ALGORITHM_VERSION,
+                "algorithm_name": ALGORITHM_NAME
             }
             
             # 保存到本地数据库
