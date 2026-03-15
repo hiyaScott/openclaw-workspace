@@ -90,6 +90,24 @@ def save_to_database(data):
     except Exception as e:
         logger.warning(f"Database save error: {e}")
 
+def save_to_local_file(data):
+    """保存到本地JSON文件（供GitHub Pages使用）"""
+    try:
+        # 构建输出路径（相对于脚本位置）
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        output_dir = os.path.join(script_dir, 'portfolio-blog', 'status-monitor')
+        os.makedirs(output_dir, exist_ok=True)
+        
+        output_file = os.path.join(output_dir, 'cognitive-data.json')
+        
+        # 写入JSON文件
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        
+        logger.debug(f"Data saved to {output_file}")
+    except Exception as e:
+        logger.warning(f"Local file save error: {e}")
+
 def get_history_from_db(minutes):
     """从数据库获取历史数据 - 30秒原始数据点，不进行分钟聚合"""
     try:
@@ -612,6 +630,9 @@ def main():
                 logger.info(f"[{ts}] Score:{score}% {text} "
                            f"(sessions:{bd.get('active_sessions',0)}, recent:{bd.get('recent_active',0)}, "
                            f"tools:{bd.get('tool_calls',0)}, pending:{bd.get('pending',0)}, proc:{bd.get('processing',0)})")
+                
+                # 同时保存到本地文件（供GitHub Pages使用）
+                save_to_local_file(data)
             
         except Exception as e:
             logger.error(f"Cycle error: {e}", exc_info=True)
