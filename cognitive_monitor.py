@@ -36,7 +36,60 @@ UPSTASH_REDIS_REST_TOKEN = os.environ.get('UPSTASH_REDIS_REST_TOKEN', 'gQAAAAAAA
 WORKSPACE = os.environ.get('COGNITIVE_WORKSPACE', '/root/.openclaw/agents/main/sessions')
 DB_PATH = os.environ.get('COGNITIVE_DB_PATH', '/var/lib/cognitive_monitor/history.db')
 
-# 文件缓存
+# 健康检查配置
+HEARTBEAT_FILE = os.environ.get('COGNITIVE_HEARTBEAT_FILE', '/var/run/cognitive_monitor_heartbeat.json')
+HEARTBEAT_TIMEOUT = int(os.environ.get('COGNITIVE_HEARTBEAT_TIMEOUT', 120))  # 默认120秒超时
+
+def update_heartbeat(status='running', error=None):
+    """更新心跳文件，用于自监控"""
+    try:
+        heartbeat_data = {
+            'timestamp': datetime.now().isoformat(),
+            'unix_time': int(time.time()),
+            'status': status,
+            'pid': os.getpid(),
+            'hostname': os.uname().nodename,
+        }
+        if error:
+            heartbeat_data['error'] = str(error)
+        
+        # 写入临时文件后原子重命名，避免读取时损坏
+        temp_file = HEARTBEAT_FILE + '.tmp'
+        with open(temp_file, 'w') as f:
+            json.dump(heartbeat_data, f)
+        os.rename(temp_file, HEARTBEAT_FILE)
+    except Exception as e:
+        logger.warning(f"Failed to update heartbeat: {e}")
+
+def check_monitor_health():
+    """检查监控服务健康状态（可以被外部调用）"""
+    try:
+        if not os.path.exists(HEARTBEAT_FILE):
+            return {'healthy': False, 'reason': 'heartbeat file not found'}
+        
+        with open(HEARTBEAT_FILE, 'r') as f:
+            heartbeat = json.load(f)
+        
+        last_time = heartbeat.get('unix_time', 0)
+        elapsed = int(time.time()) - last_time
+        
+        if elapsed > HEARTBEAT_TIMEOUT:
+            return {
+                'healthy': False, 
+                'reason': f'heartbeat timeout ({elapsed}s > {HEARTBEAT_TIMEOUT}s)',
+                'last_seen': heartbeat.get('timestamp'),
+                'elapsed_seconds': elapsed
+            }
+        
+        return {
+            'healthy': True,
+            'status': heartbeat.get('status'),
+            'pid': heartbeat.get('pid'),
+            'last_seen': heartbeat.get('timestamp'),
+            'elapsed_seconds': elapsed
+        }
+    except Exception as e:
+        return {'healthy': False, 'reason': f'error reading heartbeat: {e}'}
 file_cache = OrderedDict()
 CACHE_TTL = 60
 
@@ -633,9 +686,13 @@ def main():
                 
                 # 同时保存到本地文件（供GitHub Pages使用）
                 save_to_local_file(data)
+                
+                # 更新心跳（自监控）
+                update_heartbeat(status='running')
             
         except Exception as e:
             logger.error(f"Cycle error: {e}", exc_info=True)
+            update_heartbeat(status='error', error=e)
         
         # 30秒间隔
         time.sleep(30)
