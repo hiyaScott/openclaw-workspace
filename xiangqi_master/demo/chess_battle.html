@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>象棋对弈 - 人机对战</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; background: #F5F5F5; min-height: 100vh; padding: 20px; }
+        .game-container { max-width: 480px; margin: 0 auto; }
+        .game-header { text-align: center; margin-bottom: 16px; }
+        .game-title { font-size: 24px; font-weight: 700; color: #333; }
+        .turn-indicator { display: inline-block; padding: 6px 16px; border-radius: 16px; font-weight: 600; margin-top: 8px; }
+        .turn-red { background: #FFCDD2; color: #D32F2F; }
+        .turn-black { background: #E0E0E0; color: #424242; }
+        .chess-board-wrapper { background: linear-gradient(135deg, #D4A574, #C49A6C); padding: 10px; border-radius: 12px; }
+        .chess-board { position: relative; width: 100%; aspect-ratio: 1/1.125; background: #E8C9A0; }
+        .board-frame { position: absolute; inset: 0; border: 2px solid #8B6914; }
+        .pieces-container { position: absolute; inset: 0; }
+        .chess-piece { position: absolute; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; cursor: pointer; transform: translate(-50%, -50%); box-shadow: 0 3px 12px rgba(0,0,0,0.35); }
+        .piece-red { background: linear-gradient(135deg, #D32F2F, #B71C1C); color: white; border: 2px solid #FFCDD2; }
+        .piece-black { background: linear-gradient(135deg, #424242, #212121); color: white; border: 2px solid #BDBDBD; }
+        .game-controls { display: flex; gap: 12px; margin-top: 16px; }
+        .game-btn { flex: 1; padding: 14px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: #2196F3; color: white; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="game-title">象棋对弈</div>
+            <div class="turn-indicator turn-red" id="turnIndicator">红方回合</div>
+        </div>
+        <div class="chess-board-wrapper">
+            <div class="chess-board" id="chessBoard">
+                <div class="board-frame"></div>
+                <div class="pieces-container" id="piecesContainer"></div>
+            </div>
+        </div>
+        <div class="game-controls">
+            <button class="game-btn btn-primary" onclick="resetGame()">重新开始</button>
+        </div>
+    </div>
+    
+    <script>
+        // 简化的象棋对弈游戏
+        let board = [];
+        let currentTurn = 'red';
+        let selectedPiece = null;
+        
+        function initGame() {
+            // 初始化棋盘
+            board = [
+                { x: 4, y: 7, piece: '馬', type: 'red' },
+                { x: 4, y: 3, piece: '車', type: 'black' },
+                { x: 5, y: 3, piece: '卒', type: 'black' }
+            ];
+            renderBoard();
+        }
+        
+        function renderBoard() {
+            const container = document.getElementById('piecesContainer');
+            container.innerHTML = '';
+            
+            board.forEach(p => {
+                const piece = document.createElement('div');
+                piece.className = `chess-piece piece-${p.type}`;
+                piece.textContent = p.piece;
+                piece.style.left = (p.x * 12.5) + '%';
+                piece.style.top = (p.y * 11.11) + '%';
+                piece.onclick = () => selectPiece(p);
+                container.appendChild(piece);
+            });
+        }
+        
+        function selectPiece(piece) {
+            if (piece.type !== currentTurn) return;
+            selectedPiece = piece;
+            renderBoard();
+            // TODO: 显示可移动位置
+        }
+        
+        function resetGame() {
+            currentTurn = 'red';
+            selectedPiece = null;
+            initGame();
+        }
+        
+        initGame();
+    </script>
+</body>
+</html>

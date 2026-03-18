@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>妈妈计数器 - Mama Counter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        
+        .counter-container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 40px 60px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .count-label {
+            font-size: 18px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .count-number {
+            font-size: 120px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            line-height: 1;
+            transition: transform 0.2s;
+        }
+        
+        .count-number.pulse {
+            animation: pulse 0.5s ease;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        .today-label {
+            font-size: 16px;
+            margin-top: 15px;
+            opacity: 0.8;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4757;
+            transition: background 0.3s;
+        }
+        
+        .status-dot.listening {
+            background: #2ed573;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .status-text {
+            font-size: 14px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 15px 35px;
+            font-size: 16px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2ed573, #1e90ff);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .stats {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+        
+        .stats h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .history h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-time {
+            opacity: 0.7;
+        }
+        
+        .detected-word {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .tips {
+            margin-top: 30px;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            font-size: 13px;
+            line-height: 1.6;
+            max-width: 400px;
+        }
+        
+        .tips h4 {
+            margin-bottom: 10px;
+        }
+        
+        .tips ul {
+            padding-left: 20px;
+        }
+        
+        .tips li {
+            margin-bottom: 5px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            opacity: 0.5;
+            padding: 20px;
+        }
+        
+        /* 语音识别提示 */
+        .speech-bubble {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,215,0,0.9);
+            color: #333;
+            padding: 15px 25px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        .speech-bubble.show {
+            opacity: 1;
+        }
+        
+        @media (max-width: 480px) {
+            h1 { font-size: 24px; }
+            .count-number { font-size: 80px; }
+            .counter-container { padding: 30px 40px; }
+            .btn { padding: 12px 25px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <h1>👩 妈妈计数器</h1>
+    <p class="subtitle">记录小朋友一天喊多少次"妈妈"</p>
+    
+    <div class="counter-container">
+        <div class="count-label">今日计数</div>
+        <div class="count-number" id="count">0</div>
+        <div class="today-label" id="todayLabel">--</div>
+    </div>
+    
+    <div class="status">
+        <div class="status-dot" id="statusDot"></div>
+        <span class="status-text" id="statusText">点击开始监听</span>
+    </div>
+    
+    <div class="controls">
+        <button class="btn btn-primary" id="toggleBtn" onclick="toggleListening()">
+            🎙️ 开始监听
+        </button>
+        <button class="btn btn-secondary" onclick="manualAdd()">
+            ➕ 手动+1
+        </button>
+        <button class="btn btn-secondary" onclick="resetCount()">
+            🔄 重置
+        </button>
+    </div>
+    
+    <div class="stats">
+        <h3>📊 统计</h3>
+        <div class="stat-item">
+            <span>本周总计</span>
+            <span id="weekTotal">0</span>
+        </div>
+        <div class="stat-item">
+            <span>本月总计</span>
+            <span id="monthTotal">0</span>
+        </div>
+        <div class="stat-item">
+            <span>历史最高（单日）</span>
+            <span id="maxCount">0</span>
+        </div>
+        <div class="stat-item">
+            <span>平均每日</span>
+            <span id="avgCount">0</span>
+        </div>
+    </div>
+    
+    <div class="history">
+        <h3>📝 今日记录</h3>
+        <div id="historyList">
+            <div class="empty-state">暂无记录</div>
+        </div>
+    </div>
+    
+    <div class="tips">
+        <h4>💡 使用提示</h4>
+        <ul>
+            <li>点击"开始监听"后，保持页面打开</li>
+            <li>当检测到"妈妈"、"麻麻"、"妈咪"等词语时会自动计数</li>
+            <li>数据保存在本地，刷新页面不会丢失</li>
+            <li>支持手动添加（如果漏听了）</li>
+            <li>建议在Chrome或Safari浏览器使用</li>
+        </ul>
+    </div>
+    
+    <div class="speech-bubble" id="speechBubble">
+        听到啦！妈妈 +1
+    </div>
+
+    <script>
+        // ==================== 数据管理 ====================
+        const DataManager = {
+            getToday() {
+                return new Date().toISOString().split('T')[0];
+            },
+            
+            getData() {
+                const data = localStorage.getItem('mamaCounterData');
+                return data ? JSON.parse(data) : {};
+            },
+            
+            saveData(data) {
+                localStorage.setItem('mamaCounterData', JSON.stringify(data));
+            },
+            
+            getTodayCount() {
+                const data = this.getData();
+                const today = this.getToday();
+                return data[today] || { count: 0, records: [] };
+            },
+            
+            addRecord(word = '妈妈') {
+                const data = this.getData();
+                const today = this.getToday();
+                
+                if (!data[today]) {
+                    data[today] = { count: 0, records: [] };
+                }
+                
+                data[today].count++;
+                data[today].records.push({
+                    time: new Date().toLocaleTimeString('zh-CN'),
+                    word: word
+                });
+                
+                this.saveData(data);
+                return data[today].count;
+            },
+            
+            getWeekTotal() {
+                const data = this.getData();
+                const today = new Date();
+                let total = 0;
+                
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    total += (data[dateStr]?.count || 0);
+                }
+                
+                return total;
+            },
+            
+            getMonthTotal() {
+                const data = this.getData();
+                const today = new Date();
+                let total = 0;
+                
+                for (let i = 0; i < 30; i++) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    total += (data[dateStr]?.count || 0);
+                }
+                
+                return total;
+            },
+            
+            getMaxCount() {
+                const data = this.getData();
+                let max = 0;
+                
+                Object.values(data).forEach(day => {
+                    if (day.count > max) max = day.count;
+                });
+                
+                return max;
+            },
+            
+            getAverage() {
+                const data = this.getData();
+                const days = Object.keys(data).length;
+                if (days === 0) return 0;
+                
+                let total = 0;
+                Object.values(data).forEach(day => {
+                    total += day.count;
+                });
+                
+                return Math.round(total / days);
+            },
+            
+            resetToday() {
+                const data = this.getData();
+                const today = this.getToday();
+                data[today] = { count: 0, records: [] };
+                this.saveData(data);
+            }
+        };
+        
+        // ==================== 语音识别 ====================
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        let isListening = false;
+        
+        // 要检测的关键词
+        const keywords = ['妈妈', '麻麻', '妈咪', 'ma ma', 'mama', '媽媽'];
+        
+        function initRecognition() {
+            if (!SpeechRecognition) {
+                alert('您的浏览器不支持语音识别，请使用Chrome或Safari浏览器');
+                return false;
+            }
+            
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'zh-CN';
+            
+            recognition.onstart = () => {
+                isListening = true;
+                updateStatus(true);
+                document.getElementById('toggleBtn').textContent = '⏸️ 停止监听';
+            };
+            
+            recognition.onend = () => {
+                isListening = false;
+                updateStatus(false);
+                document.getElementById('toggleBtn').textContent = '🎙️ 开始监听';
+                
+                // 自动重新开始（如果用户没有主动停止）
+                if (document.getElementById('toggleBtn').textContent === '⏸️ 停止监听') {
+                    setTimeout(() => {
+                        if (!isListening) recognition.start();
+                    }, 500);
+                }
+            };
+            
+            recognition.onresult = (event) => {
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript.toLowerCase();
+                    console.log('识别到:', transcript);
+                    
+                    // 检测关键词
+                    for (const keyword of keywords) {
+                        if (transcript.includes(keyword.toLowerCase())) {
+                            onKeywordDetected(keyword);
+                            break;
+                        }
+                    }
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('语音识别错误:', event.error);
+                if (event.error === 'not-allowed') {
+                    alert('请允许使用麦克风权限');
+                }
+            };
+            
+            return true;
+        }
+        
+        function toggleListening() {
+            if (!recognition) {
+                if (!initRecognition()) return;
+            }
+            
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+        
+        function onKeywordDetected(word) {
+            const count = DataManager.addRecord(word);
+            updateDisplay();
+            showBubble();
+            
+            // 播放提示音（简单的beep）
+            playBeep();
+        }
+        
+        function playBeep() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {
+                console.log('无法播放提示音');
+            }
+        }
+        
+        function showBubble() {
+            const bubble = document.getElementById('speechBubble');
+            bubble.classList.add('show');
+            setTimeout(() => {
+                bubble.classList.remove('show');
+            }, 1500);
+        }
+        
+        function updateStatus(listening) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            
+            if (listening) {
+                dot.classList.add('listening');
+                text.textContent = '正在监听...';
+            } else {
+                dot.classList.remove('listening');
+                text.textContent = '已停止';
+            }
+        }
+        
+        // ==================== 界面更新 ====================
+        function updateDisplay() {
+            const today = DataManager.getTodayCount();
+            
+            // 更新计数
+            const countEl = document.getElementById('count');
+            if (countEl.textContent !== String(today.count)) {
+                countEl.textContent = today.count;
+                countEl.classList.add('pulse');
+                setTimeout(() => countEl.classList.remove('pulse'), 500);
+            }
+            
+            // 更新日期
+            document.getElementById('todayLabel').textContent = new Date().toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+            
+            // 更新统计
+            document.getElementById('weekTotal').textContent = DataManager.getWeekTotal();
+            document.getElementById('monthTotal').textContent = DataManager.getMonthTotal();
+            document.getElementById('maxCount').textContent = DataManager.getMaxCount();
+            document.getElementById('avgCount').textContent = DataManager.getAverage();
+            
+            // 更新历史记录
+            updateHistory(today.records);
+        }
+        
+        function updateHistory(records) {
+            const historyList = document.getElementById('historyList');
+            
+            if (records.length === 0) {
+                historyList.innerHTML = '<div class="empty-state">暂无记录</div>';
+                return;
+            }
+            
+            // 倒序显示
+            const reversed = [...records].reverse();
+            historyList.innerHTML = reversed.map(record => `
+                <div class="history-item">
+                    <span class="history-time">${record.time}</span>
+                    <span class="detected-word">${record.word}</span>
+                </div>
+            `).join('');
+        }
+        
+        function manualAdd() {
+            const count = DataManager.addRecord('妈妈(手动)');
+            updateDisplay();
+            showBubble();
+            playBeep();
+        }
+        
+        function resetCount() {
+            if (confirm('确定要重置今天的计数吗？')) {
+                DataManager.resetToday();
+                updateDisplay();
+            }
+        }
+        
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDisplay();
+            
+            // 每分钟更新一次日期显示（以防跨天）
+            setInterval(() => {
+                updateDisplay();
+            }, 60000);
+        });
+        
+        // 页面可见性变化处理（切换回页面时更新）
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                updateDisplay();
+            }
+        });
+    </script>
+</body>
+</html>

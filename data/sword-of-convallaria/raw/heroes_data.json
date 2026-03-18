@@ -1,0 +1,271 @@
+{
+  "game": "铃兰之剑：为这和平的世界 (Sword of Convallaria)",
+  "data_source": "Bilibili Wiki (铃兰之剑WIKI_BWIKI)",
+  "source_url": "https://wiki.biligame.com/llzj/",
+  "collection_date": "2026-03-13",
+  "heroes": [
+    {
+      "id": "maitha",
+      "name_cn": "麦莎",
+      "name_en": "Maitha",
+      "rarity": 5,
+      "movement": 3,
+      "jump": 2,
+      "weapon_type": "单手剑",
+      "special_job": "佣兵少女",
+      "personality": "铃兰之盾",
+      "stats": {
+        "level_1": {"hp": 417, "phys_atk": 200, "phys_def": 93, "mag_atk": 140, "mag_def": 58, "speed": 243},
+        "max_level": {"hp": 3952, "phys_atk": 1393, "phys_def": 649, "mag_atk": 976, "mag_def": 406, "speed": 243}
+      },
+      "nickname": "暂无",
+      "cv_cn": "未标注",
+      "cv_jp": "未标注",
+      "description": "善良活泼乐观坚强的少女，铃兰之剑的初期成员，最初的伙伴与支持者。因战乱成为孤儿，直到被拉维耶收养定居小镇才有了自己的家。"
+    },
+    {
+      "id": "gloria",
+      "name_cn": "歌洛莉亚",
+      "name_en": "Gloria",
+      "rarity": 5,
+      "movement": 3,
+      "jump": 2,
+      "weapon_type": "长柄武器",
+      "special_job": "圣骑士",
+      "personality": "正义的旗帜",
+      "stats": {
+        "level_1": {"hp": 382, "phys_atk": 203, "phys_def": 71, "mag_atk": 142, "mag_def": 58, "speed": 215},
+        "max_level": {"hp": 3625, "phys_atk": 1414, "phys_def": 500, "mag_atk": 993, "mag_def": 406, "speed": 215}
+      },
+      "nickname": "歌洛、旗女",
+      "cv_cn": "未标注",
+      "cv_jp": "未标注",
+      "description": "传说级别的守望者角色，职业为圣骑士，坦度非常高的角色。"
+    },
+    {
+      "id": "samantha",
+      "name_cn": "萨曼莎",
+      "name_en": "Samantha",
+      "rarity": 5,
+      "movement": 3,
+      "jump": 2,
+      "weapon_type": "魔法武器",
+      "special_job": "圣女",
+      "personality": "虔诚祈祷",
+      "stats": {
+        "level_1": {"hp": 330, "phys_atk": 131, "phys_def": 59, "mag_atk": 186, "mag_def": 96, "speed": 78},
+        "max_level": {"hp": 3122, "phys_atk": 913, "phys_def": 417, "mag_atk": 1300, "mag_def": 675, "speed": 78}
+      },
+      "nickname": "牢萨",
+      "cv_cn": "陶典",
+      "cv_jp": "田中理惠",
+      "description": "善良温柔虔诚的光辉侍女，在战乱之中来到铃兰小镇，为救死扶伤而尽心尽力。萨曼莎是大庇护所收养的孤儿出身，被法皇亲自收养并接受了最好的教育，成为了代表法皇执行使命的审判者之一。"
+    },
+    {
+      "id": "nydia",
+      "name_cn": "妮蒂娅",
+      "name_en": "Nydia",
+      "rarity": 5,
+      "movement": 3,
+      "jump": 2,
+      "weapon_type": "弓弩",
+      "special_job": "侦察骑士",
+      "personality": "黑羽之印",
+      "stats": {
+        "level_1": {"hp": 372, "phys_atk": 225, "phys_def": 80, "mag_atk": 156, "mag_def": 96, "speed": 158},
+        "max_level": {"hp": 3511, "phys_atk": 1573, "phys_def": 555, "mag_atk": 1093, "mag_def": 663, "speed": 158}
+      },
+      "nickname": "暂无",
+      "cv_cn": "溯寻",
+      "cv_jp": "田中有纪",
+      "description": "一位神秘莫测、带着异域气质的射手，在妮蒂娅的国度，她被称作'告死鸟'。她的眼睛蕴涵着强大的力量，似乎能看穿灵魂。擅长弓箭，也善于在暗处观察局势。"
+    },
+    {
+      "id": "beryl",
+      "name_cn": "贝拉",
+      "name_en": "Beryl",
+      "rarity": 5,
+      "movement": 3,
+      "jump": 2,
+      "weapon_type": "魔法武器",
+      "special_job": "小魔女",
+      "personality": "咱是天才！",
+      "stats": {
+        "level_1": {"hp": 365, "phys_atk": 169, "phys_def": 67, "mag_atk": 241, "mag_def": 100, "speed": 122},
+        "max_level": {"hp": 3458, "phys_atk": 1176, "phys_def": 474, "mag_atk": 1686, "mag_def": 696, "speed": 122}
+      },
+      "nickname": "魔女、小魔女",
+      "cv_cn": "未标注",
+      "cv_jp": "未标注",
+      "description": "活泼的天才小魔女，来自法皇国。"
+    },
+    {
+      "id": "inanna",
+      "name_cn": "伊南娜",
+      "name_en": "Inanna",
+      "rarity": 5,
+      "movement": 3,
+      "jump": 2,
+      "weapon_type": "魔法武器",
+      "special_job": "伊利亚王女",
+      "personality": "伊利亚的明珠",
+      "stats": {
+        "level_1": {"hp": 355, "phys_atk": 140, "phys_def": 50, "mag_atk": 200, "mag_def": 83, "speed": 65},
+        "max_level": {"hp": 3363, "phys_atk": 976, "phys_def": 350, "mag_atk": 1393, "mag_def": 583, "speed": 65}
+      },
+      "nickname": "老王女",
+      "cv_cn": "未标注",
+      "cv_jp": "未标注",
+      "description": "伊利亚王女，传说级的守望者，可以召唤独特的王女亲卫，行动结束时会治疗自身附近的友方，是一位非常好用的辅助角色。"
+    },
+    {
+      "id": "rawiyah",
+      "name_cn": "拉维耶",
+      "name_en": "Rawiyah",
+      "rarity": 5,
+      "movement": 3,
+      "jump": 2,
+      "weapon_type": "重型武器",
+      "special_job": "重剑战士",
+      "personality": "豪饮",
+      "stats": {
+        "level_1": {"hp": 404, "phys_atk": 226, "phys_def": 70, "mag_atk": 158, "mag_def": 52, "speed": 204},
+        "max_level": {"hp": 3837, "phys_atk": 1578, "phys_def": 485, "mag_atk": 1105, "mag_def": 371, "speed": 204}
+      },
+      "nickname": "大姐头",
+      "cv_cn": "林簌",
+      "cv_jp": "小清水亚美",
+      "description": "铃兰之剑的创始人和现任团长，带领佣兵团守护着小镇的和平。为人豪爽不拘小节，身边的人都会不自觉地被她的正义感与热心肠感染。身居铃兰小镇的拉维耶时刻心系着伊利亚的局势。"
+    },
+    {
+      "id": "col",
+      "name_cn": "科尔",
+      "name_en": "Col",
+      "rarity": 5,
+      "movement": 5,
+      "jump": 2,
+      "weapon_type": "单手剑",
+      "special_job": "面具刺客",
+      "personality": "杀手本能",
+      "stats": {
+        "level_1": {"hp": 353, "phys_atk": 210, "phys_def": 67, "mag_atk": 147, "mag_def": 74, "speed": 163},
+        "max_level": {"hp": 3369, "phys_atk": 1497, "phys_def": 474, "mag_atk": 1048, "mag_def": 525, "speed": 163}
+      },
+      "nickname": "暂无",
+      "cv_cn": "未标注",
+      "cv_jp": "未标注",
+      "description": "高机动性刺客角色，移动力高达5格。"
+    },
+    {
+      "id": "flavia",
+      "name_cn": "芙拉维娅",
+      "name_en": "Flavia",
+      "rarity": 5,
+      "movement": 3,
+      "jump": 2,
+      "weapon_type": "魔法武器",
+      "special_job": "丰穰的魔女",
+      "personality": "丰穰",
+      "stats": {
+        "level_1": {"hp": 374, "phys_atk": 154, "phys_def": 92, "mag_atk": 219, "mag_def": 93, "speed": 224},
+        "max_level": {"hp": 3555, "phys_atk": 1072, "phys_def": 639, "mag_atk": 1532, "mag_def": 649, "speed": 224}
+      },
+      "nickname": "小绿、绿魔女",
+      "cv_cn": "张若瑜",
+      "cv_jp": "原由实",
+      "description": "温柔坚韧，拥有植物一般温和治愈的魅力，不论是植物还是动物，无一不被她的亲和力所吸引。芙拉维娅出生在饥荒盛行的的年代，从小立志要为大家消除饥苦。"
+    },
+    {
+      "id": "nungal",
+      "name_cn": "伦伽勒",
+      "name_en": "Nungal",
+      "rarity": 5,
+      "movement": 3,
+      "jump": 2,
+      "weapon_type": "弓弩",
+      "special_job": "倒吊人狙击手",
+      "personality": "晶能增程弩",
+      "stats": {
+        "level_1": {"hp": 350, "phys_atk": 236, "phys_def": 66, "mag_atk": 165, "mag_def": 81, "speed": 106},
+        "max_level": {"hp": 3314, "phys_atk": 1647, "phys_def": 465, "mag_atk": 1152, "mag_def": 568, "speed": 106}
+      },
+      "nickname": "伦妹、妹妹、老妹妹、农家乐",
+      "cv_cn": "未标注",
+      "cv_jp": "未标注",
+      "description": "倒吊人成员之一，作为组织里的狙击手，个性技能晶能增程弩可以把物理伤害转化为魔法伤害，并且与目标的距离越远伤害就会越高。"
+    },
+    {
+      "id": "xavier",
+      "name_cn": "泽维尔",
+      "name_en": "Xavier",
+      "rarity": 5,
+      "movement": 3,
+      "jump": 2,
+      "weapon_type": "长柄武器",
+      "special_job": "王国军将领",
+      "personality": "一骑当千",
+      "stats": {
+        "level_1": {"hp": 389, "phys_atk": 226, "phys_def": 80, "mag_atk": 158, "mag_def": 58, "speed": 193},
+        "max_level": {"hp": 3694, "phys_atk": 1578, "phys_def": 557, "mag_atk": 1105, "mag_def": 406, "speed": 193}
+      },
+      "nickname": "吕布、桥头吕布",
+      "cv_cn": "未标注",
+      "cv_jp": "未标注",
+      "description": "王国军将领，非常帅气，作为一位传说级的粉碎者，个性技能一骑当千可以根据自身范围内存在的敌人来增加自身攻击力。"
+    },
+    {
+      "id": "faycal",
+      "name_cn": "法卡尔",
+      "name_en": "Faycal",
+      "rarity": 5,
+      "movement": 3,
+      "jump": 2,
+      "weapon_type": "弓弩",
+      "special_job": "佣兵少年",
+      "personality": "法卡尔的执念",
+      "stats": {
+        "level_1": {"hp": 317, "phys_atk": 200, "phys_def": 58, "mag_atk": 140, "mag_def": 70, "speed": 105},
+        "max_level": {"hp": 3005, "phys_atk": 1393, "phys_def": 406, "mag_atk": 976, "mag_def": 485, "speed": 105}
+      },
+      "nickname": "绿毛",
+      "cv_cn": "李郝瑞",
+      "cv_jp": "上村祐翔",
+      "description": "性格别扭缺乏安全感的少年，铃兰之剑的初期成员，最初的伙伴之一。幼年法卡尔亲眼目睹了家园被毁，少年许下誓言，要快快成长起来，保护好自己的家人。"
+    },
+    {
+      "id": "teadon",
+      "name_cn": "泰登",
+      "name_en": "Teadon",
+      "rarity": 5,
+      "movement": 3,
+      "jump": 2,
+      "weapon_type": "单手剑",
+      "special_job": "守护骑士",
+      "personality": "百战之盾",
+      "stats": {
+        "level_1": {"hp": 412, "phys_atk": 201, "phys_def": 103, "mag_atk": 141, "mag_def": 44, "speed": 235},
+        "max_level": {"hp": 3908, "phys_atk": 1403, "phys_def": 718, "mag_atk": 984, "mag_def": 311, "speed": 235}
+      },
+      "nickname": "老登",
+      "cv_cn": "刘北辰",
+      "cv_jp": "井上和彦",
+      "description": "儒雅随和、温厚持重的资深骑士，歌洛莉亚的老师和副官。泰登是侍奉罗兰家族的从属骑士，曾是歌洛莉亚父亲最信任的战友。"
+    }
+  ],
+  "total_heroes": 13,
+  "hero_list": [
+    "麦莎 (Maitha)",
+    "歌洛莉亚 (Gloria)",
+    "萨曼莎 (Samantha)",
+    "妮蒂娅 (Nydia)",
+    "贝拉 (Beryl)",
+    "伊南娜 (Inanna)",
+    "拉维耶 (Rawiyah)",
+    "科尔 (Col)",
+    "芙拉维娅 (Flavia)",
+    "伦伽勒 (Nungal)",
+    "泽维尔 (Xavier)",
+    "法卡尔 (Faycal)",
+    "泰登 (Teadon)"
+  ]
+}

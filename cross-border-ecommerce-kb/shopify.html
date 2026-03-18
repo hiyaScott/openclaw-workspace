@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>独立站建站教程 | 跨境电商知识库</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .header h1 { font-size: 2rem; margin-bottom: 10px; }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+        
+        .back-link:hover { opacity: 1; }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .section {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .section h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .section h3 {
+            margin: 25px 0 15px;
+            color: var(--text);
+        }
+        
+        .step {
+            display: flex;
+            gap: 20px;
+            margin: 25px 0;
+            padding: 20px;
+            background: var(--bg);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .step-content h4 {
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+        
+        .step-content p {
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+        
+        .step-content ul {
+            margin-left: 20px;
+            color: var(--text-light);
+        }
+        
+        .step-content li {
+            margin: 5px 0;
+        }
+        
+        .highlight-box {
+            background: #dbeafe;
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background: var(--bg);
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        
+        .checklist {
+            list-style: none;
+        }
+        
+        .checklist li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .checklist li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        .nav-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .nav-footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .nav-footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🛒 独立站建站教程</h1>
+        <p>Shopify 7步建站法：从注册到上线的完整指南</p>
+        <a href="index.html" class="back-link">← 返回首页</a>
+    </header>
+    
+    <main class="container">
+        <div class="section">
+            <h2>💡 为什么选择独立站？</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>优势</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>利润高</strong></td>
+                        <td>无平台佣金（通常省15-20%）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>数据自主</strong></td>
+                        <td>用户数据100%掌控，可做复购</td>
+                    </tr>
+                    <tr>
+                        <td><strong>品牌独立</strong></td>
+                        <td>不受平台规则限制，自由设计</td>
+                    </tr>
+                    <tr>
+                        <td><strong>溢价能力</strong></td>
+                        <td>独立站定价可比平台高15-20%</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="warning-box">
+                <strong>挑战：</strong>需要自己引流（广告/SEO/社媒），技术要求相对较高，信任度建立需要时间。
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🔧 Shopify 7步建站法</h2>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>注册账户</h4>
+                    <p>访问 shopify.com，开始免费试用</p>
+                    <ul>
+                        <li>3天免费试用</li>
+                        <li>首月仅需$1（约7元人民币）</li>
+                        <li>Basic套餐：$29/月（初期够用）</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>基础设置</h4>
+                    <p>配置店铺基本信息</p>
+                    
+<ul>
+                        <li>店铺名称（英文，易记）</li>
+                        <li>时区、货币（根据目标市场）</li>
+                        <li>绑定域名（建议.com，Namecheap购买）</li>
+                        <li>选择主题（免费主题够用）</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>添加产品</h4>
+                    <p>上传你的商品</p>
+                    
+<ul>
+                        <li>标题（含关键词，简洁明确）</li>
+                        <li>描述（突出卖点，分段清晰）</li>
+                        <li>图片（白底主图+场景图，3-5张）</li>
+                        <li>价格（留足促销空间）</li>
+                        <li>库存（SKU设置）</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h4>设置支付</h4>
+                    <p>配置收款方式</p>
+                    
+<ul>
+                        <li>PayPal（必备，需企业账户）</li>
+                        <li>Stripe（信用卡，需香港/美国公司）</li>
+                        <li>或第三方：PingPong、2Checkout</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h4>物流设置</h4>
+                    <p>配置发货方式</p>
+                    
+<ul>
+                        <li>发货地：中国</li>
+                        <li>运费策略：满$X包邮 或 统一运费</li>
+                        <li>配送区域：根据目标市场设置</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <h4>必备页面</h4>
+                    <p>创建法律页面</p>
+                    
+<ul>
+                        <li>About Us（品牌故事）</li>
+                        <li>Contact Us（联系方式）</li>
+                        <li>Shipping Policy（物流说明）</li>
+                        <li>Return Policy（退换政策）</li>
+                        <li>Privacy Policy（隐私政策）</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">7</div>
+                <div class="step-content">
+                    <h4>测试上线</h4>
+                    <p>正式发布前检查</p>
+                    
+<ul>
+                        <li>创建测试订单</li>
+                        <li>检查支付流程</li>
+                        <li>手机端适配检查</li>
+                        <li>正式发布</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🚀 独立站引流方式</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>渠道</th>
+                        <th>成本</th>
+                        <th>难度</th>
+                        <th>效果</th>
+                        <th>适合阶段</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Facebook广告</td>
+                        <td>高</td>
+                        <td>中</td>
+                        <td>快</td>
+                        <td>有预算后</td>
+                    </tr>
+                    <tr>
+                        <td>TikTok广告</td>
+                        <td>中</td>
+                        <td>中</td>
+                        <td>快</td>
+                        <td>有视频能力</td>
+                    </tr>
+                    <tr>
+                        <td>Google广告</td>
+                        <td>高</td>
+                        <td>中</td>
+                        <td>精准</td>
+                        <td>有预算后</td>
+                    </tr>
+                    <tr>
+                        <td>SEO</td>
+                        <td>低</td>
+                        <td>高</td>
+                        <td>慢但持久</td>
+                        <td>长期布局</td>
+                    </tr>
+                    <tr>
+                        <td>社媒运营</td>
+                        <td>低</td>
+                        <td>中</td>
+                        <td>慢</td>
+                        <td>长期布局</td>
+                    </tr>
+                    <tr>
+                        <td>红人营销</td>
+                        <td>中</td>
+                        <td>中</td>
+                        <td>快</td>
+                        <td>有产品后</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="highlight-box">
+                <strong>新手建议：</strong><br>
+                • 预算有限 → 先从SEO、社媒、邮件营销开始<br>
+                • 有投放经验 → 重点聚焦Facebook + TikTok广告<br>
+                • 想打品牌 → 结合视频内容 + 红人合作 + 线下推广
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>💰 成本预估</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>项目</th>
+                        <th>低成本方案</th>
+                        <th>中高端方案</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>域名</td>
+                        <td>$10-15/年</td>
+                        <td>$20-50/年</td>
+                    </tr>
+                    <tr>
+                        <td>Shopify套餐</td>
+                        <td>$29/月</td>
+                        <td>$79/月</td>
+                    </tr>
+                    <tr>
+                        <td>主题/插件</td>
+                        <td>免费</td>
+                        <td>$100-300</td>
+                    </tr>
+                    <tr>
+                        <td>广告预算</td>
+                        <td>$500/月</td>
+                        <td>$2000+/月</td>
+                    </tr>
+                    <tr>
+                        <td><strong>首年总计</strong></td>
+                        <td><strong>约$2000-4000</strong></td>
+                        <td><strong>$10000+</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="nav-footer">
+            <a href="sourcing.html">← 货源采购</a>
+            <a href="traffic.html">引流推广 →</a>
+        </div>
+    </main>
+</body>
+</html>

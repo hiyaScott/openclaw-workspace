@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRID.DOMINION - 区域控制Roguelike</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0f;
+            color: #00ff88;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            text-shadow: 0 0 20px #00ff88;
+            margin-bottom: 10px;
+            letter-spacing: 4px;
+        }
+        
+        .subtitle {
+            color: #0088aa;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        
+        .game-info {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+        
+        .info-item {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+        
+        .info-label {
+            color: #0088aa;
+            font-size: 0.8em;
+        }
+        
+        .info-value {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            background: #0f0f1a;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #00ff88 0%, #0088aa 100%);
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.5);
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            color: #0088aa;
+            text-align: center;
+            line-height: 1.8;
+            font-size: 0.9em;
+        }
+        
+        .instructions span {
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 2px 8px;
+            border-radius: 3px;
+            margin: 0 3px;
+        }
+        
+        .status-message {
+            margin-top: 15px;
+            font-size: 1.3em;
+            min-height: 30px;
+            text-align: center;
+        }
+        
+        .status-message.win {
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+        
+        .status-message.lose {
+            color: #ff4444;
+            text-shadow: 0 0 10px #ff4444;
+        }
+        
+        .skill-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .skill {
+            background: rgba(0, 136, 170, 0.2);
+            border: 1px solid #0088aa;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            text-align: center;
+        }
+        
+        .skill.ready {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .skill-key {
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <h1>GRID.DOMINION</h1>
+    <div class="subtitle">区域控制 Roguelike 动作游戏</div>
+    
+    <div class="game-info">
+        <div class="info-item">
+            <div class="info-label">生命值</div>
+            <div class="info-value" id="health">100</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">占领率</div>
+            <div class="info-value" id="dominion">0%</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">分数</div>
+            <div class="info-value" id="score">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">时间</div>
+            <div class="info-value" id="time">00:00</div>
+        </div>
+    </div>
+    
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <div class="status-message" id="status">点击格子开始占领领地！</div>
+    
+    <div class="skill-bar">
+        <div class="skill ready" id="skillQ">
+            <div class="skill-key">Q</div>
+            <div>区域爆破</div>
+        </div>
+        <div class="skill ready" id="skillE">
+            <div class="skill-key">E</div>
+            <div>护盾</div>
+        </div>
+        <div class="skill ready" id="skillR">
+            <div class="skill-key">R</div>
+            <div>加速</div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button onclick="game.restart()">🔄 重新开始</button>
+        <button onclick="game.togglePause()">⏸️ 暂停/继续</button>
+    </div>
+    
+    <div class="instructions">
+        <span>WASD</span> 移动 | <span>空格</span> 冲刺 | <span>Q/E/R</span> 使用技能<br>
+        占领格子扩展领地 | 敌人在你的领地内会持续掉血 | 占领80%即可获胜
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 游戏配置
+        const GRID_WIDTH = 16;
+        const GRID_HEIGHT = 12;
+        const CELL_SIZE = 40;
+        const MINE_COUNT = 8;
+        
+        // 游戏状态
+        class Game {
+            constructor() {
+                this.grid = [];
+                this.player = { x: 2, y: 2, health: 100, maxHealth: 100 };
+                this.enemies = [];
+                this.particles = [];
+                this.score = 0;
+                this.dominionPercent = 0;
+                this.gameTime = 0;
+                this.gameOver = false;
+                this.paused = false;
+                this.keys = {};
+                this.lastTime = 0;
+                
+                // 技能冷却
+                this.skills = {
+                    Q: { cooldown: 0, maxCooldown: 8 },
+                    E: { cooldown: 0, maxCooldown: 15 },
+                    R: { cooldown: 0, maxCooldown: 12 }
+                };
+                
+                this.init();
+                this.setupInputs();
+                this.loop(0);
+            }
+            
+            init() {
+                // 初始化网格
+                this.grid = [];
+                for (let y = 0; y < GRID_HEIGHT; y++) {
+                    let row = [];
+                    for (let x = 0; x < GRID_WIDTH; x++) {
+                        row.push({
+                            x, y,
+                            state: (x === 0 || x === GRID_WIDTH - 1 || y === 0 || y === GRID_HEIGHT - 1) ? 'wall' : 'empty',
+                            isDominion: false
+                        });
+                    }
+                    this.grid.push(row);
+                }
+                
+                // 随机墙壁
+                for (let i = 0; i < 15; i++) {
+                    let x = Math.floor(Math.random() * (GRID_WIDTH - 2)) + 1;
+                    let y = Math.floor(Math.random() * (GRID_HEIGHT - 2)) + 1;
+                    if (!(x === 2 && y === 2)) {
+                        this.grid[y][x].state = 'wall';
+                    }
+                }
+                
+                // 初始化玩家位置
+                this.player.x = 2;
+                this.player.y = 2;
+                this.claimCell(2, 2);
+                
+                // 初始化敌人
+                this.enemies = [];
+                for (let i = 0; i < MINE_COUNT; i++) {
+                    this.spawnEnemy();
+                }
+                
+                this.updateUI();
+            }
+            
+            spawnEnemy() {
+                let x, y;
+                do {
+                    x = Math.floor(Math.random() * (GRID_WIDTH - 2)) + 1;
+                    y = Math.floor(Math.random() * (GRID_HEIGHT - 2)) + 1;
+                } while (this.grid[y][x].state === 'wall' || 
+                         (Math.abs(x - this.player.x) < 3 && Math.abs(y - this.player.y) < 3));
+                
+                this.enemies.push({
+                    x, y,
+                    health: 30,
+                    maxHealth: 30,
+                    speed: 0.02,
+                    inDominion: false
+                });
+            }
+            
+            claimCell(x, y) {
+                if (this.grid[y][x].state !== 'wall' && !this.grid[y][x].isDominion) {
+                    this.grid[y][x].isDominion = true;
+                    this.score += 10;
+                    this.updateDominionPercent();
+                    this.createParticles(x, y, '#00ff88');
+                    return true;
+                }
+                return false;
+            }
+            
+            updateDominionPercent() {
+                let dominionCount = 0;
+                let totalCells = 0;
+                for (let y = 1; y < GRID_HEIGHT - 1; y++) {
+                    for (let x = 1; x < GRID_WIDTH - 1; x++) {
+                        if (this.grid[y][x].state !== 'wall') {
+                            totalCells++;
+                            if (this.grid[y][x].isDominion) dominionCount++;
+                        }
+                    }
+                }
+                this.dominionPercent = Math.floor((dominionCount / totalCells) * 100);
+                
+                if (this.dominionPercent >= 80) {
+                    this.win();
+                }
+            }
+            
+            createParticles(x, y, color) {
+                const px = x * CELL_SIZE + CELL_SIZE / 2 + 80;
+                const py = y * CELL_SIZE + CELL_SIZE / 2 + 40;
+                for (let i = 0; i < 5; i++) {
+                    this.particles.push({
+                        x: px, y: py,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: (Math.random() - 0.5) * 4,
+                        life: 1,
+                        color: color
+                    });
+                }
+            }
+            
+            setupInputs() {
+                window.addEventListener('keydown', (e) => {
+                    this.keys[e.key.toLowerCase()] = true;
+                    
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        this.dash();
+                    }
+                    if (e.key === 'q' || e.key === 'Q') this.useSkill('Q');
+                    if (e.key === 'e' || e.key === 'E') this.useSkill('E');
+                    if (e.key === 'r' || e.key === 'R') this.useSkill('R');
+                });
+                
+                window.addEventListener('keyup', (e) => {
+                    this.keys[e.key.toLowerCase()] = false;
+                });
+            }
+            
+            dash() {
+                if (this.gameOver) return;
+                
+                let dx = 0, dy = 0;
+                if (this.keys['w']) dy = -1;
+                if (this.keys['s']) dy = 1;
+                if (this.keys['a']) dx = -1;
+                if (this.keys['d']) dx = 1;
+                
+                if (dx !== 0 || dy !== 0) {
+                    for (let i = 1; i <= 3; i++) {
+                        let nx = this.player.x + dx * i;
+                        let ny = this.player.y + dy * i;
+                        if (this.isValidMove(nx, ny)) {
+                            this.player.x = nx;
+                            this.player.y = ny;
+                            this.claimCell(nx, ny);
+                        }
+                    }
+                }
+            }
+            
+            useSkill(skill) {
+                if (this.gameOver || this.skills[skill].cooldown > 0) return;
+                
+                this.skills[skill].cooldown = this.skills[skill].maxCooldown;
+                
+                switch(skill) {
+                    case 'Q':
+                        // 区域爆破
+                        for (let dy = -1; dy <= 1; dy++) {
+                            for (let dx = -1; dx <= 1; dx++) {
+                                let nx = this.player.x + dx;
+                                let ny = this.player.y + dy;
+                                this.createParticles(nx, ny, '#ff8800');
+                                
+                                this.enemies.forEach(enemy => {
+                                    if (Math.abs(enemy.x - nx) < 1 && Math.abs(enemy.y - ny) < 1) {
+                                        enemy.health -= 50;
+                                    }
+                                });
+                            }
+                        }
+                        break;
+                    case 'E':
+                        // 护盾
+                        this.player.shieldTime = 5;
+                        break;
+                    case 'R':
+                        // 加速
+                        this.player.speedTime = 5;
+                        break;
+                }
+                
+                this.updateSkillUI();
+            }
+            
+            isValidMove(x, y) {
+                return x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT && 
+                       this.grid[y][x].state !== 'wall';
+            }
+            
+            update(delta) {
+                if (this.gameOver || this.paused) return;
+                
+                this.gameTime += delta;
+                
+                // 更新技能冷却
+                for (let key in this.skills) {
+                    if (this.skills[key].cooldown > 0) {
+                        this.skills[key].cooldown -= delta;
+                        if (this.skills[key].cooldown < 0) this.skills[key].cooldown = 0;
+                    }
+                }
+                
+                // 玩家移动
+                let moveInterval = this.player.speedTime > 0 ? 0.08 : 0.15;
+                if (this.gameTime % moveInterval < delta) {
+                    let dx = 0, dy = 0;
+                    if (this.keys['w']) dy = -1;
+                    if (this.keys['s']) dy = 1;
+                    if (this.keys['a']) dx = -1;
+                    if (this.keys['d']) dx = 1;
+                    
+                    if (dx !== 0 || dy !== 0) {
+                        let nx = this.player.x + dx;
+                        let ny = this.player.y + dy;
+                        if (this.isValidMove(nx, ny)) {
+                            this.player.x = nx;
+                            this.player.y = ny;
+                            this.claimCell(nx, ny);
+                        }
+                    }
+                }
+                
+                // 更新护盾和加速时间
+                if (this.player.shieldTime > 0) this.player.shieldTime -= delta;
+                if (this.player.speedTime > 0) this.player.speedTime -= delta;
+                
+                // 更新敌人
+                this.enemies.forEach((enemy, index) => {
+                    // 检查是否在领地内
+                    enemy.inDominion = this.grid[Math.floor(enemy.y)][Math.floor(enemy.x)].isDominion;
+                    
+                    if (enemy.inDominion) {
+                        enemy.health -= 5 * delta;
+                    }
+                    
+                    // 敌人移动
+                    let dx = this.player.x - enemy.x;
+                    let dy = this.player.y - enemy.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist > 0.1) {
+                        let speed = enemy.inDominion ? enemy.speed * 0.8 : enemy.speed;
+                        enemy.x += (dx / dist) * speed;
+                        enemy.y += (dy / dist) * speed;
+                    }
+                    
+                    // 碰撞检测
+                    if (dist < 0.5 && this.player.shieldTime <= 0) {
+                        this.player.health -= 10;
+                        enemy.health = 0;
+                        this.createParticles(this.player.x, this.player.y, '#ff4444');
+                    }
+                    
+                    // 移除死亡敌人
+                    if (enemy.health <= 0) {
+                        this.createParticles(enemy.x, enemy.y, '#ff8800');
+                        this.enemies.splice(index, 1);
+                        this.score += 50;
+                    }
+                });
+                
+                // 生成新敌人
+                if (Math.floor(this.gameTime) % 30 === 0 && Math.random() < 0.02) {
+                    this.spawnEnemy();
+                }
+                
+                // 检查游戏结束
+                if (this.player.health <= 0) {
+                    this.lose();
+                }
+                
+                this.updateUI();
+            }
+            
+            draw() {
+                // 清空画布
+                ctx.fillStyle = '#0f0f1a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                const offsetX = 80;
+                const offsetY = 40;
+                
+                // 绘制网格
+                for (let y = 0; y < GRID_HEIGHT; y++) {
+                    for (let x = 0; x < GRID_WIDTH; x++) {
+                        let cell = this.grid[y][x];
+                        let px = x * CELL_SIZE + offsetX;
+                        let py = y * CELL_SIZE + offsetY;
+                        
+                        if (cell.state === 'wall') {
+                            ctx.fillStyle = '#2a2a3e';
+                            ctx.fillRect(px, py, CELL_SIZE - 2, CELL_SIZE - 2);
+                        } else if (cell.isDominion) {
+                            ctx.fillStyle = 'rgba(0, 255, 136, 0.3)';
+                            ctx.fillRect(px, py, CELL_SIZE - 2, CELL_SIZE - 2);
+                            ctx.strokeStyle = '#00ff88';
+                            ctx.strokeRect(px, py, CELL_SIZE - 2, CELL_SIZE - 2);
+                        } else {
+                            ctx.fillStyle = '#1a1a2e';
+                            ctx.fillRect(px, py, CELL_SIZE - 2, CELL_SIZE - 2);
+                            ctx.strokeStyle = '#2a2a4e';
+                            ctx.strokeRect(px, py, CELL_SIZE - 2, CELL_SIZE - 2);
+                        }
+                    }
+                }
+                
+                // 绘制敌人
+                this.enemies.forEach(enemy => {
+                    let px = enemy.x * CELL_SIZE + offsetX + CELL_SIZE / 2;
+                    let py = enemy.y * CELL_SIZE + offsetY + CELL_SIZE / 2;
+                    
+                    ctx.fillStyle = enemy.inDominion ? '#ff6666' : '#ff4444';
+                    ctx.beginPath();
+                    ctx.moveTo(px, py - 12);
+                    ctx.lineTo(px + 12, py + 12);
+                    ctx.lineTo(px - 12, py + 12);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // 血条
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(px - 15, py - 20, 30, 4);
+                    ctx.fillStyle = '#00ff88';
+                    ctx.fillRect(px - 15, py - 20, 30 * (enemy.health / enemy.maxHealth), 4);
+                });
+                
+                // 绘制玩家
+                let px = this.player.x * CELL_SIZE + offsetX + CELL_SIZE / 2;
+                let py = this.player.y * CELL_SIZE + offsetY + CELL_SIZE / 2;
+                
+                // 护盾效果
+                if (this.player.shieldTime > 0) {
+                    ctx.strokeStyle = '#00ffff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(px, py, 20, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.lineWidth = 1;
+                }
+                
+                // 加速效果
+                if (this.player.speedTime > 0) {
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(px, py, 15, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                ctx.fillStyle = '#00ff88';
+                ctx.beginPath();
+                ctx.moveTo(px, py - 15);
+                ctx.lineTo(px + 12, py + 10);
+                ctx.lineTo(px - 12, py + 10);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 绘制粒子
+                this.particles.forEach((p, i) => {
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.life;
+                    ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+                    ctx.globalAlpha = 1;
+                    
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= 0.02;
+                    
+                    if (p.life <= 0) {
+                        this.particles.splice(i, 1);
+                    }
+                });
+            }
+            
+            updateUI() {
+                document.getElementById('health').textContent = Math.max(0, Math.floor(this.player.health));
+                document.getElementById('dominion').textContent = this.dominionPercent + '%';
+                document.getElementById('score').textContent = this.score;
+                
+                let minutes = Math.floor(this.gameTime / 60);
+                let seconds = Math.floor(this.gameTime % 60);
+                document.getElementById('time').textContent = 
+                    minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+                
+                this.updateSkillUI();
+            }
+            
+            updateSkillUI() {
+                for (let key in this.skills) {
+                    let el = document.getElementById('skill' + key);
+                    if (this.skills[key].cooldown <= 0) {
+                        el.classList.add('ready');
+                        el.style.opacity = '1';
+                    } else {
+                        el.classList.remove('ready');
+                        el.style.opacity = '0.5';
+                    }
+                }
+            }
+            
+            win() {
+                this.gameOver = true;
+                document.getElementById('status').textContent = '🎉 DOMINION ACHIEVED! 你赢了！';
+                document.getElementById('status').className = 'status-message win';
+            }
+            
+            lose() {
+                this.gameOver = true;
+                document.getElementById('status').textContent = '💀 游戏结束！进程被终止...';
+                document.getElementById('status').className = 'status-message lose';
+            }
+            
+            restart() {
+                this.gameOver = false;
+                this.paused = false;
+                this.gameTime = 0;
+                this.score = 0;
+                this.dominionPercent = 0;
+                this.player.health = 100;
+                this.player.shieldTime = 0;
+                this.player.speedTime = 0;
+                this.particles = [];
+                document.getElementById('status').textContent = '点击格子开始占领领地！';
+                document.getElementById('status').className = 'status-message';
+                
+                for (let key in this.skills) {
+                    this.skills[key].cooldown = 0;
+                }
+                
+                this.init();
+            }
+            
+            togglePause() {
+                this.paused = !this.paused;
+            }
+            
+            loop(timestamp) {
+                let delta = (timestamp - this.lastTime) / 1000;
+                this.lastTime = timestamp;
+                
+                if (delta > 0.1) delta = 0.1;
+                
+                this.update(delta);
+                this.draw();
+                
+                requestAnimationFrame((t) => this.loop(t));
+            }
+        }
+        
+        // 启动游戏
+        const game = new Game();
+    </script>
+</body>
+</html>

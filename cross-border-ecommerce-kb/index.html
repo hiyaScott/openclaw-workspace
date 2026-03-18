@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跨境电商知识库 | 零基础入门到实战</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Nav */
+        .nav {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 0;
+            overflow-x: auto;
+        }
+        
+        .nav-item {
+            padding: 15px 20px;
+            color: var(--text);
+            text-decoration: none;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        /* Main */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Cards */
+        .section {
+            margin-bottom: 50px;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+            display: inline-block;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+        
+        .card p {
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+        
+        .card-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .card-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background: var(--bg);
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        
+        tr:hover {
+            background: var(--bg);
+        }
+        
+        /* Lists */
+        .checklist {
+            list-style: none;
+        }
+        
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .checklist li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .tag-green { background: #d1fae5; color: #065f46; }
+        .tag-blue { background: #dbeafe; color: #1e40af; }
+        .tag-yellow { background: #fef3c7; color: #92400e; }
+        .tag-red { background: #fee2e2; color: #991b1b; }
+        
+        /* Steps */
+        .steps {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+        
+        .step {
+            flex: 1;
+            min-width: 200px;
+            background: var(--card);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        /* Alert */
+        .alert {
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .alert-warning {
+            background: #fef3c7;
+            border-left: 4px solid var(--warning);
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--text);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: 60px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .steps {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🌏 跨境电商知识库</h1>
+        <p>专为1-2人小团队设计的无货源跨境电商学习指南 | 从1688采购到跨境销售全流程</p>
+    </header>
+    
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="#overview" class="nav-item active">概览</a>
+            <a href="#platforms" class="nav-item">平台选择</a>
+            <a href="sourcing.html" class="nav-item">货源采购</a>
+            <a href="shopify.html" class="nav-item">独立站建站</a>
+            <a href="traffic.html" class="nav-item">引流推广</a>
+            <a href="operations.html" class="nav-item">运营手册</a>
+            <a href="tools.html" class="nav-item">工具推荐</a>
+        </div>
+    </nav>
+    
+    <main class="container">
+        <!-- 概览 -->
+        <section id="overview" class="section">
+            <h2 class="section-title">📋 商业模式概览</h2>
+            
+            <div class="alert alert-info">
+                <strong>什么是无货源跨境电商？</strong><br>
+                不囤货、不压货，订单产生后从国内供应商（如1688）采购，由供应商直接发货给海外客户。你赚取差价。
+            </div>
+            
+            <div class="grid">
+                <div class="card">
+                    <div class="card-icon">💰</div>
+                    <h3>低成本启动</h3>
+                    <p>无需大量资金压货，5000-2万元即可起步</p>
+                    <span class="tag tag-green">适合新手</span>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon">📦</div>
+                    <h3>零库存风险</h3>
+                    <p>无滞销、无积压，卖一单采一单</p>
+                    <span class="tag tag-blue">低风险</span>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon">🔄</div>
+                    <h3>高灵活性</h3>
+                    <p>可随时更换品类，快速测试市场</p>
+                    <span class="tag tag-yellow">快速试错</span>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 平台选择 -->
+        <section id="platforms" class="section">
+            <h2 class="section-title">🎯 平台选择指南</h2>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>平台</th>
+                            <th>适合人群</th>
+                            <th>启动资金</th>
+                            <th>核心特点</th>
+                            <th>推荐度</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Shopee</strong></td>
+                            <td>新手首选</td>
+                            <td>5千-1万</td>
+                            <td>东南亚市场、门槛低、免佣金3个月</td>
+                            <td><span class="tag tag-green">★★★★★</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>速卖通</strong></td>
+                            <td>新手试水</td>
+                            <td>5千-1万</td>
+                            <td>阿里系、俄罗斯/新兴市场为主</td>
+                            <td><span class="tag tag-green">★★★★☆</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>TikTok Shop</strong></td>
+                            <td>有内容能力</td>
+                            <td>5千-1万</td>
+                            <td>社交电商、需视频/直播能力</td>
+                            <td><span class="tag tag-blue">★★★★☆</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>独立站</strong></td>
+                            <td>有品牌思维</td>
+                            <td>2-5万+</td>
+                            <td>利润高、自主可控、需自己引流</td>
+                            <td><span class="tag tag-yellow">★★★☆☆</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>亚马逊</strong></td>
+                            <td>有供应链</td>
+                            <td>5-10万</td>
+                            <td>流量大、规则严、FBA物流完善</td>
+                            <td><span class="tag tag-red">★★☆☆☆</span>（新手）</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="alert alert-warning">
+                <strong>1-2人团队推荐路径：</strong><br>
+                <b>第1-2月：</b>Shopee/速卖通 → 低成本试错 → 熟悉跨境流程<br>
+                <b>第3-6月：</b>TikTok Shop/独立站 → 内容引流 → 品牌建设<br>
+                <b>第6月+：</b>多平台矩阵 → 垂直品类深耕 → 海外仓备货
+            </div>
+        </section>
+        
+        <!-- 快速开始 -->
+        <section id="start" class="section">
+            <h2 class="section-title">🚀 4周启动计划</h2>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h4>第一周：准备</h4>
+                    <ul class="checklist">
+                        <li>确定目标平台</li>
+                        <li>注册店铺/独立站</li>
+                        <li>注册1688账号</li>
+                        <li>学习平台规则</li>
+                    </ul>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h4>第二周：选品</h4>
+                    <ul class="checklist">
+                        <li>确定选品方向</li>
+                        <li>筛选10-20个产品</li>
+                        <li>联系5家以上供应商</li>
+                        <li>索要样品测试</li>
+                    </ul>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h4>第三周：上架</h4>
+                    <ul class="checklist">
+                        <li>拍摄/制作产品图</li>
+                        <li>撰写Listing</li>
+                        <li>上架5-10个产品</li>
+                        <li>设置物流和价格</li>
+                    </ul>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h4>第四周：测试</div>
+                    <ul class="checklist">
+                        <li>投放小额广告</li>
+                        <li>处理首单</li>
+                        <li>优化Listing</li>
+                        <li>复盘调整</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 更多内容 -->
+        <section id="more" class="section">
+            <h2 class="section-title">📚 详细文档</h2>
+            
+            <div class="grid">
+                <a href="sourcing.html" class="card" style="text-decoration: none; color: inherit;">
+                    <div class="card-icon">🏭</div>
+                    <h3>货源采购指南</h3>
+                    <p>1688选品技巧、供应商评估、一件代发流程、选品工具推荐</p>
+                    <span class="card-link">查看详情 →</span>
+                </a>
+                
+                <a href="shopify.html" class="card" style="text-decoration: none; color: inherit;">
+                    <div class="card-icon">🛒</div>
+                    <h3>独立站建站教程</h3>
+                    <p>Shopify 7步建站、主题设置、支付配置、物流方案</p>
+                    <span class="card-link">查看详情 →</span>
+                </a>
+                
+                <a href="traffic.html" class="card" style="text-decoration: none; color: inherit;">
+                    <div class="card-icon">📈</div>
+                    <h3>引流推广策略</h3>
+                    <p>Facebook广告、TikTok引流、SEO、红人营销、邮件营销</p>
+                    <span class="card-link">查看详情 →</span>
+                </a>
+                
+                <a href="operations.html" class="card" style="text-decoration: none; color: inherit;">
+                    <div class="card-icon">⚙️</div>
+                    <h3>运营操作手册</h3>
+                    <p>日常运营清单、合规要点、风险规避、常见问题FAQ</p>
+                    <span class="card-link">查看详情 →</span>
+                </a>
+                
+                <a href="tools.html" class="card" style="text-decoration: none; color: inherit;">
+                    <div class="card-icon">🧰</div>
+                    <h3>工具与资源</h3>
+                    <p>选品工具、ERP系统、设计工具、学习资源、官方链接</p>
+                    <span class="card-link">查看详情 →</span>
+                </a>
+                
+                <a href="shopee-guide.html" class="card" style="text-decoration: none; color: inherit;">
+                    <div class="card-icon">🦐</div>
+                    <h3>Shopee实战手册</h3>
+                    <p>Shopee入驻流程、站点选择、产品上架、SLS物流设置</p>
+                    <span class="card-link">查看详情 →</span>
+                </a>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="footer">
+        <p>跨境电商知识库 | 仅供学习使用</p>
+        <p style="margin-top: 10px; opacity: 0.7;">最后更新：2026-03-16</p>
+    </footer>
+</body>
+</html>

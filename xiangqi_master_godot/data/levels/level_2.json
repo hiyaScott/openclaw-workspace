@@ -1,0 +1,35 @@
+{
+  "id": 2,
+  "name": "绊马脚",
+  "description": "学习绊马脚的规则",
+  "juIndex": 2,
+  "multiStep": false,
+  "pieces": [
+    {
+      "type": 0,
+      "side": 0,
+      "name": "马",
+      "x": 1,
+      "y": 7
+    },
+    {
+      "type": 6,
+      "side": 1,
+      "name": "卒",
+      "x": 2,
+      "y": 7
+    }
+  ],
+  "steps": [
+    {
+      "target": [
+        {"x": 0, "y": 5},
+        {"x": 2, "y": 5}
+      ],
+      "hintType": "text",
+      "hintText": "注意！前面有卒子绊马脚，试试看能走哪里？",
+      "msg": "没错！绊马脚时马不能往那个方向跳"
+    }
+  ],
+  "successText": "太棒了！"
+}

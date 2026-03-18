@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>象棋大师 - 体验原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: #F5F5F5;
+            min-height: 100vh;
+        }
+        
+        /* 顶部状态栏 */
+        .header {
+            background: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .back-btn {
+            font-size: 20px;
+            color: #666;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .stat-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        .fire { background: #FF6B35; color: white; }
+        .gem { background: #2196F3; color: white; }
+        .heart { background: #F44336; color: white; }
+        
+        /* 主内容区 */
+        .main {
+            padding: 16px;
+        }
+        
+        /* 章节卡片 */
+        .chapter-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .chapter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .chapter-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .chapter-badge {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .progress-bar {
+            height: 12px;
+            background: #E0E0E0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 6px;
+            transition: width 0.3s;
+        }
+        
+        .progress-text {
+            font-size: 12px;
+            color: #666;
+            text-align: right;
+        }
+        
+        .trophy {
+            color: #FFD700;
+        }
+        
+        /* Max角色 */
+        .max-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        
+        .max-avatar {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            border: 3px solid #2196F3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            flex-shrink: 0;
+        }
+        
+        .max-eyes {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .eye {
+            width: 6px;
+            height: 10px;
+            background: #333;
+            border-radius: 50%;
+        }
+        
+        .max-speech {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 16px;
+            position: relative;
+            flex: 1;
+        }
+        
+        .max-speech::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 8px solid transparent;
+            border-right-color: white;
+        }
+        
+        .max-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+        }
+        
+        /* 关卡路径 */
+        .level-path {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 20px 0;
+        }
+        
+        .level-node {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            position: relative;
+            transition: transform 0.2s;
+        }
+        
+        .level-node:active {
+            transform: scale(0.95);
+        }
+        
+        .level-completed {
+            background: linear-gradient(135deg, #4CAF50, #8BC34A);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        
+        .level-current {
+            background: linear-gradient(135deg, #2196F3, #42A5F5);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        .level-locked {
+            background: #E0E0E0;
+            opacity: 0.6;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .level-line {
+            width: 4px;
+            height: 24px;
+            background: #E0E0E0;
+            border-radius: 2px;
+        }
+        
+        .level-line.completed {
+            background: linear-gradient(180deg, #4CAF50, #8BC34A);
+        }
+        
+        /* 宝箱 */
+        .chest {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #FFD54F, #FF6F00);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(255, 111, 0, 0.3);
+        }
+        
+        /* 底部导航 */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 16px;
+            color: #999;
+        }
+        
+        .nav-item.active {
+            color: #2196F3;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+        }
+        
+        .nav-text {
+            font-size: 11px;
+        }
+        
+        /* 棋盘界面 */
+        .board-screen {
+            display: none;
+        }
+        
+        .board-screen.active {
+            display: block;
+        }
+        
+        .board-header {
+            background: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .board-progress {
+            flex: 1;
+            height: 8px;
+            background: #E0E0E0;
+            border-radius: 4px;
+            margin: 0 16px;
+            overflow: hidden;
+        }
+        
+        .board-progress-fill {
+            height: 100%;
+            width: 40%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 4px;
+        }
+        
+        .lesson-title {
+            padding: 16px;
+            background: white;
+        }
+        
+        .lesson-tag {
+            display: inline-block;
+            background: #E3F2FD;
+            color: #2196F3;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .lesson-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        /* 棋盘 */
+        .board-container {
+            background: #D4A574;
+            padding: 16px;
+            margin: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        
+        .board {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 2px;
+            aspect-ratio: 9/10;
+        }
+        
+        .cell {
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .cell:hover {
+            background: rgba(255,255,255,0.5);
+        }
+        
+        .cell.selected {
+            background: rgba(33, 150, 243, 0.4);
+        }
+        
+        .piece-red {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #D32F2F, #B71C1C);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .piece-black {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #424242, #212121);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        /* 底部操作栏 */
+        .board-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px;
+            background: white;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 24px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-hint {
+            background: #F5F5F5;
+            color: #666;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+        
+        .content-area {
+            padding-bottom: 80px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 首页 - 章节列表 -->
+    <div id="homeScreen" class="home-screen">
+        <div class="header">
+            <div class="header-left">
+                <span class="back-btn">←</span>
+                <span style="font-weight: 700;">象棋大师</span>
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-icon fire">🔥</span>
+                    <span>5</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon gem">💎</span>
+                    <span>1,133</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon heart">∞</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main content-area">
+            <!-- Max角色 -->
+            <div class="max-container">
+                <div class="max-avatar">
+                    <div class="max-eyes">
+                        <div class="eye"></div>
+                        <div class="eye"></div>
+                    </div>
+                </div>
+                <div class="max-speech">
+                    <div class="max-text">嗨！我是 Max，你的象棋教练！今天从第一章开始学起吧～</div>
+                </div>
+            </div>
+            
+            <!-- 第一章 -->
+            <div class="chapter-card" onclick="showLevelPath()">
+                <div class="chapter-header">
+                    <span class="chapter-title">第一章：初识棋盘</span>
+                    <span class="chapter-badge">ELO分 0~200</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 60%"></div>
+                </div>
+                <div class="progress-text">6 / 10 关 <span class="trophy">🏆</span></div>
+            </div>
+            
+            <!-- 第二章 -->
+            <div class="chapter-card" style="opacity: 0.7;">
+                <div class="chapter-header">
+                    <span class="chapter-title">第二章：走子基础</span>
+                    <span class="chapter-badge">ELO分 200~500</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">0 / 10 关 🔒</div>
+            </div>
+            
+            <!-- 第三章 -->
+            <div class="chapter-card" style="opacity: 0.5;">
+                <div class="chapter-header">
+                    <span class="chapter-title">第三章：将帅安全</span>
+                    <span class="chapter-badge">ELO分 500~800</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">0 / 10 关 🔒</div>
+            </div>
+        </div>
+        
+        <div class="nav-bar">
+            <div class="nav-item active">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">学习</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon">🏆</span>
+                <span class="nav-text">段位</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon">👤</span>
+                <span class="nav-text">我的</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 章内 - 关卡路径 -->
+    <div id="levelScreen" class="level-screen" style="display: none;">
+        <div class="header">
+            <div class="header-left" onclick="showHome()">
+                <span class="back-btn">←</span>
+                <span style="font-weight: 700;">第一章：初识棋盘</span>
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-icon fire">🔥</span>
+                    <span>5</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon gem">💎</span>
+                    <span>1,133</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main content-area">
+            <div class="max-container">
+                <div class="max-avatar">
+                    <div class="max-eyes">
+                        <div class="eye"></div>
+                        <div class="eye"></div>
+                    </div>
+                </div>
+                <div class="max-speech">
+                    <div class="max-text">第7关是认识"马"！马走日字，记得吗？</div>
+                </div>
+            </div>
+            
+            <div class="level-path">
+                <div class="level-node level-completed">⭐</div>
+                <div class="level-line completed"></div>
+                <div class="level-node level-completed">⭐</div>
+                <div class="level-line completed"></div>
+                <div class="level-node level-completed">⭐</div>
+                <div class="level-line completed"></div>
+                <div class="level-node level-completed">⭐</div>
+                <div class="level-line completed"></div>
+                <div class="level-node level-completed">⭐</div>
+                <div class="level-line completed"></div>
+                <div class="level-node level-completed">⭐</div>
+                <div class="level-line"></div>
+                <div class="level-node level-current" onclick="showBoard()">🐴</div>
+                <div class="level-line"></div>
+                <div class="chest">🎁</div>
+                <div class="level-line"></div>
+                <div class="level-node level-locked">🔒</div>
+                <div class="level-line"></div>
+                <div class="level-node level-locked">🔒</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 关卡内 - 实战下棋 -->
+    <div id="boardScreen" class="board-screen">
+        <div class="board-header">
+            <span class="back-btn" onclick="showLevelPath()">←</span>
+            <div class="board-progress">
+                <div class="board-progress-fill"></div>
+            </div>
+            <span>⚡ ∞</span>
+        </div>
+        
+        <div class="lesson-title">
+            <span class="lesson-tag">💡 实战练习</span>
+            <div class="lesson-name">认识马：马走日</div>
+        </div>
+        
+        <div class="max-container" style="margin: 0 16px;">
+            <div class="max-avatar">
+                <div class="max-eyes">
+                    <div class="eye"></div>
+                    <div class="eye"></div>
+                </div>
+            </div>
+            <div class="max-speech">
+                <div class="max-text">试试把马走到"日"字对角的位置！</div>
+            </div>
+        </div>
+        
+        <div class="board-container">
+            <div class="board" id="board">
+                <!-- 棋盘格子 -->
+            </div>
+        </div>
+        
+        <div class="board-actions">
+            <button class="action-btn btn-hint">
+                <span>↩️</span>
+                <span>撤销</span>
+            </button>
+            <button class="action-btn btn-primary" onclick="showHint()">
+                <span>💡</span>
+                <span>小提示</span>
+            </button>
+            <button class="action-btn btn-hint">
+                <span>↪️</span>
+                <span>重做</span>
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // 初始化棋盘
+        function initBoard() {
+            const board = document.getElementById('board');
+            const pieces = [
+                ['', '', '', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', '', ''],
+                ['', '', '', '', '', '', '', '', ''],
+                ['', '', '', '', '馬', '', '', '', ''],
+                ['', '', '', '', '', '', '', '', '']
+            ];
+            
+            for (let row = 0; row < 10; row++) {
+                for (let col = 0; col < 9; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    
+                    const piece = pieces[row][col];
+                    if (piece) {
+                        const pieceEl = document.createElement('div');
+                        pieceEl.className = 'piece-red';
+                        pieceEl.textContent = piece;
+                        cell.appendChild(pieceEl);
+                    }
+                    
+                    cell.onclick = () => selectCell(cell);
+                    board.appendChild(cell);
+                }
+            }
+        }
+        
+        let selectedCell = null;
+        
+        function selectCell(cell) {
+            if (selectedCell) {
+                selectedCell.classList.remove('selected');
+            }
+            
+            if (cell.querySelector('.piece-red')) {
+                cell.classList.add('selected');
+                selectedCell = cell;
+            } else if (selectedCell) {
+                // 移动棋子
+                const piece = selectedCell.querySelector('.piece-red');
+                if (piece) {
+                    cell.appendChild(piece);
+                    selectedCell.classList.remove('selected');
+                    selectedCell = null;
+                    
+                    // 显示成功提示
+                    showSuccess();
+                }
+            }
+        }
+        
+        function showSuccess() {
+            const maxSpeech = document.querySelector('.board-screen .max-text');
+            maxSpeech.textContent = '太棒了！马走日，你学会了！🎉';
+            
+            setTimeout(() => {
+                alert('关卡完成！获得 10 宝石 💎');
+                showLevelPath();
+            }, 1500);
+        }
+        
+        function showHint() {
+            const maxSpeech = document.querySelector('.board-screen .max-text');
+            maxSpeech.textContent = '提示：马走"日"字，先横走或竖走一格，再斜走一格～';
+        }
+        
+        function showHome() {
+            document.getElementById('homeScreen').style.display = 'block';
+            document.getElementById('levelScreen').style.display = 'none';
+            document.getElementById('boardScreen').style.display = 'none';
+        }
+        
+        function showLevelPath() {
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('levelScreen').style.display = 'block';
+            document.getElementById('boardScreen').style.display = 'none';
+        }
+        
+        function showBoard() {
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('levelScreen').style.display = 'none';
+            document.getElementById('boardScreen').style.display = 'block';
+            initBoard();
+        }
+        
+        // 初始化
+        initBoard();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>象棋大师 - 章主题关局结构</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: #F5F5F5;
+            min-height: 100vh;
+        }
+        
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        /* ===== 第一层：章 ===== */
+        .header {
+            background: white;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .header-subtitle {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+        }
+        
+        .chapter-list {
+            padding: 16px;
+        }
+        
+        .chapter-item {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .chapter-item:active {
+            transform: scale(0.98);
+        }
+        
+        .chapter-item.locked {
+            opacity: 0.6;
+        }
+        
+        .chapter-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .chapter-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .chapter-status {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        
+        .chapter-status.completed {
+            background: #E8F5E9;
+            color: #4CAF50;
+        }
+        
+        .chapter-status.current {
+            background: #E3F2FD;
+            color: #2196F3;
+        }
+        
+        .chapter-status.locked {
+            background: #F5F5F5;
+            color: #999;
+        }
+        
+        .chapter-progress {
+            height: 8px;
+            background: #E0E0E0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+        
+        .chapter-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 4px;
+        }
+        
+        .chapter-info {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        /* ===== 第二层：主题 ===== */
+        .back-bar {
+            background: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .back-btn {
+            font-size: 20px;
+            color: #666;
+            cursor: pointer;
+        }
+        
+        .topic-grid {
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .topic-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .topic-card:active {
+            transform: scale(0.96);
+        }
+        
+        .topic-card.locked {
+            opacity: 0.5;
+        }
+        
+        .topic-number {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+        
+        .topic-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .topic-progress {
+            height: 6px;
+            background: #E0E0E0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .topic-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 3px;
+        }
+        
+        .topic-status-icon {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 16px;
+        }
+        
+        /* ===== 第三层：关 ===== */
+        .level-path {
+            padding: 20px;
+            min-height: calc(100vh - 60px);
+            background: linear-gradient(180deg, #F5F5F5 0%, #E8EAF6 100%);
+        }
+        
+        .level-path-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .level-path-subtitle {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 24px;
+        }
+        
+        .path-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .path-node-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .path-line {
+            width: 4px;
+            height: 20px;
+            background: #E0E0E0;
+            border-radius: 2px;
+        }
+        
+        .path-line.completed {
+            background: linear-gradient(180deg, #4CAF50, #8BC34A);
+        }
+        
+        .path-node {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .path-node.completed {
+            background: linear-gradient(135deg, #4CAF50, #8BC34A);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        
+        .path-node.current {
+            background: linear-gradient(135deg, #2196F3, #42A5F5);
+            box-shadow: 0 4px 16px rgba(33, 150, 243, 0.35);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .path-node.locked {
+            background: #E0E0E0;
+            opacity: 0.6;
+        }
+        
+        .path-node.chest {
+            background: linear-gradient(135deg, #FFD700, #FFA000);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+        
+        .node-icon {
+            font-size: 24px;
+        }
+        
+        .node-label {
+            font-size: 10px;
+            color: white;
+            font-weight: 600;
+            margin-top: 2px;
+            text-align: center;
+            padding: 0 4px;
+            line-height: 1.2;
+        }
+        
+        /* ===== 第四层：局 ===== */
+        .game-container {
+            background: white;
+            min-height: 100vh;
+        }
+        
+        .game-header {
+            background: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .breadcrumb {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .streak-display {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #FF6B35;
+        }
+        
+        .ju-progress-section {
+            padding: 16px;
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .ju-progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .ju-progress-title {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .ju-progress-count {
+            font-size: 14px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .ju-progress-bar {
+            height: 10px;
+            background: #E0E0E0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .ju-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+        
+        .level-info-card {
+            padding: 20px;
+            text-align: center;
+            background: white;
+        }
+        
+        .level-tag {
+            display: inline-block;
+            background: #E3F2FD;
+            color: #2196F3;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .level-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        
+        .level-desc {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        /* Max助手 */
+        .max-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-radius: 16px;
+            padding: 14px;
+            margin: 12px 16px;
+        }
+        
+        .max-avatar {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 50%;
+            border: 3px solid #2196F3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .max-eyes {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .max-eye {
+            width: 4px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+        }
+        
+        .max-speech {
+            background: white;
+            border-radius: 12px;
+            padding: 10px 14px;
+            position: relative;
+            flex: 1;
+        }
+        
+        .max-speech::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 8px solid transparent;
+            border-right-color: white;
+        }
+        
+        .max-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+        }
+        
+        /* 棋盘 */
+        .board-wrapper {
+            background: linear-gradient(135deg, #D4A574, #C49A6C);
+            padding: 10px;
+            margin: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+        }
+        
+        .board {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1.125;
+            background: #E8C9A0;
+        }
+        
+        .board-border {
+            position: absolute;
+            inset: 0;
+            border: 2px solid #8B6914;
+        }
+        
+        .grid-lines {
+            position: absolute;
+            inset: 0;
+        }
+        
+        .grid-line-h {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #8B6914;
+        }
+        
+        .grid-line-v {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: #8B6914;
+        }
+        
+        .palace {
+            position: absolute;
+            left: 37.5%;
+            width: 25%;
+            height: 22.22%;
+            border: 1px solid #8B6914;
+        }
+        
+        .palace-top { top: 0; }
+        .palace-bottom { bottom: 0; }
+        
+        .palace::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent 49.5%, #8B6914 49.5%, #8B6914 50.5%, transparent 50.5%),
+                        linear-gradient(-45deg, transparent 49.5%, #8B6914 49.5%, #8B6914 50.5%, transparent 50.5%);
+        }
+        
+        .river-area {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 44.44%;
+            height: 11.11%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .river-text {
+            font-size: 16px;
+            color: #8B6914;
+            font-weight: bold;
+            letter-spacing: 8px;
+        }
+        
+        .pieces-layer {
+            position: absolute;
+            inset: 0;
+        }
+        
+        .piece {
+            position: absolute;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.35), inset 0 2px 4px rgba(255,255,255,0.4);
+            z-index: 10;
+        }
+        
+        .piece.selected {
+            box-shadow: 0 0 0 4px #2196F3, 0 3px 12px rgba(0,0,0,0.35);
+        }
+        
+        .piece-red {
+            background: linear-gradient(135deg, #D32F2F, #B71C1C);
+            color: white;
+            border: 2px solid #FFCDD2;
+        }
+        
+        .piece-black {
+            background: linear-gradient(135deg, #424242, #212121);
+            color: white;
+            border: 2px solid #BDBDBD;
+        }
+        
+        .piece.target {
+            background: rgba(76, 175, 80, 0.25);
+            border: 2px dashed #4CAF50;
+        }
+        
+        .valid-move {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, #4CAF50, #2E7D32);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            animation: validPulse 1.2s infinite;
+            z-index: 5;
+        }
+        
+        @keyframes validPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.85; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.4; }
+        }
+        
+        /* 底部操作 */
+        .actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 16px;
+            box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 20px;
+            border-radius: 24px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-secondary {
+            background: #F5F5F5;
+            color: #666;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+        
+        /* 弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 28px 24px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+        }
+        
+        .modal-icon {
+            font-size: 56px;
+            margin-bottom: 12px;
+        }
+        
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .modal-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+        
+        .btn-modal {
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        /* 宝箱弹窗 */
+        .chest-modal .modal-content {
+            background: linear-gradient(135deg, #FFD700, #FFA000);
+        }
+        
+        .chest-reward {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        
+        .reward-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        /* 关完成统计弹窗 */
+        .stats-container {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            flex: 1;
+            background: #F5F5F5;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .shake {
+            animation: shake 0.4s ease;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 第一层：章 -->
+    <div class="screen active" id="chapterScreen">
+        <div class="header">
+            <div class="header-title">象棋大师</div>
+            <div class="header-subtitle">选择章节开始学习</div>
+        </div>
+        
+        <div class="chapter-list" id="chapterList"></div>
+    </div>
+    
+    <!-- 第二层：主题 -->
+    <div class="screen" id="topicScreen">
+        <div class="back-bar">
+            <span class="back-btn" onclick="backToChapters()">←</span>
+            <span style="font-weight: 700;" id="topicHeaderTitle">第一章</span>
+        </div>
+        
+        <div class="topic-grid" id="topicGrid"></div>
+    </div>
+    
+    <!-- 第三层：关 -->
+    <div class="screen" id="levelScreen">
+        <div class="back-bar">
+            <span class="back-btn" onclick="backToTopics()">←</span>
+            <span style="font-weight: 700;" id="levelHeaderTitle">棋子移动</span>
+        </div>
+        
+        <div class="level-path">
+            <div class="level-path-title" id="pathTitle"></div>
+            <div class="level-path-subtitle">共9关，完成学习所有棋子移动</div>
+            
+            <div class="path-container" id="pathContainer"></div>
+        </div>
+    </div>
+    
+    <!-- 第四层：局 -->
+    <div class="screen" id="gameScreen">
+        <div class="game-header">
+            <div class="breadcrumb" id="breadcrumb">第一章 · 棋子移动 · 移动车</div>
+            <div class="streak-display">
+                <span>🔥</span>
+                <span>3</span>
+            </div>
+        </div>
+        
+        <div class="ju-progress-section">
+            <div class="ju-progress-header">
+                <span class="ju-progress-title">本关进度</span>
+                <span class="ju-progress-count"><span id="currentJu">1</span> / <span id="totalJu">8</span> 局</span>
+            </div>
+            <div class="ju-progress-bar">
+                <div class="ju-progress-fill" id="juProgressFill" style="width: 12.5%"></div>
+            </div>
+        </div>
+        
+        <div class="level-info-card">
+            <div class="level-tag" id="juTag">📚 教学</div>
+            <div class="level-name" id="juName">横向移动</div>
+            <div class="level-desc" id="juDesc">学习车的横向移动</div>
+        </div>
+        
+        <div class="max-container">
+            <div class="max-avatar">
+                <div class="max-eyes">
+                    <div class="max-eye"></div>
+                    <div class="max-eye"></div>
+                </div>
+            </div>
+            <div class="max-speech">
+                <div class="max-text" id="maxText">车可以横着走任意格！点击车，向右移动到目标位置！</div>
+            </div>
+        </div>
+        
+        <div class="board-wrapper">
+            <div class="board" id="board">
+                <div class="board-border"></div>
+                <div class="grid-lines" id="gridLines"></div>
+                <div class="palace palace-top"></div>
+                <div class="palace palace-bottom"></div>
+                <div class="river-area">
+                    <span class="river-text">楚 河 汉 界</span>
+                </div>
+                <div class="pieces-layer" id="piecesLayer"></div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button class="action-btn btn-secondary" onclick="resetGame()">
+                <span>↩️</span>
+                <span>重置</span>
+            </button>
+            <button class="action-btn btn-primary" onclick="showHint()">
+                <span>💡</span>
+                <span>提示</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- 单局成功弹窗 -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <div class="modal-icon">🎉</div>
+            <div class="modal-title">太棒了！</div>
+            <div class="modal-text" id="successText">第1局完成！</div>
+            <button class="btn-modal" onclick="nextJu()">继续 →</button>
+        </div>
+    </div>
+    
+    <!-- 宝箱弹窗 -->
+    <div class="modal chest-modal" id="chestModal">
+        <div class="modal-content">
+            <div class="modal-icon">🎁</div>
+            <div class="modal-title" style="color: white;">恭喜获得宝箱！</div>
+            <div class="chest-reward">
+                <div class="reward-item">
+                    <span>💎</span>
+                    <span>+50 宝石</span>
+                </div>
+            </div>
+            <button class="btn-modal" onclick="closeChest()">太棒了！</button>
+        </div>
+    </div>
+    
+    <!-- 关完成统计弹窗 -->
+    <div class="modal" id="levelCompleteModal">
+        <div class="modal-content">
+            <div class="modal-icon">🏆</div>
+            <div class="modal-title">移动车 完成！</div>
+            <div class="modal-text">恭喜你完成了本关的所有局</div>
+            
+            <div class="stats-container">
+                <div class="stat-item">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-value">+80</div>
+                    <div class="stat-label">经验</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">胜率</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-value">2:30</div>
+                    <div class="stat-label">时间</div>
+                </div>
+            </div>
+            
+            <button class="btn-modal" onclick="backToLevelPath()">返回关卡 →</button>
+        </div>
+    </div>
+    
+    <script>
+        // ===== 数据结构 =====
+        const gameData = {
+            chapters: [
+                {
+                    id: 1,
+                    name: "第一章：初识棋盘",
+                    themeCount: 6,
+                    themes: [
+                        { id: 1, name: "棋子移动", progress: 0 },
+                        { id: 2, name: "吃子与攻击", progress: 0, locked: true },
+                        { id: 3, name: "保护你的棋子", progress: 0, locked: true },
+                        { id: 4, name: "将军", progress: 0, locked: true },
+                        { id: 5, name: "保护将和帅", progress: 0, locked: true },
+                        { id: 6, name: "开始对弈", progress: 0, locked: true }
+                    ]
+                },
+                { id: 2, name: "第二章：走子基础", themeCount: 18, locked: true },
+                { id: 3, name: "第三章：将帅安全", themeCount: 12, locked: true },
+                { id: 4, name: "第四章：基本战术", themeCount: 15, locked: true },
+                { id: 5, name: "第五章：基本杀法", themeCount: 15, locked: true },
+                { id: 6, name: "第六章：开局技巧", themeCount: 12, locked: true },
+                { id: 7, name: "第七章：中局技巧", themeCount: 15, locked: true },
+                { id: 8, name: "第八章：残局基础", themeCount: 12, locked: true },
+                { id: 9, name: "第九章：经典残局", themeCount: 10, locked: true },
+                { id: 10, name: "第十章：名局赏析", themeCount: 8, locked: true }
+            ]
+        };
+        
+        // 第一主题"棋子移动"的9关
+        const topic1Levels = [
+            { id: 1, name: "移动车", icon: "♖", juCount: 8, type: "normal" },
+            { id: 2, name: "移动炮", icon: "♖", juCount: 8, type: "normal" },
+            { id: 3, name: "宝箱", icon: "🎁", juCount: 0, type: "chest" },
+            { id: 4, name: "移动马", icon: "♘", juCount: 10, type: "normal" },
+            { id: 5, name: "移动兵卒", icon: "♙", juCount: 8, type: "normal" },
+            { id: 6, name: "移动士象", icon: "♗", juCount: 8, type: "normal" },
+            { id: 7, name: "宝箱", icon: "🎁", juCount: 0, type: "chest" },
+            { id: 8, name: "移动将帅", icon: "♔", juCount: 8, type: "normal" },
+            { id: 9, name: "掌握移动", icon: "🏆", juCount: 12, type: "exam" }
+        ];
+        
+        // 第1关"移动车"的8局
+        const level1Jus = [
+            { id: 1, name: "横向移动", desc: "学习车的横向移动", type: "教学", piece: "車", from: {x: 1, y: 8}, to: {x: 5, y: 8} },
+            { id: 2, name: "纵向移动", desc: "学习车的纵向移动", type: "教学", piece: "車", from: {x: 4, y: 8}, to: {x: 4, y: 4} },
+            { id: 3, name: "到达目标", desc: "将车移动到目标位置", type: "练习", piece: "車", from: {x: 0, y: 8}, to: {x: 7, y: 8} },
+            { id: 4, name: "躲避障碍", desc: "绕过障碍到达目标", type: "练习", piece: "車", from: {x: 0, y: 8}, to: {x: 8, y: 8}, obstacles: [{x: 3, y: 8}] },
+            { id: 5, name: "吃子练习", desc: "用车吃掉对方的兵", type: "练习", piece: "車", from: {x: 1, y: 8}, to: {x: 1, y: 5}, capture: {x: 1, y: 5, piece: "卒"} },
+            { id: 6, name: "综合移动", desc: "完成复杂的移动路线", type: "巩固", piece: "車", from: {x: 0, y: 9}, to: {x: 8, y: 0} },
+            { id: 7, name: "限时挑战", desc: "在时间内完成移动", type: "巩固", piece: "車", from: {x: 4, y: 9}, to: {x: 4, y: 0} },
+            { id: 8, name: "综合测试", desc: "测试车的移动掌握", type: "考试", piece: "車", from: {x: 0, y: 8}, to: {x: 8, y: 0} }
+        ];
+        
+        let currentChapter = null;
+        let currentTopic = null;
+        let currentLevel = null;
+        let currentJuIndex = 0;
+        let completedJus = [];
+        
+        // ===== 初始化 =====
+        function init() {
+            renderChapters();
+        }
+        
+        // ===== 第一层：章 =====
+        function renderChapters() {
+            const container = document.getElementById('chapterList');
+            container.innerHTML = '';
+            
+            gameData.chapters.forEach((chapter, index) => {
+                const item = document.createElement('div');
+                item.className = `chapter-item ${chapter.locked ? 'locked' : ''}`;
+                
+                const progress = chapter.locked ? 0 : (index === 0 ? 0 : 100);
+                const statusClass = chapter.locked ? 'locked' : (index === 0 ? 'current' : 'completed');
+                const statusText = chapter.locked ? '🔒 锁定' : (index === 0 ? '▶ 进行中' : '✓ 已完成');
+                
+                item.innerHTML = `
+                    <div class="chapter-header-row">
+                        <span class="chapter-name">${chapter.name}</span>
+                        <span class="chapter-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="chapter-progress">
+                        <div class="chapter-progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="chapter-info">${chapter.themeCount} 个主题</div>
+                `;
+                
+                if (!chapter.locked) {
+                    item.onclick = () => enterChapter(chapter);
+                }
+                
+                container.appendChild(item);
+            });
+        }
+        
+        function enterChapter(chapter) {
+            currentChapter = chapter;
+            document.getElementById('chapterScreen').classList.remove('active');
+            document.getElementById('topicScreen').classList.add('active');
+            document.getElementById('topicHeaderTitle').textContent = chapter.name;
+            renderTopics();
+        }
+        
+        function backToChapters() {
+            document.getElementById('topicScreen').classList.remove('active');
+            document.getElementById('chapterScreen').classList.add('active');
+        }
+        
+        // ===== 第二层：主题 =====
+        function renderTopics() {
+            const container = document.getElementById('topicGrid');
+            container.innerHTML = '';
+            
+            currentChapter.themes.forEach((topic, index) => {
+                const card = document.createElement('div');
+                card.className = `topic-card ${topic.locked ? 'locked' : ''}`;
+                
+                const statusIcon = topic.locked ? '🔒' : (topic.progress === 100 ? '✓' : '▶');
+                
+                card.innerHTML = `
+                    <div class="topic-status-icon">${statusIcon}</div>
+                    <div class="topic-number">主题 ${index + 1}</div>
+                    <div class="topic-name">${topic.name}</div>
+                    <div class="topic-progress">
+                        <div class="topic-progress-fill" style="width: ${topic.progress}%"></div>
+                    </div>
+                `;
+                
+                if (!topic.locked) {
+                    card.onclick = () => enterTopic(topic);
+                }
+                
+                container.appendChild(card);
+            });
+        }
+        
+        function enterTopic(topic) {
+            currentTopic = topic;
+            document.getElementById('topicScreen').classList.remove('active');
+            document.getElementById('levelScreen').classList.add('active');
+            document.getElementById('levelHeaderTitle').textContent = topic.name;
+            document.getElementById('pathTitle').textContent = `${currentChapter.name.split('：')[0]} · ${topic.name}`;
+            renderLevels();
+        }
+        
+        function backToTopics() {
+            document.getElementById('levelScreen').classList.remove('active');
+            document.getElementById('topicScreen').classList.add('active');
+        }
+        
+        // ===== 第三层：关 =====
+        function renderLevels() {
+            const container = document.getElementById('pathContainer');
+            container.innerHTML = '';
+            
+            topic1Levels.forEach((level, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'path-node-wrapper';
+                
+                if (index > 0) {
+                    const line = document.createElement('div');
+                    line.className = 'path-line';
+                    wrapper.appendChild(line);
+                }
+                
+                const node = document.createElement('div');
+                node.className = 'path-node';
+                
+                if (level.type === 'chest') {
+                    node.classList.add('chest');
+                } else if (index === 0) {
+                    node.classList.add('current');
+                } else {
+                    node.classList.add('locked');
+                }
+                
+                node.innerHTML = `
+                    <span class="node-icon">${level.icon}</span>
+                    ${level.type !== 'chest' ? `<span class="node-label">${level.name}</span>` : ''}
+                `;
+                
+                node.onclick = () => enterLevel(level);
+                wrapper.appendChild(node);
+                container.appendChild(wrapper);
+            });
+        }
+        
+        function enterLevel(level) {
+            if (level.type === 'chest') {
+                document.getElementById('chestModal').classList.add('show');
+                return;
+            }
+            
+            currentLevel = level;
+            currentJuIndex = 0;
+            completedJus = [];
+            document.getElementById('levelScreen').classList.remove('active');
+            document.getElementById('gameScreen').classList.add('active');
+            
+            document.getElementById('breadcrumb').textContent = 
+                `${currentChapter.name.split('：')[0]} · ${currentTopic.name} · ${level.name}`;
+            
+            renderJu();
+        }
+        
+        function backToLevelPath() {
+            document.getElementById('levelCompleteModal').classList.remove('show');
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('levelScreen').classList.add('active');
+        }
+        
+        // ===== 第四层：局 =====
+        function renderJu() {
+            const ju = level1Jus[currentJuIndex];
+            
+            document.getElementById('currentJu').textContent = currentJuIndex + 1;
+            document.getElementById('totalJu').textContent = currentLevel.juCount;
+            document.getElementById('juProgressFill').style.width = ((currentJuIndex + 1) / currentLevel.juCount * 100) + '%';
+            
+            const typeLabels = { '教学': '📚 教学', '练习': '✏️ 练习', '巩固': '💪 巩固', '考试': '📝 考试' };
+            document.getElementById('juTag').textContent = typeLabels[ju.type];
+            document.getElementById('juName').textContent = ju.name;
+            document.getElementById('juDesc').textContent = ju.desc;
+            document.getElementById('maxText').textContent = `车可以横着或竖着走任意格！点击${ju.piece}，移动到目标位置！`;
+            
+            renderBoard();
+            renderPieces(ju);
+        }
+        
+        function renderBoard() {
+            const gridLines = document.getElementById('gridLines');
+            gridLines.innerHTML = '';
+            
+            for (let i = 0; i <= 9; i++) {
+                const line = document.createElement('div');
+                line.className = 'grid-line-h';
+                line.style.top = (i * 11.11) + '%';
+                gridLines.appendChild(line);
+            }
+            
+            for (let i = 0; i <= 8; i++) {
+                const line1 = document.createElement('div');
+                line1.className = 'grid-line-v';
+                line1.style.left = (i * 12.5) + '%';
+                line1.style.top = '0';
+                line1.style.height = '44.44%';
+                gridLines.appendChild(line1);
+                
+                const line2 = document.createElement('div');
+                line2.className = 'grid-line-v';
+                line2.style.left = (i * 12.5) + '%';
+                line2.style.top = '55.55%';
+                line2.style.height = '44.45%';
+                gridLines.appendChild(line2);
+            }
+        }
+        
+        function renderPieces(ju) {
+            const layer = document.getElementById('piecesLayer');
+            layer.innerHTML = '';
+            
+            // 主棋子
+            const piece = document.createElement('div');
+            piece.className = 'piece piece-red';
+            piece.textContent = ju.piece;
+            piece.style.left = (ju.from.x * 12.5) + '%';
+            piece.style.top = (ju.from.y * 11.11) + '%';
+            piece.onclick = (e) => selectPiece(e, ju.from.x, ju.from.y);
+            layer.appendChild(piece);
+            
+            // 目标
+            const target = document.createElement('div');
+            target.className = 'piece target';
+            target.style.left = (ju.to.x * 12.5) + '%';
+            target.style.top = (ju.to.y * 11.11) + '%';
+            target.onclick = () => moveToTarget(ju.to);
+            layer.appendChild(target);
+            
+            // 障碍或吃子目标
+            if (ju.obstacles) {
+                ju.obstacles.forEach(obs => {
+                    const obsPiece = document.createElement('div');
+                    obsPiece.className = 'piece piece-black';
+                    obsPiece.textContent = '兵';
+                    obsPiece.style.left = (obs.x * 12.5) + '%';
+                    obsPiece.style.top = (obs.y * 11.11) + '%';
+                    layer.appendChild(obsPiece);
+                });
+            }
+            
+            if (ju.capture) {
+                const capPiece = document.createElement('div');
+                capPiece.className = 'piece piece-black';
+                capPiece.textContent = ju.capture.piece;
+                capPiece.style.left = (ju.capture.x * 12.5) + '%';
+                capPiece.style.top = (ju.capture.y * 11.11) + '%';
+                layer.appendChild(capPiece);
+            }
+        }
+        
+        let selectedPiece = null;
+        let validMoves = [];
+        
+        function selectPiece(e, x, y) {
+            e.stopPropagation();
+            document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+            document.querySelectorAll('.valid-move').forEach(m => m.remove());
+            
+            const piece = e.target;
+            piece.classList.add('selected');
+            selectedPiece = { x, y, element: piece };
+            
+            // 车的移动范围
+            validMoves = [];
+            for (let i = 0; i <= 8; i++) {
+                if (i !== x) validMoves.push({ x: i, y: y });
+            }
+            for (let i = 0; i <= 9; i++) {
+                if (i !== y) validMoves.push({ x: x, y: i });
+            }
+            
+            showValidMoves(validMoves);
+        }
+        
+        function showValidMoves(moves) {
+            const layer = document.getElementById('piecesLayer');
+            moves.forEach(move => {
+                const indicator = document.createElement('div');
+                indicator.className = 'valid-move';
+                indicator.style.left = (move.x * 12.5) + '%';
+                indicator.style.top = (move.y * 11.11) + '%';
+                layer.appendChild(indicator);
+            });
+        }
+        
+        function moveToTarget(target) {
+            if (!selectedPiece) return;
+            
+            const isValid = validMoves.some(m => m.x === target.x && m.y === target.y);
+            
+            if (!isValid) {
+                document.querySelector('.board-wrapper').classList.add('shake');
+                setTimeout(() => {
+                    document.querySelector('.board-wrapper').classList.remove('shake');
+                }, 400);
+                return;
+            }
+            
+            selectedPiece.element.style.left = (target.x * 12.5) + '%';
+            selectedPiece.element.style.top = (target.y * 11.11) + '%';
+            
+            document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+            document.querySelectorAll('.valid-move').forEach(m => m.remove());
+            
+            setTimeout(() => {
+                document.getElementById('successText').textContent = `第${currentJuIndex + 1}局完成！`;
+                document.getElementById('successModal').classList.add('show');
+            }, 300);
+        }
+        
+        function nextJu() {
+            document.getElementById('successModal').classList.remove('show');
+            completedJus.push(currentJuIndex);
+            
+            if (currentJuIndex + 1 < currentLevel.juCount) {
+                currentJuIndex++;
+                renderJu();
+            } else {
+                // 关完成，显示统计
+                document.getElementById('levelCompleteModal').classList.add('show');
+            }
+        }
+        
+        function closeChest() {
+            document.getElementById('chestModal').classList.remove('show');
+        }
+        
+        function resetGame() {
+            selectedPiece = null;
+            validMoves = [];
+            document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+            document.querySelectorAll('.valid-move').forEach(m => m.remove());
+            renderJu();
+        }
+        
+        function showHint() {
+            document.getElementById('maxText').textContent = '提示：车可以横着或竖着走，点击车看看能走到哪里！';
+        }
+        
+        init();
+    </script>
+</body>
+</html>

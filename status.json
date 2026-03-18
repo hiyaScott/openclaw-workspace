@@ -1,0 +1,10 @@
+{
+  "status": "ready",
+  "status_text": "运行中",
+  "since": "2026-03-15T01:11:00+08:00",
+  "current_task": "文件传输服务已上线",
+  "last_heartbeat": "2026-03-15T01:10:00+08:00",
+  "session_uptime": "active",
+  "channel": "feishu",
+  "model": "kimi-coding/k2p5"
+}

@@ -1,0 +1,34 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8yvxg3ulq3a"]
+
+[ext_resource type="Script" path="res://src/game.gd" id="1_game"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_game")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+anchor_mode = 0
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="UI"]
+offset_left = 420.0
+offset_top = 20.0
+offset_right = 780.0
+offset_bottom = 100.0
+theme_override_font_sizes/font_size = 24
+text = "扫雷
+
+左键：揭开
+右键：标记旗帜
+R：重新开始
+
+地雷数：15"
+horizontal_alignment = 0
+
+[node name="ColorRect" type="ColorRect" parent="UI"]
+z_index = -1
+offset_left = 410.0
+offset_top = 10.0
+offset_right = 790.0
+offset_bottom = 400.0
+color = Color(0.2, 0.2, 0.2, 1)

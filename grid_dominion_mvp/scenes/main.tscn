@@ -1,0 +1,27 @@
+[gd_scene load_steps=6 format=3 uid="uid://main123456"]
+
+[ext_resource type="Script" path="res://src/game_manager.gd" id="1_game_manager"]
+[ext_resource type="PackedScene" uid="uid://c8yvxg3ulq3a" path="res://scenes/grid_system.tscn" id="2_grid_system"]
+[ext_resource type="PackedScene" uid="uid://player12345" path="res://scenes/player.tscn" id="3_player"]
+[ext_resource type="PackedScene" uid="uid://ui12345678" path="res://scenes/ui.tscn" id="4_ui"]
+
+[sub_resource type="Environment" id="Environment_bg"]
+background_mode = 3
+background_color = Color(0.05, 0.05, 0.08, 1.0)
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_game_manager")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_bg")
+
+[node name="GridSystem" parent="." instance=ExtResource("2_grid_system")]
+
+[node name="Player" parent="." instance=ExtResource("3_player")]
+
+[node name="EnemyContainer" type="Node2D" parent="."]
+
+[node name="UI" parent="." instance=ExtResource("4_ui")]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+anchor_mode = 0

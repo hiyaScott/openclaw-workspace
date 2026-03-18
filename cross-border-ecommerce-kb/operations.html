@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>运营操作手册 | 跨境电商知识库</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .header h1 { font-size: 2rem; margin-bottom: 10px; }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+        
+        .back-link:hover { opacity: 1; }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .section {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .section h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .section h3 {
+            margin: 25px 0 15px;
+            color: var(--text);
+        }
+        
+        .checklist {
+            list-style: none;
+        }
+        
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .checklist li::before {
+            content: "☐";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        .checklist li.done::before {
+            content: "✓";
+            color: var(--success);
+        }
+        
+        .faq-item {
+            background: var(--bg);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .faq-item h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .faq-item p {
+            color: var(--text-light);
+        }
+        
+        .warning-box {
+            background: #fee2e2;
+            border-left: 4px solid var(--danger);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .tip-box {
+            background: #dbeafe;
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .success-box {
+            background: #d1fae5;
+            border-left: 4px solid var(--success);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background: var(--bg);
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        
+        .nav-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .nav-footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .nav-footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>⚙️ 运营操作手册</h1>
+        <p>日常运营清单、合规要点、常见问题解答</p>
+        <a href="index.html" class="back-link">← 返回首页</a>
+    </header>
+    
+    <main class="container">
+        <div class="section">
+            <h2>📋 日常运营清单</h2>
+            
+            <h3>每日必做</h3>
+            
+<ul class="checklist">
+                <li>处理订单（24小时内发货）</li>
+                <li>回复客户咨询（24小时内）</li>
+                <li>检查库存（避免断货）</li>
+                <li>查看数据（访客、转化、广告）</li>
+                <li>跟进物流异常</li>
+            </ul>
+            
+            <h3>每周必做</h3>
+            
+<ul class="checklist">
+                <li>分析热销/滞销品</li>
+                <li>优化Listing（标题、图片、描述）</li>
+                <li>调整广告（暂停低效广告，放大高效广告）</li>
+                <li>跟进物流异常订单</li>
+                <li>检查竞争对手动态</li>
+            </ul>
+            
+            <h3>每月必做</h3>
+            
+<ul class="checklist">
+                <li>财务报表（收入、成本、利润）</li>
+                <li>供应商评估（发货速度、质量、售后）</li>
+                <li>选品上新（5-10个新品）</li>
+                <li>竞品分析（价格、新品、策略）</li>
+                <li>库存盘点</li>
+            </ul>
+        </div>
+        
+        
+        
+        <div class="section">
+            <h2>⚖️ 合规要点</h2>
+            
+            <div class="warning-box">
+                <strong>2025年合规重点：</strong><br>
+                • 中国《2025年第15号公告》：电商平台需报送卖家涉税信息<br>
+                • 15号文、17号文：跨境电商税务合规<br>
+                • 银行"冻卡潮"：避免私账收款
+            </div>
+            
+            <h3>合规建议</h3>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>方面</th>
+                        <th>建议</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>主体注册</strong></td>
+                        <td>注册个体户或有限公司，正规经营</td>
+                    </tr>
+                    <tr>
+                        <td><strong>报关方式</strong></td>
+                        <td>使用9610/9710/9810模式正规报关</td>
+                    </tr>
+                    <tr>
+                        <td><strong>收款方式</strong></td>
+                        <td>使用对公账户，避免私账收款</td>
+                    </tr>
+                    <tr>
+                        <td><strong>税务申报</strong></td>
+                        <td>按时报税，保留进货发票</td>
+                    </tr>
+                    <tr>
+                        <td><strong>知识产权</strong></td>
+                        <td>避免侵权，原创设计或正规授权</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        
+        
+        <div class="section">
+            <h2>🛡️ 常见风险与规避</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>风险</th>
+                        <th>后果</th>
+                        <th>规避方法</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>侵权</strong></td>
+                        <td>店铺被封、罚款</td>
+                        <td>专利查询、原创设计</td>
+                    </tr>
+                    <tr>
+                        <td><strong>假货投诉</strong></td>
+                        <td>链接下架、封号</td>
+                        <td>正规渠道采购、保留凭证</td>
+                    </tr>
+                    <tr>
+                        <td><strong>物流丢件</strong></td>
+                        <td>退款、差评</td>
+                        <td>买保险、选择可靠物流</td>
+                    </tr>
+                    <tr>
+                        <td><strong>汇率波动</strong></td>
+                        <td>利润缩水</td>
+                        <td>锁汇、多币种账户</td>
+                    </tr>
+                    <tr>
+                        <td><strong>平台封号</strong></td>
+                        <td>资金冻结</td>
+                        <td>多平台布局、分散风险</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        
+        
+        <div class="section">
+            <h2>❓ 常见问题 FAQ</h2>
+            
+            <div class="faq-item">
+                <h4>Q1：无货源模式还能做吗？</h4>
+                <p>可以，但竞争加剧，需要精细化运营，选品和运营能力是关键。建议从低成本平台（Shopee/速卖通）开始。</p>
+            </div>
+            
+            <div class="faq-item">
+                <h4>Q2：启动资金需要多少？</h4>
+                <p>最低5000元（Shopee/速卖通），独立站2-3万，亚马逊5-10万。建议新手从最低成本开始。</p>
+            </div>
+            
+            <div class="faq-item">
+                <h4>Q3：一个人能做吗？</h4>
+                <p>可以，建议从Shopee/速卖通开始，熟练后再拓展。每天需要2-3小时投入。</p>
+            </div>
+            
+            <div class="faq-item">
+                <h4>Q4：多久能盈利？</h4>
+                <p>一般3-6个月，取决于选品、运营能力和投入程度。前3个月主要是学习和测试期。</p>
+            </div>
+            
+            <div class="faq-item">
+                <h4>Q5：需要英语很好吗？</h4>
+                <p>不需要，翻译工具+ChatGPT足够应对日常运营。但基础英语有助于理解平台规则和客户沟通。</p>
+            </div>
+            
+            <div class="faq-item">
+                <h4>Q6：1688货源怎么解决英文包装？</h4>
+                <p>初期用透明包装或无品牌包装，长期合作后可与供应商谈定制英文包装，通常需要额外付费。</p>
+            </div>
+            
+            <div class="faq-item">
+                <h4>Q7：客户退换货怎么处理？</h4>
+                <p>小额订单（<$20）直接退款（不退货），节省运费成本。大额订单协商退货到海外仓或提供部分退款。</p>
+            </div>
+            
+            <div class="faq-item">
+                <h4>Q8：如何防止供应商跳单？</h4>
+                <p>建立长期关系、签订保密协议、多个供应商备选。不要过度依赖单一供应商。</p>
+            </div>
+        </div>
+        
+        
+        
+        <div class="section">
+            <h2>💡 成功经验</h2>
+            
+            <div class="success-box">
+                <strong>选品成功法则：</strong><br>
+                "七分选品，三分运营" - 花时间研究市场，找到真正有需求且竞争小的产品，比盲目投放广告更重要。
+            </div>
+            
+            <div class="success-box">
+                <strong>客户服务重要性：</strong><br>
+                及时回复客户咨询，主动解决问题，积累好评。好评率是平台排名和转化率的关键因素。
+            </div>
+            
+            <div class="success-box">
+                <strong>持续学习：</strong><br>
+                跨境电商变化快，平台政策、市场趋势、运营技巧都在不断更新。保持学习心态，关注行业动态。
+            </div>
+            
+            <div class="tip-box">
+                <strong>给新手的建议：</strong><br>
+                1. 先完成再完美，不要等所有条件都准备好再开始<br>
+                2. 小步快跑，快速测试，快速迭代<br>
+                3. 数据驱动，用数据指导决策<br>
+                4. 保持耐心，跨境电商是长期生意，不是一夜暴富
+            </div>
+        </div>
+        
+        
+        
+        <div class="nav-footer">
+            <a href="traffic.html">← 引流推广</a>
+            <a href="tools.html">工具推荐 →</a>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,61 @@
+{
+  "id": 10,
+  "name": "终极挑战",
+  "description": "三步连续操作",
+  "juIndex": 10,
+  "multiStep": true,
+  "pieces": [
+    {
+      "type": 0,
+      "side": 0,
+      "name": "马",
+      "x": 4,
+      "y": 7
+    },
+    {
+      "type": 1,
+      "side": 1,
+      "name": "车",
+      "x": 4,
+      "y": 3
+    },
+    {
+      "type": 6,
+      "side": 1,
+      "name": "卒",
+      "x": 5,
+      "y": 3
+    }
+  ],
+  "steps": [
+    {
+      "target": [
+        {"x": 2, "y": 6}
+      ],
+      "hintType": "none",
+      "hintText": "终极挑战！需要走三步：移动→躲避→吃子！",
+      "msg": "第一步完成！继续移动！"
+    },
+    {
+      "target": [
+        {"x": 4, "y": 5}
+      ],
+      "hintType": "none",
+      "hintText": "继续！",
+      "msg": "第二步完成！最后一步吃子！"
+    },
+    {
+      "target": [
+        {"x": 5, "y": 3}
+      ],
+      "hintType": "none",
+      "hintText": "最后一步！",
+      "msg": "恭喜！你完全掌握了马的走法！"
+    }
+  ],
+  "successText": "通关！",
+  "starConditions": {
+    "firstTry": true,
+    "withinTime": 60
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "heroes": [
+    {
+      "id": "elwin",
+      "name": "艾尔文",
+      "name_en": "Elwin",
+      "rarity": "SSR",
+      "factions": ["光辉军团", "光之起源", "主角光环"],
+      "role": "超绝手/剑士",
+      "tags": ["超绝", "再动", "光辉核心"],
+      "core_mechanics": ["超绝强化", "再动输出"],
+      "awakening_skill": {
+        "name": "永恒的光辉",
+        "type": "物理伤害",
+        "cooldown": "5回合",
+        "range": "1格",
+        "effect": "被动：每场战斗开始及友军死亡时，光辉军团友军攻防提升，战斗中造成伤害提升15%，每有1名友军死亡额外提升3%，最大提升12%，持续4回合。主动：攻击单个敌军，造成1.8倍伤害，战前驱散敌军5个强化效果，使敌军被动技能失效2回合，战后使目标无法被治疗2回合"
+      },
+      "heart_bonds": {
+        "lv4": {
+          "hero": "部队血量高于80%时，进入战斗后遭受伤害降低10%",
+          "grand_marshal": "与血量百分比低于自身的部队交战时，进入战斗后遭受伤害降低10%",
+          "light_dragon": "主动攻击进入战斗时，部队遭受伤害降低10%"
+        },
+        "lv7": {
+          "hero": "部队血量高于80%时，进入战斗后伤害提升10%",
+          "grand_marshal": "与血量百分比低于自身的部队交战时，进入战斗后伤害提升10%",
+          "light_dragon": "部队血量低于70%时，伤害提升10%"
+        }
+      }
+    },
+    {
+      "id": "leon",
+      "name": "利昂",
+      "name_en": "Leon",
+      "rarity": "SSR",
+      "factions": ["帝国之辉", "战略大师"],
+      "role": "骑士/突击",
+      "tags": ["再动", "骑士精神", "萌新之友"],
+      "core_mechanics": ["骑士精神", "攻击后移动", "破护卫"],
+      "talent": "六星天赋最高增加20%伤害，增加100%防御，攻击后可移动3格",
+      "key_skills": [
+        {"name": "骑士精神", "effect": "提升30%攻击并附加免疫弱化、减伤、回血，施放后可再次攻击"},
+        {"name": "突击", "effect": "最高1.6倍伤害"},
+        {"name": "猛撞", "effect": "1.4倍伤害，破护卫"},
+        {"name": "青龙破阵", "effect": "1.7倍+0.3AOE伤害，破护卫"}
+      ]
+    },
+    {
+      "id": "shelly",
+      "name": "雪莉",
+      "name_en": "Shelly",
+      "rarity": "SSR",
+      "factions": ["光辉军团", "公主联盟"],
+      "role": "飞兵/再动输出",
+      "tags": ["再动", "萌新之友", "开局赠送"],
+      "core_mechanics": ["击杀再动", "落跑公主", "迅雷再动"],
+      "talent": "落跑公主：周围无友军时减伤，击杀敌人后可再次行动",
+      "growth": {
+        "attack": "S",
+        "magic_def": "A",
+        "crit": "A",
+        "mobility": 5
+      },
+      "key_skills": [
+        {"name": "雷光", "effect": "击杀敌军无CD"},
+        {"name": "迅雷", "effect": "伤害+20%概率再动"}
+      ]
+    },
+    {
+      "id": "tiaris",
+      "name": "蒂亚莉丝",
+      "name_en": "Tiaris",
+      "rarity": "SSR",
+      "factions": ["光之起源", "公主联盟"],
+      "role": "治疗/辅助",
+      "tags": ["再动辅助", "八大金刚", "萌新之友"],
+      "core_mechanics": ["治愈之光", "进击的加护", "战后回血"],
+      "talent": "治愈之光：周围两格友军战后100%几率回复智力3倍生命（六星）",
+      "key_skills": [
+        {"name": "进击的加护", "effect": "主动攻击伤害+30%，受到伤害-50%，CD2回合"},
+        {"name": "神迹", "effect": "范围内友军伤害+15%，受到伤害-15%，回血"}
+      ]
+    },
+    {
+      "id": "liarna",
+      "name": "莉亚娜",
+      "name_en": "Liarna",
+      "rarity": "SSR",
+      "factions": ["光辉军团", "光之起源", "公主联盟"],
+      "role": "治疗/驱散",
+      "tags": ["再行动", "八大金刚", "最强治疗"],
+      "core_mechanics": ["再行动", "圣洁的修女", "驱散"],
+      "talent": "圣洁的修女：行动结束时驱散2格内友军2个弱化效果并治疗",
+      "key_skills": [
+        {"name": "再行动", "effect": "让友军再次行动，最强支援技能"},
+        {"name": "圣疗", "effect": "全游戏最强治疗技能"}
+      ]
+    },
+    {
+      "id": "lana",
+      "name": "拉娜",
+      "name_en": "Lana",
+      "rarity": "SSR",
+      "factions": ["黑暗轮回", "公主联盟"],
+      "role": "法师/AOE",
+      "tags": ["八大金刚", "萌新之友", "AOE核心"],
+      "core_mechanics": ["黑洞", "天罚", "元素回响"],
+      "troop_modifiers": {
+        "hp": ["0%", "10%", "20%"],
+        "atk": ["15%", "40%", "40%"],
+        "def": ["0%", "10%", "15%"],
+        "mdef": ["15%", "40%", "25%"]
+      },
+      "engraving_skill": "暗光加护：智力+5%，部队射程+1，使用技能攻击前根据选中目标数量获得随机强化效果",
+      "exclusive_equipment": {
+        "name": "黑色新娘",
+        "effect": "生命+5%，进入战斗前使敌军遭受一个随机强力弱化效果"
+      },
+      "key_skills": [
+        {"name": "黑洞", "effect": "0.36倍范围伤害，对每个部队造成2个随机弱化效果"},
+        {"name": "天罚", "effect": "暴击率+50%，对周围5格内所有敌军造成0.35倍范围伤害，对魔物特效"},
+        {"name": "暗镰", "effect": "1.3倍伤害，无视30%魔防，战后恢复造成伤害50%生命"}
+      ],
+      "class_routes": [
+        {
+          "final_class": "裁罪圣者",
+          "type": "SP",
+          "mobility": 3,
+          "range": 2,
+          "stats": {"hp": 3925, "atk": 290, "int": 590, "def": 265, "mdef": 362, "skill": 167},
+          "skills": ["元素回响", "相位移动"]
+        },
+        {
+          "final_class": "圣者",
+          "mobility": 3,
+          "range": 2,
+          "stats": {"hp": 3503, "atk": 316, "int": 523, "def": 265, "mdef": 401, "skill": 96},
+          "skills": ["净化", "天罚"]
+        },
+        {
+          "final_class": "黑暗公主",
+          "mobility": 3,
+          "range": 2,
+          "stats": {"hp": 3340, "atk": 262, "int": 554, "def": 245, "mdef": 401, "skill": 96},
+          "skills": ["魔防威吓", "黑洞"]
+        }
+      ]
+    }
+  ],
+  "collection_meta": {
+    "total_collected": 6,
+    "target_total": 40,
+    "batch": 1,
+    "collected_at": "2026-03-13"
+  }
+}

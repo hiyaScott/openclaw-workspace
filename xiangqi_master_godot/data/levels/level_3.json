@@ -1,0 +1,34 @@
+{
+  "id": 3,
+  "name": "马走四方",
+  "description": "学习马的四个方向走法",
+  "juIndex": 3,
+  "multiStep": false,
+  "pieces": [
+    {
+      "type": 0,
+      "side": 0,
+      "name": "马",
+      "x": 4,
+      "y": 5
+    }
+  ],
+  "steps": [
+    {
+      "target": [
+        {"x": 2, "y": 4},
+        {"x": 6, "y": 4},
+        {"x": 2, "y": 6},
+        {"x": 6, "y": 6}
+      ],
+      "hintType": "precise",
+      "hintText": "马可以走四个方向！选一个目标走吧！",
+      "msg": "很好！马有四个方向可以走！"
+    }
+  ],
+  "successText": "完美！",
+  "starConditions": {
+    "firstTry": true,
+    "withinTime": 30
+  }
+}

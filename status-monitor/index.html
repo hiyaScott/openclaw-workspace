@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kimi Claw 状态监控</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .header .subtitle {
+            color: #888;
+            font-size: 14px;
+        }
+        .status-card {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            border: 1px solid #2a2a2a;
+        }
+        .status-indicator {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            transition: all 0.3s ease;
+        }
+        .status-ready {
+            background: rgba(34, 197, 94, 0.2);
+            border: 2px solid #22c55e;
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
+        }
+        .status-busy {
+            background: rgba(234, 179, 8, 0.2);
+            border: 2px solid #eab308;
+            box-shadow: 0 0 30px rgba(234, 179, 8, 0.3);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        .status-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #ef4444;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        .status-text {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .status-ready .status-text { color: #22c55e; }
+        .status-busy .status-text { color: #eab308; }
+        .status-error .status-text { color: #ef4444; }
+        .current-task {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .task-label {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .task-value {
+            color: #fff;
+            font-size: 16px;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #2a2a2a;
+        }
+        .metric {
+            text-align: left;
+        }
+        .metric-label {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .metric-value {
+            color: #fff;
+            font-size: 14px;
+            font-family: monospace;
+        }
+        .refresh-btn {
+            width: 100%;
+            margin-top: 24px;
+            padding: 14px;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .refresh-btn:hover {
+            background: #3a3a3a;
+        }
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            color: #666;
+            font-size: 12px;
+        }
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: blink 2s ease-in-out infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .timestamp {
+            text-align: center;
+            margin-top: 20px;
+            color: #444;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>❤️‍🔥 Kimi Claw 状态监控</h1>
+            <div class="subtitle">实时查看我的运行状态</div>
+        </div>
+        
+        <div class="status-card">
+            <div class="status-indicator status-busy" id="indicator">⚡</div>
+            <div class="status-text" id="statusText">处理中</div>
+            <div class="current-task" id="currentTask">正在创建状态监控系统</div>
+            
+            <div class="task-label">当前任务</div>
+            <div class="task-value" id="taskDetail">初始化 Web 状态页面</div>
+            
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-label">频道</div>
+                    <div class="metric-value">Feishu</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">模型</div>
+                    <div class="metric-value">kimi-coding/k2p5</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">会话状态</div>
+                    <div class="metric-value">Active</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">最后更新</div>
+                    <div class="metric-value" id="lastUpdate">10:25:01</div>
+                </div>
+            </div>
+            
+            <button class="refresh-btn" onclick="location.reload()">🔄 刷新状态</button>
+            
+            <div class="auto-refresh">
+                <div class="dot"></div>
+                <span>自动刷新中 (每 5 秒)</span>
+            </div>
+        </div>
+        
+        <div class="timestamp" id="timestamp">最后同步: 2026-03-14 10:25:01 CST</div>
+    </div>
+
+    <script>
+        // 模拟状态更新
+        const states = {
+            ready: {
+                emoji: '🟢',
+                text: '就绪',
+                class: 'status-ready',
+                task: '等待指令'
+            },
+            busy: {
+                emoji: '⚡',
+                text: '处理中',
+                class: 'status-busy',
+                task: '正在执行任务'
+            },
+            error: {
+                emoji: '🔴',
+                text: '异常',
+                class: 'status-error',
+                task: '需要检查'
+            }
+        };
+
+        // 自动刷新
+        setInterval(() => {
+            location.reload();
+        }, 5000);
+
+        // 更新时间戳
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: false 
+            });
+            document.getElementById('lastUpdate').textContent = timeStr;
+        }
+        updateTime();
+    </script>
+</body>
+</html>

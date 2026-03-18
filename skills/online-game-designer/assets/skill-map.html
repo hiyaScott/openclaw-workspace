@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网络游戏设计师 - 能力图谱</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #e94560, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            color: #a0a0a0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .skill-tree {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .skill-category {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .skill-category:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .skill-category h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .skill-category h2 .icon {
+            font-size: 2rem;
+        }
+        
+        .skill-list {
+            list-style: none;
+        }
+        
+        .skill-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .skill-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .skill-level {
+            margin-left: auto;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .level-master {
+            background: linear-gradient(135deg, #e94560, #c73659);
+        }
+        
+        .level-advanced {
+            background: linear-gradient(135deg, #feca57, #ff9f43);
+            color: #1a1a2e;
+        }
+        
+        .level-intermediate {
+            background: linear-gradient(135deg, #48dbfb, #0abde3);
+            color: #1a1a2e;
+        }
+        
+        .level-basic {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Category specific colors */
+        .category-gdd h2 { color: #ff6b6b; }
+        .category-architecture h2 { color: #4ecdc4; }
+        .category-economy h2 { color: #feca57; }
+        .category-social h2 { color: #a29bfe; }
+        .category-mechanics h2 { color: #fd79a8; }
+        .category-numerical h2 { color: #00b894; }
+        
+        .knowledge-map {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .knowledge-map h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+        
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .map-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid;
+        }
+        
+        .map-item h3 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .map-item p {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+            line-height: 1.6;
+        }
+        
+        .resources-section {
+            margin-top: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .resources-section h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+        
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .resource-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 25px;
+            border-radius: 15px;
+            transition: background 0.3s;
+        }
+        
+        .resource-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .resource-card h3 {
+            color: #4ecdc4;
+            margin-bottom: 10px;
+        }
+        
+        .resource-card ul {
+            list-style: none;
+            color: #a0a0a0;
+        }
+        
+        .resource-card li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .resource-card li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #4ecdc4;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .skill-tree {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 网络游戏设计师</h1>
+            <p>专业级网络游戏设计能力图谱，涵盖MMORPG系统架构、经济设计、社交系统、数值策划等核心领域</p>
+        </header>
+        
+        <div class="skill-tree">
+            <!-- GDD设计 -->
+            <div class="skill-category category-gdd">
+                <h2><span class="icon">📋</span> 游戏设计文档 (GDD)</h2>
+                <ul class="skill-list">
+                    <li>
+                        <span>高概念文档编写</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>核心玩法设计</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>游戏循环定义</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>系统模块分解 (PBS)</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>世界观与叙事设计</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>运营规划文档</span>
+                        <span class="skill-level level-intermediate">中级</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- 系统架构 -->
+            <div class="skill-category category-architecture">
+                <h2><span class="icon">🏗️</span> MMORPG架构设计</h2>
+                <ul class="skill-list">
+                    <li>
+                        <span>四层服务器架构</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>分区 (Zoning) 设计</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>分服 (Sharding) 策略</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>实例化 (Instancing)</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>AOI 兴趣区域管理</span>
+                        <span class="skill-level level-intermediate">中级</span>
+                    </li>
+                    <li>
+                        <span>状态同步方案</span>
+                        <span class="skill-level level-intermediate">中级</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- 经济系统 -->
+            <div class="skill-category category-economy">
+                <h2><span class="icon">💰</span> 经济系统设计</h2>
+                <ul class="skill-list">
+                    <li>
+                        <span>水龙头-排水管模型</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>货币体系设计</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>产出消耗平衡</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>通货膨胀控制</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>交易系统设计</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>付费转化漏斗</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- 社交系统 -->
+            <div class="skill-category category-social">
+                <h2><span class="icon">👥</span> 社交系统设计</h2>
+                <ul class="skill-list">
+                    <li>
+                        <span>公会/帮派系统</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>好友与师徒系统</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>组队与匹配系统</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>聊天与沟通系统</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>PVP/PVE协作玩法</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>排行榜与竞技</span>
+                        <span class="skill-level level-intermediate">中级</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- 游戏机制 -->
+            <div class="skill-category category-mechanics">
+                <h2><span class="icon">⚙️</span> 游戏机制设计</h2>
+                <ul class="skill-list">
+                    <li>
+                        <span>核心玩法循环</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>成长与进度系统</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>装备与强化系统</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>任务与成就系统</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>难度与心流设计</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>决策与反馈设计</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- 数值策划 -->
+            <div class="skill-category category-numerical">
+                <h2><span class="icon">📊</span> 数值策划</h2>
+                <ul class="skill-list">
+                    <li>
+                        <span>战斗数值平衡</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>经济数值建模</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>经验曲线设计</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>概率与抽卡设计</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                    <li>
+                        <span>Excel数值建模</span>
+                        <span class="skill-level level-master">精通</span>
+                    </li>
+                    <li>
+                        <span>数据验证与测试</span>
+                        <span class="skill-level level-advanced">高级</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- 知识地图 -->
+        <div class="knowledge-map">
+            <h2>🗺️ 专业知识地图</h2>
+            <div class="map-grid">
+                <div class="map-item" style="border-color: #ff6b6b;">
+                    <h3>文档设计</h3>
+                    <p>Vision → High Concept → GDD → PBS → 详细文档。掌握从概念到实现的完整文档流程。</p>
+                </div>
+                <div class="map-item" style="border-color: #4ecdc4;">
+                    <h3>服务器架构</h3>
+                    <p>Client → Proxy → Game Logic → Database。理解四层架构与分区/分服/实例化策略。</p>
+                </div>
+                <div class="map-item" style="border-color: #feca57;">
+                    <h3>经济循环</h3>
+                    <p>产出 → 存量 → 消耗 → 外部注入。掌握水龙头-排水管模型与通胀控制。</p>
+                </div>
+                <div class="map-item" style="border-color: #a29bfe;">
+                    <h3>社交层次</h3>
+                    <p>个人 → 双向 → 小团体 → 大团体 → 全服。构建完整的社交关系金字塔。</p>
+                </div>
+                <div class="map-item" style="border-color: #fd79a8;">
+                    <h3>玩法循环</h3>
+                    <p>行动 → 反馈 → 奖励 → 成长 → 新行动。设计心流体验与有意义的决策。</p>
+                </div>
+                <div class="map-item" style="border-color: #00b894;">
+                    <h3>数值体系</h3>
+                    <p>战斗数值 + 经济数值 + 成长数值。建立完整的数值模型与验证流程。</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 资源与学习 -->
+        <div class="resources-section">
+            <h2>📚 知识库资源</h2>
+            <div class="resources-grid">
+                <div class="resource-card">
+                    <h3>核心文档</h3>
+                    <ul>
+                        <li>GDD编写指南</li>
+                        <li>系统架构设计</li>
+                        <li>经济系统设计</li>
+                        <li>社交系统设计</li>
+                        <li>游戏机制设计</li>
+                        <li>数值策划方法</li>
+                    </ul>
+                </div>
+                <div class="resource-card">
+                    <h3>设计工具</h3>
+                    <ul>
+                        <li>Excel / Google Sheets</li>
+                        <li>Notion / Confluence</li>
+                        <li>Figma / Axure</li>
+                        <li>draw.io / Miro</li>
+                        <li>Machinations</li>
+                        <li>Unity / Unreal</li>
+                    </ul>
+                </div>
+                <div class="resource-card">
+                    <h3>参考资源</h3>
+                    <ul>
+                        <li>Gamasutra设计文章</li>
+                        <li>GDC演讲视频</li>
+                        <li>经典游戏GDD案例</li>
+                        <li>学术论文研究</li>
+                        <li>行业报告分析</li>
+                        <li>竞品拆解文档</li>
+                    </ul>
+                </div>
+                <div class="resource-card">
+                    <h3>游戏类型专长</h3>
+                    <ul>
+                        <li>MMORPG</li>
+                        <li>MOBA</li>
+                        <li>卡牌游戏</li>
+                        <li>SLG策略</li>
+                        <li>Gacha手游</li>
+                        <li>开放世界</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Created by hiyaMAX | 网络游戏设计师能力图谱 v1.0</p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">基于 SKILL: online-game-designer | 持续学习与进化中</p>
+        </footer>
+    </div>
+</body>
+</html>

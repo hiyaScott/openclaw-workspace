@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>象棋大师DEMO - 完整流程版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: #F5F5F5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* 章节选择界面 */
+        .chapter-screen {
+            display: block;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+        
+        .chapter-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .chapter-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .chapter-subtitle {
+            font-size: 15px;
+            color: #666;
+        }
+        
+        .chapter-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .chapter-card:active {
+            transform: scale(0.98);
+        }
+        
+        .chapter-card.locked {
+            opacity: 0.6;
+        }
+        
+        .chapter-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .chapter-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .chapter-status {
+            font-size: 13px;
+            color: #4CAF50;
+            font-weight: 600;
+        }
+        
+        .chapter-progress-bar {
+            height: 10px;
+            background: #E0E0E0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .chapter-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+        
+        .chapter-progress-text {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        /* 大关界面 */
+        .level-screen {
+            display: none;
+        }
+        
+        .level-header-bar {
+            background: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .back-btn {
+            font-size: 20px;
+            color: #666;
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        .level-path-container {
+            padding: 20px;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #F5F5F5 0%, #E8EAF6 100%);
+        }
+        
+        .path-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .path-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 24px;
+        }
+        
+        /* 关卡路径 */
+        .path-nodes-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 20px 0;
+        }
+        
+        .path-node-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .path-line {
+            width: 4px;
+            height: 24px;
+            background: #E0E0E0;
+            border-radius: 2px;
+        }
+        
+        .path-line.completed {
+            background: linear-gradient(180deg, #4CAF50, #8BC34A);
+        }
+        
+        .path-node-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .path-node-circle.completed {
+            background: linear-gradient(135deg, #4CAF50, #8BC34A);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        
+        .path-node-circle.current {
+            background: linear-gradient(135deg, #2196F3, #42A5F5);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+            animation: nodePulse 1.5s infinite;
+        }
+        
+        .path-node-circle.locked {
+            background: #E0E0E0;
+            opacity: 0.6;
+        }
+        
+        @keyframes nodePulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3); }
+            50% { transform: scale(1.08); box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4); }
+        }
+        
+        /* 游戏界面 */
+        .game-screen {
+            display: none;
+        }
+        
+        .game-header {
+            background: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .streak-display {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #FF6B35;
+        }
+        
+        .streak-fire {
+            font-size: 18px;
+            animation: flame 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes flame {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.2); }
+        }
+        
+        .music-btn {
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 20px;
+            background: #E3F2FD;
+        }
+        
+        .progress-section {
+            background: white;
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .progress-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #E0E0E0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        
+        .progress-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #E0E0E0;
+        }
+        
+        .progress-dot.completed {
+            background: #4CAF50;
+        }
+        
+        .progress-dot.current {
+            background: #2196F3;
+            transform: scale(1.3);
+        }
+        
+        .level-info {
+            background: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .level-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            color: #2196F3;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .level-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        
+        .level-desc {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .step-indicator {
+            background: #FFF8E1;
+            padding: 10px 16px;
+            text-align: center;
+            font-size: 13px;
+            color: #F57C00;
+            font-weight: 600;
+        }
+        
+        /* Max */
+        .max-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-radius: 16px;
+            padding: 14px;
+            margin: 12px 16px;
+        }
+        
+        .max-avatar {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 50%;
+            border: 3px solid #2196F3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .max-eyes {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .max-eye {
+            width: 4px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+        }
+        
+        .max-speech {
+            background: white;
+            border-radius: 12px;
+            padding: 10px 14px;
+            position: relative;
+            flex: 1;
+        }
+        
+        .max-speech::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 8px solid transparent;
+            border-right-color: white;
+        }
+        
+        .max-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+        }
+        
+        /* 棋盘 */
+        .board-wrapper {
+            background: linear-gradient(135deg, #D4A574, #C49A6C);
+            padding: 10px;
+            margin: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+        }
+        
+        .board {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1.125;
+            background: #E8C9A0;
+        }
+        
+        .board-border {
+            position: absolute;
+            inset: 0;
+            border: 2px solid #8B6914;
+        }
+        
+        .grid-lines {
+            position: absolute;
+            inset: 0;
+        }
+        
+        .grid-line-h {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #8B6914;
+        }
+        
+        .grid-line-v {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: #8B6914;
+        }
+        
+        .palace {
+            position: absolute;
+            left: 37.5%;
+            width: 25%;
+            height: 22.22%;
+            border: 1px solid #8B6914;
+        }
+        
+        .palace-top { top: 0; }
+        .palace-bottom { bottom: 0; }
+        
+        .palace::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent 49.5%, #8B6914 49.5%, #8B6914 50.5%, transparent 50.5%),
+                        linear-gradient(-45deg, transparent 49.5%, #8B6914 49.5%, #8B6914 50.5%, transparent 50.5%);
+        }
+        
+        .river-area {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 44.44%;
+            height: 11.11%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .river-text {
+            font-size: 16px;
+            color: #8B6914;
+            font-weight: bold;
+            letter-spacing: 8px;
+        }
+        
+        .pieces-layer {
+            position: absolute;
+            inset: 0;
+        }
+        
+        .piece {
+            position: absolute;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.35), inset 0 2px 4px rgba(255,255,255,0.4);
+            z-index: 10;
+        }
+        
+        .piece.selected {
+            box-shadow: 0 0 0 4px #2196F3, 0 3px 12px rgba(0,0,0,0.35);
+        }
+        
+        .piece-red {
+            background: linear-gradient(135deg, #D32F2F, #B71C1C);
+            color: white;
+            border: 2px solid #FFCDD2;
+        }
+        
+        .piece-black {
+            background: linear-gradient(135deg, #424242, #212121);
+            color: white;
+            border: 2px solid #BDBDBD;
+        }
+        
+        .piece.target {
+            background: rgba(76, 175, 80, 0.25);
+            border: 2px dashed #4CAF50;
+        }
+        
+        .valid-move {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, #4CAF50, #2E7D32);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            animation: validPulse 1.2s infinite;
+            z-index: 5;
+        }
+        
+        @keyframes validPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.85; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.4; }
+        }
+        
+        .move-effect {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(33,150,243,0.5), transparent);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            animation: ripple 0.5s ease-out;
+            z-index: 8;
+        }
+        
+        @keyframes ripple {
+            from { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            to { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+        
+        .star-effect {
+            position: absolute;
+            font-size: 18px;
+            pointer-events: none;
+            animation: starFloat 0.8s ease-out forwards;
+            z-index: 20;
+        }
+        
+        @keyframes starFloat {
+            0% { transform: translate(0, 0) scale(0); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(1.3); opacity: 0; }
+        }
+        
+        /* 底部操作 */
+        .actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 16px;
+            box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 20px;
+            border-radius: 24px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-secondary {
+            background: #F5F5F5;
+            color: #666;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+        
+        /* 弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 28px 24px;
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+        }
+        
+        .modal-icon {
+            font-size: 56px;
+            margin-bottom: 12px;
+        }
+        
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .modal-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+        
+        .modal-xp {
+            font-size: 16px;
+            color: #2196F3;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #E3F2FD;
+            border-radius: 12px;
+        }
+        
+        .btn-modal {
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .final-modal {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .final-modal .modal-content {
+            background: transparent;
+            color: white;
+        }
+        
+        .final-max {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            border: 4px solid #2196F3;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: finalMaxAnim 1s ease infinite alternate;
+        }
+        
+        @keyframes finalMaxAnim {
+            0% { transform: scale(1) rotate(-5deg); }
+            100% { transform: scale(1.05) rotate(5deg); }
+        }
+        
+        .confetti {
+            position: fixed;
+            font-size: 20px;
+            pointer-events: none;
+            z-index: 101;
+            animation: confettiFall 2s ease-out forwards;
+        }
+        
+        @keyframes confettiFall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        .shake {
+            animation: shake 0.4s ease;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 章节选择界面 -->
+    <div class="chapter-screen" id="chapterScreen">
+        <div class="chapter-header">
+            <div class="chapter-title">象棋大师</div>
+            <div class="chapter-subtitle">选择章节开始学习</div>
+        </div>
+        
+        <div class="chapter-card" onclick="enterLevel(0)">
+            <div class="chapter-card-header">
+                <span class="chapter-name">第一章：初识棋盘</span>
+                <span class="chapter-status">已完成 🏆</span>
+            </div>
+            <div class="chapter-progress-bar">
+                <div class="chapter-progress-fill" style="width: 100%"></div>
+            </div>
+            <div class="chapter-progress-text">10/10 关已完成 · ELO分 0~200</div>
+        </div>
+        
+        <div class="chapter-card" onclick="enterLevel(1)">
+            <div class="chapter-card-header">
+                <span class="chapter-name">第二章：认识马</span>
+                <span class="chapter-status" style="color: #2196F3;">进行中 ▶</span>
+            </div>
+            <div class="chapter-progress-bar">
+                <div class="chapter-progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="chapter-progress-text">0/10 关 · ELO分 200~500</div>
+        </div>
+        
+        <div class="chapter-card locked">
+            <div class="chapter-card-header">
+                <span class="chapter-name">第三章：认识车</span>
+                <span class="chapter-status" style="color: #999;">🔒 锁定</span>
+            </div>
+            <div class="chapter-progress-bar">
+                <div class="chapter-progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="chapter-progress-text">完成第二章解锁 · ELO分 500~800</div>
+        </div>
+    </div>
+    
+    <!-- 大关界面（关卡路径） -->
+    <div class="level-screen" id="levelScreen">
+        <div class="level-header-bar">
+            <span class="back-btn" onclick="backToChapter()">←</span>
+            <span style="font-weight: 700;">第二章：认识马</span>
+            <span class="music-btn" onclick="toggleMusic()" id="musicBtn">🎵</span>
+        </div>
+        
+        <div class="level-path-container">
+            <div class="path-title">马的走法</div>
+            <div class="path-subtitle">掌握马走日字，理解蹩马腿</div>
+            
+            <div class="path-nodes-vertical" id="pathNodes">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 游戏界面（小关） -->
+    <div class="game-screen" id="gameScreen">
+        <div class="game-header">
+            <span class="back-btn" onclick="backToPath()">←</span>
+            <div class="streak-display">
+                <span class="streak-fire">🔥</span>
+                <span id="streakText">连胜 3 天</span>
+            </div>
+            <span class="music-btn" onclick="toggleMusic()" id="musicBtn2">🎵</span>
+        </div>
+        
+        <div class="progress-section">
+            <div class="progress-label">第二章 · 第 <span id="currentLevelNum">1</span>/10 关</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 10%"></div>
+            </div>
+            <div class="progress-dots" id="progressDots"></div>
+        </div>
+        
+        <div class="level-info">
+            <div class="level-tag">💡 实战练习</div>
+            <div class="level-name" id="levelName">基础走法</div>
+            <div class="level-desc" id="levelDesc">学习马的基本走法</div>
+        </div>
+        
+        <div class="step-indicator" id="stepIndicator" style="display: none;">
+            第 <span id="currentStep">1</span> / <span id="totalSteps">3</span> 步
+        </div>
+        
+        <div class="max-container">
+            <div class="max-avatar">
+                <div class="max-eyes">
+                    <div class="max-eye"></div>
+                    <div class="max-eye"></div>
+                </div>
+            </div>
+            <div class="max-speech">
+                <div class="max-text" id="maxText">马走"日"字——先横或竖走一格，再斜走一格。点击马开始练习！</div>
+            </div>
+        </div>
+        
+        <div class="board-wrapper">
+            <div class="board" id="board">
+                <div class="board-border"></div>
+                <div class="grid-lines" id="gridLines"></div>
+                <div class="palace palace-top"></div>
+                <div class="palace palace-bottom"></div>
+                <div class="river-area">
+                    <span class="river-text">楚 河 汉 界</span>
+                </div>
+                <div class="pieces-layer" id="piecesLayer"></div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button class="action-btn btn-secondary" onclick="resetGame()">
+                <span>↩️</span>
+                <span>重置</span>
+            </button>
+            <button class="action-btn btn-primary" onclick="showHint()">
+                <span>💡</span>
+                <span>提示</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- 成功弹窗 -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <div class="modal-icon">🎉</div>
+            <div class="modal-title">太棒了！</div>
+            <div class="modal-text" id="successText"></div>
+            <div class="modal-xp">+10 XP 💎</div>
+            <button class="btn-modal" onclick="nextLevel()">继续 →</button>
+        </div>
+    </div>
+    
+    <!-- 大关完成弹窗 -->
+    <div class="modal final-modal" id="finalModal">
+        <div class="modal-content">
+            <div class="final-max">
+                <div style="display: flex; gap: 4px;">
+                    <div style="width: 6px; height: 10px; background: #333; border-radius: 50%;"></div>
+                    <div style="width: 6px; height: 10px; background: #333; border-radius: 50%;"></div>
+                </div>
+            </div>
+            
+            <div class="modal-title" style="color: white;">章节完成！</div>
+            <div class="modal-text" style="color: rgba(255,255,255,0.9);">你掌握了马的走法</div>
+            
+            <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                <div style="flex: 1; background: white; border-radius: 16px; padding: 16px; text-align: center;">
+                    <div style="font-size: 11px; color: #999; margin-bottom: 6px;">总经验</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #2196F3;">⚡ 50</div>
+                </div>
+                <div style="flex: 1; background: white; border-radius: 16px; padding: 16px; text-align: center;">
+                    <div style="font-size: 11px; color: #999; margin-bottom: 6px;">宝石</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #2196F3;">💎 100</div>
+                </div>
+            </div>
+            
+            <button class="btn-modal" onclick="backToChapter()">继续学习 →</button>
+        </div>
+    </div>
+    
+    <script>
+        // 音频系统
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+        let bgmOscillators = [];
+        let isMusicPlaying = false;
+        
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+        }
+        
+        // 背景音乐 - 和弦进行
+        function playBGM() {
+            if (!isMusicPlaying) return;
+            
+            const chords = [
+                { freqs: [523.25, 659.25, 783.99], duration: 2 }, // C major
+                { freqs: [392.00, 493.88, 587.33], duration: 2 }, // G major
+                { freqs: [440.00, 554.37, 659.25], duration: 2 }, // A minor
+                { freqs: [349.23, 440.00, 523.25], duration: 2 }, // F major
+            ];
+            
+            let currentChord = 0;
+            
+            function playNextChord() {
+                if (!isMusicPlaying) return;
+                
+                const chord = chords[currentChord];
+                
+                chord.freqs.forEach(freq => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    osc.type = 'sine';
+                    
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.5);
+                    gain.gain.setValueAtTime(0.05, audioCtx.currentTime + chord.duration - 0.5);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + chord.duration);
+                    
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + chord.duration);
+                    
+                    bgmOscillators.push(osc);
+                });
+                
+                currentChord = (currentChord + 1) % chords.length;
+                setTimeout(playNextChord, chord.duration * 1000);
+            }
+            
+            playNextChord();
+        }
+        
+        function toggleMusic() {
+            initAudio();
+            isMusicPlaying = !isMusicPlaying;
+            document.getElementById('musicBtn').textContent = isMusicPlaying ? '🔊' : '🔇';
+            if (document.getElementById('musicBtn2')) {
+                document.getElementById('musicBtn2').textContent = isMusicPlaying ? '🔊' : '🔇';
+            }
+            
+            if (isMusicPlaying) {
+                playBGM();
+            } else {
+                bgmOscillators.forEach(osc => {
+                    try { osc.stop(); } catch(e) {}
+                });
+                bgmOscillators = [];
+            }
+        }
+        
+        // 音效
+        function playSelectSound() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.08);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.12);
+        }
+        
+        function playMoveSound() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.15);
+        }
+        
+        function playSuccessSound() {
+            initAudio();
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.08);
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.08);
+                gain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + i * 0.08 + 0.04);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.08 + 0.25);
+                osc.start(audioCtx.currentTime + i * 0.08);
+                osc.stop(audioCtx.currentTime + i * 0.08 + 0.25);
+            });
+        }
+        
+        function playErrorSound() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+            osc.type = 'sawtooth';
+            gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.25);
+        }
+        
+        // 关卡数据 - 40%多步关卡
+        const levels = [
+            // 单步关卡（60%）
+            { title: '基础走法', subtitle: '向右上方走', steps: 1, maxText: '马走"日"字——先横或竖走一格，再斜走一格。点击马，向右上方走！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 5, y: 5 }] }, successText: '太棒了！你学会了向右上方走！' },
+            { title: '基础走法', subtitle: '向左上方走', steps: 1, maxText: '现在试试向左上方走！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 3, y: 5 }] }, successText: '很好！左上方也学会了！' },
+            { title: '基础走法', subtitle: '四个方向', steps: 1, maxText: '马有四个方向可以走！选一个目标走吧！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 2, y: 6 }, { x: 6, y: 6 }] }, successText: '完美！马确实可以走多个方向！' },
+            { title: '吃子练习', subtitle: '吃掉对方的兵', steps: 1, maxText: '马不仅可以移动，还可以吃子！吃掉对方的兵！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 2, y: 6, type: 'capture' }], otherPieces: [{ x: 2, y: 6, type: 'black', piece: '卒' }] }, successText: '漂亮！马走日吃子成功！' },
+            { title: '吃子练习', subtitle: '吃掉对方的炮', steps: 1, maxText: '继续练习吃子，这次吃掉炮！', setup: { horse: { x: 3, y: 5 }, targets: [{ x: 5, y: 4, type: 'capture' }], otherPieces: [{ x: 5, y: 4, type: 'black', piece: '炮' }] }, successText: '很好！吃子技巧掌握！' },
+            { title: '躲避危险', subtitle: '从车威胁下逃脱', steps: 1, maxText: '危险！你的马被车盯上了！快用日字走法逃到安全位置！', setup: { horse: { x: 4, y: 5 }, targets: [{ x: 2, y: 4, type: 'escape' }, { x: 6, y: 4, type: 'escape' }], otherPieces: [{ x: 4, y: 2, type: 'black', piece: '车' }] }, successText: '好样的！成功逃脱！' },
+            
+            // 多步关卡（40%）
+            { title: '连续移动', subtitle: '走两步到达目标', steps: 2, maxText: '这次需要走两步！先走到中间位置，再到达终点！', setup: { horse: { x: 4, y: 7 }, intermediate: { x: 2, y: 6 }, targets: [{ x: 3, y: 4 }] }, successText: '太棒了！你掌握了连续移动！' },
+            { title: '连续吃子', subtitle: '两步吃掉两个子', steps: 2, maxText: '连续吃子挑战！先吃掉卒，再吃掉炮！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 2, y: 6, type: 'capture' }, { x: 4, y: 5, type: 'capture' }], otherPieces: [{ x: 2, y: 6, type: 'black', piece: '卒' }, { x: 4, y: 5, type: 'black', piece: '炮' }] }, successText: '漂亮！连续吃子成功！' },
+            { title: '移动+吃子', subtitle: '先移动再吃子', steps: 2, maxText: '先移动到安全位置，然后吃掉对方的兵！', setup: { horse: { x: 4, y: 7 }, intermediate: { x: 6, y: 6 }, targets: [{ x: 5, y: 4, type: 'capture' }], otherPieces: [{ x: 5, y: 4, type: 'black', piece: '兵' }] }, successText: '很好！移动和吃子都掌握了！' },
+            { title: '终极挑战', subtitle: '三步连续操作', steps: 3, maxText: '终极挑战！需要走三步：移动→躲避→吃子！', setup: { horse: { x: 4, y: 7 }, steps: [{ to: { x: 2, y: 6 }, type: 'move' }, { to: { x: 3, y: 4 }, type: 'escape' }, { to: { x: 5, y: 3 }, type: 'capture' }], otherPieces: [{ x: 4, y: 3, type: 'black', piece: '车' }, { x: 5, y: 3, type: 'black', piece: '卒' }] }, successText: '恭喜！你完全掌握了马的走法！章节完成！' }
+        ];
+        
+        let currentChapter = 1;
+        let currentLevel = 0;
+        let currentStep = 0;
+        let streak = 3;
+        let selectedPiece = null;
+        let validMoves = [];
+        let completedLevels = [];
+        
+        function init() {
+            renderChapterScreen();
+        }
+        
+        function renderChapterScreen() {
+            // 章节界面已静态实现
+        }
+        
+        function enterLevel(chapter) {
+            currentChapter = chapter;
+            document.getElementById('chapterScreen').style.display = 'none';
+            document.getElementById('levelScreen').style.display = 'block';
+            renderPathNodes();
+        }
+        
+        function backToChapter() {
+            document.getElementById('chapterScreen').style.display = 'block';
+            document.getElementById('levelScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('finalModal').classList.remove('show');
+        }
+        
+        function renderPathNodes() {
+            const container = document.getElementById('pathNodes');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 10; i++) {
+                const nodeItem = document.createElement('div');
+                nodeItem.className = 'path-node-item';
+                
+                if (i > 0) {
+                    const line = document.createElement('div');
+                    line.className = 'path-line';
+                    if (completedLevels.includes(i - 1)) {
+                        line.classList.add('completed');
+                    }
+                    nodeItem.appendChild(line);
+                }
+                
+                const circle = document.createElement('div');
+                circle.className = 'path-node-circle';
+                
+                if (completedLevels.includes(i)) {
+                    circle.classList.add('completed');
+                    circle.innerHTML = '✓';
+                } else if (i === currentLevel || (completedLevels.length === 0 && i === 0)) {
+                    circle.classList.add('current');
+                    circle.innerHTML = i + 1;
+                    circle.onclick = () => startGame(i);
+                } else if (i <= completedLevels.length) {
+                    circle.innerHTML = i + 1;
+                    circle.onclick = () => startGame(i);
+                } else {
+                    circle.classList.add('locked');
+                    circle.innerHTML = '🔒';
+                }
+                
+                nodeItem.appendChild(circle);
+                container.appendChild(nodeItem);
+            }
+        }
+        
+        function startGame(level) {
+            currentLevel = level;
+            currentStep = 0;
+            document.getElementById('levelScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            renderGame();
+        }
+        
+        function backToPath() {
+            document.getElementById('levelScreen').style.display = 'block';
+            document.getElementById('gameScreen').style.display = 'none';
+            renderPathNodes();
+        }
+        
+        function renderGame() {
+            const level = levels[currentLevel];
+            
+            document.getElementById('currentLevelNum').textContent = currentLevel + 1;
+            document.getElementById('levelName').textContent = level.title;
+            document.getElementById('levelDesc').textContent = level.subtitle;
+            document.getElementById('maxText').textContent = level.maxText;
+            document.getElementById('progressFill').style.width = ((currentLevel + 1) / 10 * 100) + '%';
+            
+            // 步数指示器
+            if (level.steps > 1) {
+                document.getElementById('stepIndicator').style.display = 'block';
+                document.getElementById('currentStep').textContent = currentStep + 1;
+                document.getElementById('totalSteps').textContent = level.steps;
+            } else {
+                document.getElementById('stepIndicator').style.display = 'none';
+            }
+            
+            // 进度点
+            const dotsContainer = document.getElementById('progressDots');
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < 10; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'progress-dot';
+                if (i < currentLevel) dot.classList.add('completed');
+                if (i === currentLevel) dot.classList.add('current');
+                dotsContainer.appendChild(dot);
+            }
+            
+            renderBoard();
+            renderPieces();
+        }
+        
+        function renderBoard() {
+            const gridLines = document.getElementById('gridLines');
+            gridLines.innerHTML = '';
+            
+            for (let i = 0; i <= 9; i++) {
+                const line = document.createElement('div');
+                line.className = 'grid-line-h';
+                line.style.top = (i * 11.11) + '%';
+                gridLines.appendChild(line);
+            }
+            
+            for (let i = 0; i <= 8; i++) {
+                const line1 = document.createElement('div');
+                line1.className = 'grid-line-v';
+                line1.style.left = (i * 12.5) + '%';
+                line1.style.top = '0';
+                line1.style.height = '44.44%';
+                gridLines.appendChild(line1);
+                
+                const line2 = document.createElement('div');
+                line2.className = 'grid-line-v';
+                line2.style.left = (i * 12.5) + '%';
+                line2.style.top = '55.55%';
+                line2.style.height = '44.45%';
+                gridLines.appendChild(line2);
+            }
+        }
+        
+        function renderPieces() {
+            const layer = document.getElementById('piecesLayer');
+            layer.innerHTML = '';
+            
+            const level = levels[currentLevel];
+            let horsePos = level.setup.horse;
+            
+            // 多步关卡，使用当前位置
+            if (level.steps > 1 && currentStep > 0) {
+                // 简化处理，实际应该跟踪每步后的位置
+            }
+            
+            const horse = document.createElement('div');
+            horse.className = 'piece piece-red';
+            horse.textContent = '馬';
+            horse.style.left = (horsePos.x * 12.5) + '%';
+            horse.style.top = (horsePos.y * 11.11) + '%';
+            horse.onclick = (e) => selectPiece(e, horsePos.x, horsePos.y);
+            layer.appendChild(horse);
+            
+            if (level.setup.otherPieces) {
+                level.setup.otherPieces.forEach(p => {
+                    const piece = document.createElement('div');
+                    piece.className = 'piece piece-' + p.type;
+                    piece.textContent = p.piece;
+                    piece.style.left = (p.x * 12.5) + '%';
+                    piece.style.top = (p.y * 11.11) + '%';
+                    piece.dataset.x = p.x;
+                    piece.dataset.y = p.y;
+                    layer.appendChild(piece);
+                });
+            }
+            
+            if (level.setup.targets) {
+                level.setup.targets.forEach(t => {
+                    const target = document.createElement('div');
+                    target.className = 'piece target';
+                    target.style.left = (t.x * 12.5) + '%';
+                    target.style.top = (t.y * 11.11) + '%';
+                    target.dataset.x = t.x;
+                    target.dataset.y = t.y;
+                    target.dataset.type = t.type || 'normal';
+                    target.onclick = () => moveToTarget(t);
+                    layer.appendChild(target);
+                });
+            }
+        }
+        
+        function selectPiece(e, x, y) {
+            e.stopPropagation();
+            playSelectSound();
+            
+            document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+            document.querySelectorAll('.valid-move').forEach(m => m.remove());
+            
+            const piece = e.target;
+            piece.classList.add('selected');
+            selectedPiece = { x, y, element: piece };
+            
+            validMoves = calculateHorseMoves(x, y);
+            showValidMoves(validMoves);
+        }
+        
+        function calculateHorseMoves(x, y) {
+            const moves = [];
+            const level = levels[currentLevel];
+            
+            const directions = [
+                { dx: 1, dy: 2, blockX: 0, blockY: 1 },
+                { dx: 2, dy: 1, blockX: 1, blockY: 0 },
+                { dx: 2, dy: -1, blockX: 1, blockY: 0 },
+                { dx: 1, dy: -2, blockX: 0, blockY: -1 },
+                { dx: -1, dy: -2, blockX: 0, blockY: -1 },
+                { dx: -2, dy: -1, blockX: -1, blockY: 0 },
+                { dx: -2, dy: 1, blockX: -1, blockY: 0 },
+                { dx: -1, dy: 2, blockX: 0, blockY: 1 }
+            ];
+            
+            directions.forEach(dir => {
+                const newX = x + dir.dx;
+                const newY = y + dir.dy;
+                const blockX = x + dir.blockX;
+                const blockY = y + dir.blockY;
+                
+                if (newX < 0 || newX > 8 || newY < 0 || newY > 9) return;
+                
+                const blocked = level.setup.otherPieces?.some(p => 
+                    p.x === blockX && p.y === blockY
+                );
+                
+                if (!blocked) {
+                    moves.push({ x: newX, y: newY });
+                }
+            });
+            
+            return moves;
+        }
+        
+        function showValidMoves(moves) {
+            const layer = document.getElementById('piecesLayer');
+            moves.forEach(move => {
+                const indicator = document.createElement('div');
+                indicator.className = 'valid-move';
+                indicator.style.left = (move.x * 12.5) + '%';
+                indicator.style.top = (move.y * 11.11) + '%';
+                layer.appendChild(indicator);
+            });
+        }
+        
+        function moveToTarget(target) {
+            if (!selectedPiece) return;
+            
+            const isValid = validMoves.some(m => m.x === target.x && m.y === target.y);
+            
+            if (!isValid) {
+                playErrorSound();
+                document.querySelector('.board-wrapper').classList.add('shake');
+                setTimeout(() => {
+                    document.querySelector('.board-wrapper').classList.remove('shake');
+                }, 400);
+                return;
+            }
+            
+            playMoveSound();
+            
+            const effect = document.createElement('div');
+            effect.className = 'move-effect';
+            effect.style.left = (target.x * 12.5) + '%';
+            effect.style.top = (target.y * 11.11) + '%';
+            document.getElementById('piecesLayer').appendChild(effect);
+            setTimeout(() => effect.remove(), 500);
+            
+            // 更新马的位置
+            selectedPiece.element.style.left = (target.x * 12.5) + '%';
+            selectedPiece.element.style.top = (target.y * 11.11) + '%';
+            selectedPiece.x = target.x;
+            selectedPiece.y = target.y;
+            
+            document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+            document.querySelectorAll('.valid-move').forEach(m => m.remove());
+            
+            // 吃子处理
+            if (target.type === 'capture') {
+                const targetPiece = document.querySelector(`[data-x="${target.x}"][data-y="${target.y}"]`);
+                if (targetPiece && targetPiece.classList.contains('piece-black')) {
+                    targetPiece.remove();
+                }
+                // 移除已捕获的目标
+                const level = levels[currentLevel];
+                if (level.setup.targets) {
+                    level.setup.targets = level.setup.targets.filter(t => !(t.x === target.x && t.y === target.y));
+                }
+            }
+            
+            // 检查是否还有剩余目标（多步关卡）
+            const level = levels[currentLevel];
+            if (level.steps > 1 && level.setup.targets && level.setup.targets.length > 0) {
+                // 还有目标，继续
+                currentStep++;
+                document.getElementById('currentStep').textContent = currentStep + 1;
+                document.getElementById('maxText').textContent = `很好！还有 ${level.setup.targets.length} 个目标，继续！`;
+                
+                // 重新渲染目标
+                renderPieces();
+                
+                // 自动选中马
+                setTimeout(() => {
+                    const horse = document.querySelector('.piece-red');
+                    if (horse) {
+                        horse.classList.add('selected');
+                        selectedPiece = { 
+                            x: selectedPiece.x, 
+                            y: selectedPiece.y, 
+                            element: horse 
+                        };
+                        validMoves = calculateHorseMoves(selectedPiece.x, selectedPiece.y);
+                        showValidMoves(validMoves);
+                    }
+                }, 300);
+                
+                // 播放成功音效但不显示弹窗
+                playSuccessSound();
+                for (let i = 0; i < 6; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star-effect';
+                    star.textContent = '⭐';
+                    star.style.left = (target.x * 12.5) + '%';
+                    star.style.top = (target.y * 11.11) + '%';
+                    const angle = (i / 6) * Math.PI * 2;
+                    star.style.setProperty('--tx', Math.cos(angle) * 50 + 'px');
+                    star.style.setProperty('--ty', Math.sin(angle) * 50 + 'px');
+                    document.getElementById('piecesLayer').appendChild(star);
+                    setTimeout(() => star.remove(), 800);
+                }
+                return;
+            }
+            
+            setTimeout(() => {
+                playSuccessSound();
+                
+                for (let i = 0; i < 6; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star-effect';
+                    star.textContent = '⭐';
+                    star.style.left = (target.x * 12.5) + '%';
+                    star.style.top = (target.y * 11.11) + '%';
+                    const angle = (i / 6) * Math.PI * 2;
+                    star.style.setProperty('--tx', Math.cos(angle) * 50 + 'px');
+                    star.style.setProperty('--ty', Math.sin(angle) * 50 + 'px');
+                    document.getElementById('piecesLayer').appendChild(star);
+                    setTimeout(() => star.remove(), 800);
+                }
+                
+                showSuccess();
+            }, 250);
+        }
+        
+        function showSuccess() {
+            const level = levels[currentLevel];
+            document.getElementById('successText').textContent = level.successText;
+            document.getElementById('successModal').classList.add('show');
+        }
+        
+        function nextLevel() {
+            document.getElementById('successModal').classList.remove('show');
+            
+            completedLevels.push(currentLevel);
+            streak++;
+            document.getElementById('streakText').textContent = '连胜 ' + streak + ' 天';
+            
+            if (currentLevel >= 9) {
+                // 章节完成
+                for (let i = 0; i < 20; i++) {
+                    setTimeout(() => {
+                        const confetti = document.createElement('div');
+                        confetti.className = 'confetti';
+                        confetti.textContent = ['🎉', '✨', '⭐', '💎', '🏆'][Math.floor(Math.random() * 5)];
+                        confetti.style.left = Math.random() * 100 + 'vw';
+                        confetti.style.animationDelay = Math.random() * 0.3 + 's';
+                        document.body.appendChild(confetti);
+                        setTimeout(() => confetti.remove(), 2000);
+                    }, i * 60);
+                }
+                document.getElementById('finalModal').classList.add('show');
+                return;
+            }
+            
+            currentLevel++;
+            selectedPiece = null;
+            validMoves = [];
+            backToPath();
+        }
+        
+        function resetGame() {
+            playSelectSound();
+            selectedPiece = null;
+            validMoves = [];
+            document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+            document.querySelectorAll('.valid-move').forEach(m => m.remove());
+            renderPieces();
+        }
+        
+        function showHint() {
+            playSelectSound();
+            const level = levels[currentLevel];
+            const target = level.setup.targets[0];
+            document.getElementById('maxText').textContent = `提示：目标是 (${target.x}, ${target.y})，形成"日"字！`;
+        }
+        
+        document.getElementById('board').onclick = function(e) {
+            if (e.target === this || e.target.classList.contains('grid-lines')) {
+                document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+                document.querySelectorAll('.valid-move').forEach(m => m.remove());
+                selectedPiece = null;
+            }
+        };
+        
+        init();
+    </script>
+</body>
+</html>

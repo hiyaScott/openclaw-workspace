@@ -1,0 +1,39 @@
+{
+  "id": 6,
+  "name": "躲避危险",
+  "description": "从车威胁下逃脱",
+  "juIndex": 6,
+  "multiStep": false,
+  "pieces": [
+    {
+      "type": 0,
+      "side": 0,
+      "name": "马",
+      "x": 4,
+      "y": 5
+    },
+    {
+      "type": 1,
+      "side": 1,
+      "name": "车",
+      "x": 4,
+      "y": 2
+    }
+  ],
+  "steps": [
+    {
+      "target": [
+        {"x": 2, "y": 4},
+        {"x": 6, "y": 4}
+      ],
+      "hintType": "text",
+      "hintText": "危险！你的马被车盯上了！快用日字走法逃到安全位置！",
+      "msg": "安全了！成功躲避了车的威胁！"
+    }
+  ],
+  "successText": "漂亮！",
+  "starConditions": {
+    "firstTry": true,
+    "withinTime": 30
+  }
+}

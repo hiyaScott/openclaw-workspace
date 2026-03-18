@@ -1,0 +1,134 @@
+[gd_scene load_steps=6 format=3 uid="uid://ui12345678"]
+
+[ext_resource type="Script" path="res://src/ui.gd" id="1_ui"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font_size = 48
+font_color = Color(1, 1, 1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_normal"]
+font_size = 24
+font_color = Color(1, 1, 1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_small"]
+font_size = 18
+font_color = Color(0.8, 0.8, 0.8, 1)
+
+[node name="UI" type="CanvasLayer"]
+script = ExtResource("1_ui")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 100.0
+grow_horizontal = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="OccupancyLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "占领率: 0% / 80%"
+label_settings = SubResource("LabelSettings_normal")
+
+[node name="OccupancyBar" type="ProgressBar" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 20)
+layout_mode = 2
+max_value = 100.0
+value = 0.0
+
+[node name="HealthLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "生命值: 3 / 3"
+label_settings = SubResource("LabelSettings_normal")
+
+[node name="GameOverPanel" type="Panel" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameOverPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="GameOverPanel/VBoxContainer"]
+layout_mode = 2
+text = "游戏结束"
+label_settings = SubResource("LabelSettings_title")
+horizontal_alignment = 1
+
+[node name="MessageLabel" type="Label" parent="GameOverPanel/VBoxContainer"]
+layout_mode = 2
+text = "你的进程被终止了"
+label_settings = SubResource("LabelSettings_normal")
+horizontal_alignment = 1
+
+[node name="RestartLabel" type="Label" parent="GameOverPanel/VBoxContainer"]
+layout_mode = 2
+text = "按 R 重新开始"
+label_settings = SubResource("LabelSettings_small")
+horizontal_alignment = 1
+
+[node name="GameWonPanel" type="Panel" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameWonPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="GameWonPanel/VBoxContainer"]
+layout_mode = 2
+text = "DOMINION ACHIEVED"
+label_settings = SubResource("LabelSettings_title")
+horizontal_alignment = 1
+
+[node name="MessageLabel" type="Label" parent="GameWonPanel/VBoxContainer"]
+layout_mode = 2
+text = "区域控制完成！"
+label_settings = SubResource("LabelSettings_normal")
+horizontal_alignment = 1
+
+[node name="FinalTimeLabel" type="Label" parent="GameWonPanel/VBoxContainer"]
+layout_mode = 2
+text = "通关时间: 00:00"
+label_settings = SubResource("LabelSettings_normal")
+horizontal_alignment = 1
+
+[node name="RestartLabel" type="Label" parent="GameWonPanel/VBoxContainer"]
+layout_mode = 2
+text = "按 R 重新开始"
+label_settings = SubResource("LabelSettings_small")
+horizontal_alignment = 1

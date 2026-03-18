@@ -1,0 +1,38 @@
+{
+  "id": 4,
+  "name": "吃子练习",
+  "description": "学习用马吃子",
+  "juIndex": 4,
+  "multiStep": false,
+  "pieces": [
+    {
+      "type": 0,
+      "side": 0,
+      "name": "马",
+      "x": 4,
+      "y": 7
+    },
+    {
+      "type": 6,
+      "side": 1,
+      "name": "卒",
+      "x": 2,
+      "y": 6
+    }
+  ],
+  "steps": [
+    {
+      "target": [
+        {"x": 2, "y": 6}
+      ],
+      "hintType": "text",
+      "hintText": "马不仅可以移动，还可以吃子！吃掉对方的卒！",
+      "msg": "很好！马吃掉了对方的卒！"
+    }
+  ],
+  "successText": "牛啊！",
+  "starConditions": {
+    "firstTry": true,
+    "withinTime": 30
+  }
+}

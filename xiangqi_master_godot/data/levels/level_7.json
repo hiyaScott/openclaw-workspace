@@ -1,0 +1,40 @@
+{
+  "id": 7,
+  "name": "连续移动",
+  "description": "走两步到达目标",
+  "juIndex": 7,
+  "multiStep": true,
+  "pieces": [
+    {
+      "type": 0,
+      "side": 0,
+      "name": "马",
+      "x": 4,
+      "y": 7
+    }
+  ],
+  "steps": [
+    {
+      "target": [
+        {"x": 2, "y": 6},
+        {"x": 6, "y": 6}
+      ],
+      "hintType": "vague",
+      "hintText": "这次需要走两步到达终点！自己规划路线！",
+      "msg": ""
+    },
+    {
+      "target": [
+        {"x": 3, "y": 4}
+      ],
+      "hintType": "vague",
+      "hintText": "继续走，到达终点！",
+      "msg": "完美！连续移动成功！"
+    }
+  ],
+  "successText": "泰裤辣！",
+  "starConditions": {
+    "firstTry": true,
+    "withinTime": 45
+  }
+}

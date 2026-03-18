@@ -1,0 +1,31 @@
+{
+  "id": 1,
+  "name": "认识马",
+  "description": "学习马走日的基本规则",
+  "juIndex": 1,
+  "multiStep": false,
+  "pieces": [
+    {
+      "type": 0,
+      "side": 0,
+      "name": "马",
+      "x": 1,
+      "y": 7
+    }
+  ],
+  "steps": [
+    {
+      "target": [
+        {"x": 3, "y": 6}
+      ],
+      "hintType": "precise",
+      "hintText": "点击红马，移动到虚线圆圈位置",
+      "msg": "很好！这就是马走日！"
+    }
+  ],
+  "successText": "泰裤辣！",
+  "starConditions": {
+    "firstTry": true,
+    "withinTime": 30
+  }
+}

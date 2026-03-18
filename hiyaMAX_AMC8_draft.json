@@ -1,0 +1,111 @@
+{
+  "version": "3.0",
+  "project": {
+    "name": "hiyaMAX_AMC8_Problem25",
+    "duration": 60000,
+    "width": 1080,
+    "height": 1920,
+    "fps": 30
+  },
+  "tracks": [
+    {
+      "type": "video",
+      "items": [
+        {
+          "name": "01_opening",
+          "duration": 3000,
+          "file": "01_opening.png",
+          "transition": "fade_in"
+        },
+        {
+          "name": "02_question",
+          "duration": 5000,
+          "file": "02_question.png",
+          "transition": "slide"
+        },
+        {
+          "name": "03_thinking",
+          "duration": 12000,
+          "file": "03_thinking.png",
+          "transition": "zoom"
+        },
+        {
+          "name": "04_sixballs",
+          "duration": 15000,
+          "file": "04_sixballs.png",
+          "transition": "flash"
+        },
+        {
+          "name": "05_sevenballs",
+          "duration": 10000,
+          "file": "05_sevenballs.png",
+          "transition": "bounce"
+        },
+        {
+          "name": "06_answer",
+          "duration": 10000,
+          "file": "06_answer.png",
+          "transition": "celebrate"
+        },
+        {
+          "name": "07_ending",
+          "duration": 5000,
+          "file": "07_ending.png",
+          "transition": "fade_out"
+        }
+      ]
+    },
+    {
+      "type": "audio",
+      "items": [
+        {
+          "name": "narration",
+          "file": "voice-1772270443402.mp3",
+          "duration": 60000
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "items": [
+        {
+          "content": "关键词是\"保证\"",
+          "start": 8000,
+          "duration": 3000,
+          "style": "subtitle"
+        },
+        {
+          "content": "最坏情况：每种颜色拿2个",
+          "start": 20000,
+          "duration": 4000,
+          "style": "subtitle"
+        },
+        {
+          "content": "第7个球一定会让某一种变成3个！",
+          "start": 35000,
+          "duration": 4000,
+          "style": "subtitle"
+        },
+        {
+          "content": "答案是7",
+          "start": 46000,
+          "duration": 3000,
+          "style": "highlight"
+        },
+        {
+          "content": "记住：最坏情况+1",
+          "start": 50000,
+          "duration": 3000,
+          "style": "subtitle"
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "output": {
+      "resolution": "1080x1920",
+      "fps": 30,
+      "format": "mp4"
+    }
+  }
+}

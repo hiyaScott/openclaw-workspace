@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRID.DOMINION v5.0 - Roguelike进化</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Orbitron', 'Courier New', monospace;
+            background: #050508;
+            color: #00ff88;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+        
+        h1 {
+            font-size: 2em;
+            font-weight: 900;
+            text-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 40px #00aa66;
+            margin-bottom: 5px;
+            letter-spacing: 4px;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes titlePulse {
+            0%, 100% { text-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 40px #00aa66; }
+            50% { text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88, 0 0 60px #00aa66; }
+        }
+        
+        .subtitle {
+            color: #0088aa;
+            margin-bottom: 10px;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .level-indicator {
+            color: #ffaa00;
+            font-size: 1em;
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px #ffaa00;
+        }
+        
+        .game-info {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 10px;
+            font-size: 0.85em;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .info-item {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 136, 170, 0.1) 100%);
+            border: 1px solid #00ff88;
+            padding: 5px 10px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+        }
+        
+        .info-label {
+            color: #0088aa;
+            font-size: 0.6em;
+            text-transform: uppercase;
+        }
+        
+        .info-value {
+            font-size: 1em;
+            font-weight: bold;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4), inset 0 0 40px rgba(0, 255, 136, 0.1);
+            background: #080810;
+            border-radius: 4px;
+        }
+        
+        .blessings-curses {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .blessing, .curse {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .blessing {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+        
+        .curse {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+        }
+        
+        .combo-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            font-weight: bold;
+            color: #ffaa00;
+            text-shadow: 0 0 20px #ffaa00;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+        
+        .combo-display.show {
+            opacity: 1;
+            animation: comboPop 0.5s ease-out;
+        }
+        
+        @keyframes comboPop {
+            0% { transform: translate(-50%, -50%) scale(0.5); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+        
+        .achievement-popup {
+            position: fixed;
+            top: 80px;
+            right: -300px;
+            background: linear-gradient(135deg, rgba(255, 170, 0, 0.9) 0%, rgba(255, 136, 0, 0.9) 100%);
+            color: #000;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: right 0.5s ease-out;
+            z-index: 150;
+            box-shadow: 0 0 20px rgba(255, 170, 0, 0.5);
+        }
+        
+        .achievement-popup.show {
+            right: 20px;
+        }
+        
+        .controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #00ff88 0%, #0088aa 100%);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.85em;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.5);
+        }
+        
+        .instructions {
+            margin-top: 10px;
+            color: #0088aa;
+            text-align: center;
+            line-height: 1.5;
+            font-size: 0.8em;
+        }
+        
+        .instructions span {
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.15);
+            padding: 2px 8px;
+            border-radius: 3px;
+            margin: 0 3px;
+        }
+        
+        .status-message {
+            margin-top: 10px;
+            font-size: 1.1em;
+            min-height: 25px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .status-message.win { color: #00ff00; text-shadow: 0 0 15px #00ff00; animation: victoryPulse 0.5s ease-in-out infinite; }
+        .status-message.lose { color: #ff4444; text-shadow: 0 0 15px #ff4444; }
+        .status-message.boss { color: #ff00ff; text-shadow: 0 0 15px #ff00ff; animation: bossWarning 1s ease-in-out infinite; }
+        .status-message.event { color: #ffaa00; text-shadow: 0 0 15px #ffaa00; }
+        
+        @keyframes victoryPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes bossWarning { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .skill-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .skill {
+            background: linear-gradient(135deg, rgba(0, 136, 170, 0.2) 0%, rgba(0, 68, 102, 0.2) 100%);
+            border: 2px solid #0088aa;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .skill.ready {
+            border-color: #00ff88;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2) 0%, rgba(0, 170, 136, 0.2) 100%);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+            animation: skillReady 1s ease-in-out infinite;
+        }
+        
+        @keyframes skillReady {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 136, 0.5); }
+        }
+        
+        .skill-key {
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 1.2em;
+            display: block;
+        }
+        
+        .audio-controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .audio-btn {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75em;
+        }
+        
+        .panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(5, 5, 8, 0.98);
+            border: 2px solid #00ff88;
+            border-radius: 15px;
+            padding: 25px;
+            display: none;
+            z-index: 200;
+            box-shadow: 0 0 60px rgba(0, 255, 136, 0.5);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .panel.show { display: block; }
+        
+        .panel h3 {
+            color: #00ff88;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.5em;
+        }
+        
+        .option {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .option:hover {
+            background: rgba(0, 255, 136, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .option.curse-option {
+            border-color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+        }
+        
+        .option.curse-option:hover {
+            background: rgba(255, 68, 68, 0.2);
+        }
+        
+        .option-title {
+            font-weight: bold;
+            color: #00ff88;
+            font-size: 1.1em;
+        }
+        
+        .option.curse-option .option-title {
+            color: #ff4444;
+        }
+        
+        .option-desc {
+            color: #0088aa;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+        
+        .map-preview {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+        }
+        
+        .map-node {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+        
+        .map-node.normal { background: #1a1a3e; border: 1px solid #444; }
+        .map-node.boss { background: #3a1a3e; border: 1px solid #ff00ff; }
+        .map-node.shop { background: #1a3a3e; border: 1px solid #00ffff; }
+        .map-node.event { background: #3a3a1e; border: 1px solid #ffaa00; }
+        .map-node.current { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+        .map-node.completed { background: #0088aa; }
+        
+        .blessing-curse-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        
+        .bc-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+        
+        .bc-item.blessing {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+        }
+        
+        .bc-item.curse {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+        }
+        
+        .bc-icon {
+            font-size: 1.5em;
+        }
+        
+        .bc-info {
+            flex: 1;
+        }
+        
+        .bc-name {
+            font-weight: bold;
+        }
+        
+        .bc-desc {
+            font-size: 0.8em;
+            color: #0088aa;
+        }
+    </style>
+</head>
+<body>
+    <div class="audio-controls">
+        <button class="audio-btn" onclick="toggleMusic()">🎵 音乐</button>
+        <button class="audio-btn" onclick="toggleSFX()">🔊 音效</button>
+        <button class="audio-btn" onclick="game.showBlessingsCurses()">✨ 祝福/诅咒</button>
+        <button class="audio-btn" onclick="game.showMap()">🗺️ 地图</button>
+    </div>
+
+    <div class="combo-display" id="comboDisplay"></div>
+    <div class="achievement-popup" id="achievementPopup">🏆 成就解锁！</div>
+
+    <!-- 升级面板 -->
+    <div class="panel" id="upgradePanel">
+        <h3>⚡ 选择升级 ⚡</h3>
+        <div id="upgradeOptions"></div>
+    </div>
+
+    <!-- 祝福诅咒面板 -->
+    <div class="panel" id="bcPanel">
+        <h3>✨ 祝福与诅咒 ✨</h3>
+        <div class="blessing-curse-list" id="bcList"></div>
+        <button onclick="document.getElementById('bcPanel').classList.remove('show'); game.paused = false;">关闭</button>
+    </div>
+
+    <!-- 地图面板 -->
+    <div class="panel" id="mapPanel">
+        <h3>🗺️ 区域地图 🗺️</h3>
+        <div class="map-preview" id="mapPreview"></div>
+        <div style="margin-top: 15px; font-size: 0.9em; color: #0088aa;">
+            🟦 普通区域 | 🟪 Boss区域 | 🟨 事件区域 | 🟦 商店区域
+        </div>
+        <button onclick="document.getElementById('mapPanel').classList.remove('show'); game.paused = false;">关闭</button>
+    </div>
+
+    <!-- 事件面板 -->
+    <div class="panel" id="eventPanel">
+        <h3 id="eventTitle">❓ 随机事件 ❓</h3>
+        <div id="eventDescription" style="margin: 15px 0; color: #ccc; line-height: 1.6;"></div>
+        <div id="eventOptions"></div>
+    </div>
+
+    <!-- 祝福诅咒选择面板 -->
+    <div class="panel" id="bcChoicePanel">
+        <h3>🎲 命运的抉择 🎲</h3>
+        <div style="margin: 15px 0; color: #ffaa00; text-align: center;">
+            选择一个祝福，但必须承受一个诅咒
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+                <h4 style="color: #00ff88; margin-bottom: 10px;">✨ 选择一个祝福</h4>
+                <div id="blessingOptions"></div>
+            </div>
+            
+            <div>
+                <h4 style="color: #ff4444; margin-bottom: 10px;">😈 承受一个诅咒</h4>
+                <div id="curseOptions"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏结束面板 -->
+    <div class="panel" id="gameOverPanel">
+        <h3>💀 游戏结束 💀</h3>
+        <div style="text-align: center; margin: 20px 0;">
+            <div style="font-size: 1.3em; color: #ffaa00; margin-bottom: 10px;">最终得分: <span id="finalScore">0</span></div>
+            <div style="color: #0088aa;">击杀数: <span id="finalKills">0</span> | 最高连击: <span id="finalCombo">0</span> | 到达区域: <span id="finalLevel">1</span></div>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button onclick="game.restart(); document.getElementById('gameOverPanel').classList.remove('show');">🔄 再玩一次</button>
+        </div>
+    </div>
+
+    <h1>GRID.DOMINION</h1>
+    <div class="subtitle">Roguelike 区域控制动作游戏</div>
+    
+    <div class="level-indicator" id="levelInfo">核心区域 - 第1层</div>
+    
+    <div class="blessings-curses" id="activeBC"></div>
+    
+    <div class="game-info">
+        <div class="info-item">
+            <div class="info-label">生命值</div>
+            <div class="info-value" id="health">100</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">占领率</div>
+            <div class="info-value" id="dominion">0%</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">分数</div>
+            <div class="info-value" id="score">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">金币</div>
+            <div class="info-value" id="gold">0</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">连击</div>
+            <div class="info-value" id="combo">x1</div>
+        </div>
+    </div>
+    
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <div class="status-message" id="status">点击格子开始占领领地！占领80%生成出口</div>
+    
+    <div class="skill-bar">
+        <div class="skill ready" id="skillQ">
+            <span class="skill-key">Q</span>
+            <div>区域爆破</div>
+        </div>
+        <div class="skill ready" id="skillE">
+            <span class="skill-key">E</span>
+            <div>护盾</div>
+        </div>
+        <div class="skill ready" id="skillR">
+            <span class="skill-key">R</span>
+            <div>加速</div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button onclick="game.restart()">🔄 重新开始</button>
+        <button onclick="game.togglePause()">⏸️ 暂停</button>
+    </div>
+    
+    <div class="instructions">
+        <span>WASD</span>移动 <span>空格</span>冲刺 <span>Q/E/R</span>技能<br>
+        每3层Boss战 | 随机事件 | 祝福与诅咒系统 | 查看地图规划路线
+    </div>
+
+    <script>
+        // 音频系统
+        const AudioSys = {
+            musicEnabled: true,
+            sfxEnabled: true,
+            ctx: null,
+            
+            init() {
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch(e) {}
+            },
+            
+            playTone(freq, duration, type = 'sine', volume = 0.3) {
+                if (!this.sfxEnabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.frequency.value = freq;
+                osc.type = type;
+                gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            },
+            
+            playClaim() {
+                this.playTone(880, 0.1, 'sine', 0.2);
+                setTimeout(() => this.playTone(1100, 0.15, 'sine', 0.15), 50);
+            },
+            
+            playExplosion() {
+                this.playTone(100, 0.3, 'sawtooth', 0.4);
+                this.playTone(80, 0.4, 'square', 0.3);
+            },
+            
+            playEvent() {
+                this.playTone(660, 0.2, 'sine', 0.3);
+                setTimeout(() => this.playTone(880, 0.3, 'sine', 0.25), 200);
+            },
+            
+            playBGM() {
+                if (!this.musicEnabled || !this.ctx) return;
+                const loop = () => {
+                    if (!this.musicEnabled) return;
+                    this.playTone(55, 0.5, 'sine', 0.05);
+                    setTimeout(() => this.playTone(82, 0.5, 'sine', 0.05), 500);
+                    setTimeout(() => loop(), 1000);
+                };
+                loop();
+            }
+        };
+        
+        function toggleMusic() { AudioSys.musicEnabled = !AudioSys.musicEnabled; if (AudioSys.musicEnabled) AudioSys.playBGM(); }
+        function toggleSFX() { AudioSys.sfxEnabled = !AudioSys.sfxEnabled; }
+        
+        // 地图生成器
+        class MapGenerator {
+            constructor() {
+                this.themes = [
+                    { name: '核心区域', color: '#00ff88', wallDensity: 0.15, enemyMult: 1 },
+                    { name: '废弃工厂', color: '#ffaa00', wallDensity: 0.25, enemyMult: 1.2 },
+                    { name: '数据深渊', color: '#8844ff', wallDensity: 0.2, enemyMult: 1.3 },
+                    { name: '防火墙外围', color: '#ff4444', wallDensity: 0.1, enemyMult: 1.5 }
+                ];
+                
+                this.roomTypes = ['normal', 'elite', 'shop', 'event', 'boss'];
+            }
+            
+            generateFloor(floorNum) {
+                const rooms = [];
+                const roomCount = 5 + Math.floor(floorNum / 3);
+                
+                // 生成房间序列
+                for (let i = 0; i < roomCount; i++) {
+                    let type = 'normal';
+                    if (i === roomCount - 1) type = 'boss';
+                    else if (i === Math.floor(roomCount / 2)) type = 'shop';
+                    else if (Math.random() < 0.3) type = 'event';
+                    else if (Math.random() < 0.2) type = 'elite';
+                    
+                    rooms.push({
+                        id: i,
+                        type: type,
+                        theme: this.themes[Math.min(Math.floor(floorNum / 3), this.themes.length - 1)],
+                        completed: false,
+                        connections: [i + 1 < roomCount ? i + 1 : null].filter(x => x !== null)
+                    });
+                }
+                
+                return rooms;
+            }
+            
+            generateRoomLayout(type, theme) {
+                const layouts = {
+                    normal: () => this.generateNormalLayout(theme),
+                    elite: () => this.generateEliteLayout(theme),
+                    shop: () => this.generateShopLayout(),
+                    event: () => this.generateEventLayout(theme),
+                    boss: () => this.generateBossLayout(theme)
+                };
+                
+                return layouts[type] ? layouts[type]() : layouts.normal();
+            }
+            
+            generateNormalLayout(theme) {
+                const layout = [];
+                for (let y = 0; y < 12; y++) {
+                    const row = [];
+                    for (let x = 0; x < 16; x++) {
+                        const isEdge = x === 0 || x === 15 || y === 0 || y === 11;
+                        const isWall = !isEdge && Math.random() < theme.wallDensity;
+                        row.push({
+                            state: isEdge || isWall ? 'wall' : 'empty',
+                            isDominion: false
+                        });
+                    }
+                    layout.push(row);
+                }
+                return layout;
+            }
+            
+            generateEliteLayout(theme) {
+                const layout = this.generateNormalLayout(theme);
+                // 精英房间更多障碍物
+                for (let y = 3; y < 9; y++) {
+                    for (let x = 3; x < 13; x++) {
+                        if (Math.random() < 0.3) {
+                            layout[y][x].state = 'wall';
+                        }
+                    }
+                }
+                return layout;
+            }
+            
+            generateShopLayout() {
+                const layout = [];
+                for (let y = 0; y < 12; y++) {
+                    const row = [];
+                    for (let x = 0; x < 16; x++) {
+                        const isEdge = x === 0 || x === 15 || y === 0 || y === 11;
+                        // 商店房间开阔
+                        row.push({
+                            state: isEdge ? 'wall' : 'empty',
+                            isDominion: false
+                        });
+                    }
+                    layout.push(row);
+                }
+                return layout;
+            }
+            
+            generateEventLayout(theme) {
+                // 事件房间 - 特殊布局
+                const layout = this.generateNormalLayout(theme);
+                // 中央区域清空
+                for (let y = 4; y < 8; y++) {
+                    for (let x = 6; x < 10; x++) {
+                        layout[y][x].state = 'empty';
+                    }
+                }
+                return layout;
+            }
+            
+            generateBossLayout(theme) {
+                const layout = [];
+                for (let y = 0; y < 12; y++) {
+                    const row = [];
+                    for (let x = 0; x < 16; x++) {
+                        const isEdge = x === 0 || x === 15 || y === 0 || y === 11;
+                        // 圆形竞技场
+                        const centerX = 7.5, centerY = 5.5;
+                        const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+                        const isWall = !isEdge && dist > 4.5;
+                        
+                        row.push({
+                            state: isEdge || isWall ? 'wall' : 'empty',
+                            isDominion: false
+                        });
+                    }
+                    layout.push(row);
+                }
+                return layout;
+            }
+        }
+        
+        // 祝福与诅咒系统
+        class BlessingCurseSystem {
+            constructor() {
+                this.blessings = [
+                    { id: 'strength', name: '力量祝福', icon: '💪', desc: '攻击力+50%', effect: (g) => g.player.damageMult = 1.5 },
+                    { id: 'speed', name: '速度祝福', icon: '⚡', desc: '移动速度+30%', effect: (g) => g.player.speedMult = 1.3 },
+                    { id: 'vitality', name: '活力祝福', icon: '❤️', desc: '最大生命值+50', effect: (g) => { g.player.maxHealth += 50; g.player.health += 50; } },
+                    { id: 'fortune', name: '幸运祝福', icon: '🍀', desc: '金币获取+100%', effect: (g) => g.goldMult = 2 },
+                    { id: 'dominion', name: '统治祝福', icon: '👑', desc: '领地伤害+100%', effect: (g) => g.dominionDamageMult = 2 },
+                    { id: 'wisdom', name: '智慧祝福', icon: '📚', desc: '技能冷却-30%', effect: (g) => g.skillCooldownMult = 0.7 }
+                ];
+                
+                this.curses = [
+                    { id: 'weakness', name: '虚弱诅咒', icon: '😰', desc: '攻击力-30%', effect: (g) => g.player.damageMult = 0.7 },
+                    { id: 'slowness', name: '迟缓诅咒', icon: '🐌', desc: '移动速度-20%', effect: (g) => g.player.speedMult = 0.8 },
+                    { id: 'fragility', name: '脆弱诅咒', icon: '💔', desc: '受到的伤害+50%', effect: (g) => g.damageTakenMult = 1.5 },
+                    { id: 'poverty', name: '贫穷诅咒', icon: '💸', desc: '金币获取-50%', effect: (g) => g.goldMult = 0.5 },
+                    { id: 'cooldown', name: '冷却诅咒', icon: '⏳', desc: '技能冷却+50%', effect: (g) => g.skillCooldownMult = 1.5 }
+                ];
+                
+                this.activeBlessings = [];
+                this.activeCurses = [];
+            }
+            
+            getRandomBlessing() {
+                return this.blessings[Math.floor(Math.random() * this.blessings.length)];
+            }
+            
+            getRandomCurse() {
+                return this.curses[Math.floor(Math.random() * this.curses.length)];
+            }
+            
+            applyBlessing(blessing, game) {
+                this.activeBlessings.push(blessing);
+                blessing.effect(game);
+            }
+            
+            applyCurse(curse, game) {
+                this.activeCurses.push(curse);
+                curse.effect(game);
+            }
+            
+            getDisplayList() {
+                return [
+                    ...this.activeBlessings.map(b => ({ ...b, type: 'blessing' })),
+                    ...this.activeCurses.map(c => ({ ...c, type: 'curse' }))
+                ];
+            }
+            
+            clear() {
+                this.activeBlessings = [];
+                this.activeCurses = [];
+            }
+        }
+        
+        // 事件系统
+        class EventSystem {
+            constructor() {
+                this.events = [
+                    {
+                        id: 'shrine',
+                        title: '🏛️ 神秘祭坛',
+                        desc: '你发现了一个古老的祭坛，上面闪烁着神秘的光芒。',
+                        choices: [
+                            { text: '献上金币换取祝福 (50金币)', action: (g) => {
+                                if (g.gold >= 50) {
+                                    g.gold -= 50;
+                                    const blessing = g.bcSystem.getRandomBlessing();
+                                    g.bcSystem.applyBlessing(blessing, g);
+                                    return `获得祝福: ${blessing.name}`;
+                                }
+                                return '金币不足！';
+                            }},
+                            { text: '冒险触碰祭坛', action: (g) => {
+                                if (Math.random() < 0.5) {
+                                    const blessing = g.bcSystem.getRandomBlessing();
+                                    g.bcSystem.applyBlessing(blessing, g);
+                                    return `幸运！获得祝福: ${blessing.name}`;
+                                } else {
+                                    const curse = g.bcSystem.getRandomCurse();
+                                    g.bcSystem.applyCurse(curse, g);
+                                    return `不幸！受到诅咒: ${curse.name}`;
+                                }
+                            }},
+                            { text: '离开', action: () => '你小心翼翼地离开了祭坛。' }
+                        ]
+                    },
+                    {
+                        id: 'merchant',
+                        title: '🏪 流浪商人',
+                        desc: '一个神秘的商人挡住了你的去路，他看起来有一些...有趣的东西。',
+                        choices: [
+                            { text: '购买生命药水 (30金币)', action: (g) => {
+                                if (g.gold >= 30) {
+                                    g.gold -= 30;
+                                    g.player.health = Math.min(g.player.health + 50, g.player.maxHealth);
+                                    return '恢复了50点生命值！';
+                                }
+                                return '金币不足！';
+                            }},
+                            { text: '购买神秘箱子 (100金币)', action: (g) => {
+                                if (g.gold >= 100) {
+                                    g.gold -= 100;
+                                    if (Math.random() < 0.6) {
+                                        const blessing = g.bcSystem.getRandomBlessing();
+                                        g.bcSystem.applyBlessing(blessing, g);
+                                        return `箱子开出祝福: ${blessing.name}`;
+                                    } else {
+                                        return '箱子里只有一些灰尘...';
+                                    }
+                                }
+                                return '金币不足！';
+                            }},
+                            { text: '离开', action: () => '商人耸耸肩，消失在阴影中。' }
+                        ]
+                    },
+                    {
+                        id: 'trap',
+                        title: '⚠️ 陷阱房间',
+                        desc: '你触发了一个古老的陷阱！必须做出选择...',
+                        choices: [
+                            { text: '强行突破 (失去30生命值)', action: (g) => {
+                                g.player.health -= 30;
+                                return '你受伤了，但成功通过！';
+                            }},
+                            { text: '寻找安全路径 (耗时)', action: (g) => {
+                                g.score = Math.max(0, g.score - 200);
+                                return '你找到了安全路径，但浪费了时间(-200分)。';
+                            }},
+                            { text: '使用护盾', action: (g) => {
+                                if (g.player.shieldTime > 0) {
+                                    return '护盾保护了你！';
+                                }
+                                g.player.health -= 15;
+                                return '护盾未激活，受到部分伤害。';
+                            }}
+                        ]
+                    },
+                    {
+                        id: 'gamble',
+                        title: '🎲 命运赌局',
+                        desc: '一个神秘的声音在你脑海中响起:"想要试试运气吗？"',
+                        choices: [
+                            { text: '赌上所有金币 (50%翻倍/50%归零)', action: (g) => {
+                                if (Math.random() < 0.5) {
+                                    g.gold *= 2;
+                                    return `运气爆棚！金币翻倍！现在有${g.gold}金币！`;
+                                } else {
+                                    g.gold = 0;
+                                    return '运气不佳...金币全部失去。';
+                                }
+                            }},
+                            { text: '赌上健康 (50%满血/50%剩1血)', action: (g) => {
+                                if (Math.random() < 0.5) {
+                                    g.player.health = g.player.maxHealth;
+                                    return '生命值完全恢复！';
+                                } else {
+                                    g.player.health = 1;
+                                    return '生命值降至1点！危险！';
+                                }
+                            }},
+                            { text: '拒绝赌博', action: () => '明智的选择。' }
+                        ]
+                    }
+                ];
+            }
+            
+            getRandomEvent() {
+                return this.events[Math.floor(Math.random() * this.events.length)];
+            }
+        }
+        
+        // 游戏主类
+        class Game {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.GRID_WIDTH = 16;
+                this.GRID_HEIGHT = 12;
+                this.CELL_SIZE = 40;
+                
+                this.mapGen = new MapGenerator();
+                this.bcSystem = new BlessingCurseSystem();
+                this.eventSystem = new EventSystem();
+                
+                this.floor = 1;
+                this.currentRoom = 0;
+                this.rooms = [];
+                
+                this.resetGame();
+                this.setupInputs();
+                AudioSys.init();
+                AudioSys.playBGM();
+                
+                this.lastTime = 0;
+                requestAnimationFrame((t) => this.loop(t));
+            }
+            
+            resetGame() {
+                this.grid = [];
+                this.player = { 
+                    x: 2, y: 2, 
+                    health: 100, maxHealth: 100,
+                    shieldTime: 0, speedTime: 0,
+                    dashCooldown: 0,
+                    damageMult: 1,
+                    speedMult: 1
+                };
+                this.enemies = [];
+                this.particles = [];
+                this.score = 0;
+                this.gold = 0;
+                this.goldMult = 1;
+                this.dominionPercent = 0;
+                this.dominionDamageMult = 1;
+                this.damageTakenMult = 1;
+                this.skillCooldownMult = 1;
+                this.gameTime = 0;
+                this.gameOver = false;
+                this.paused = false;
+                this.exitOpen = false;
+                this.exitPos = null;
+                this.keys = {};
+                this.combo = 0;
+                this.comboTimer = 0;
+                this.totalKills = 0;
+                this.maxCombo = 0;
+                
+                this.bcSystem.clear();
+                
+                this.skills = {
+                    Q: { cooldown: 0, maxCooldown: 8 },
+                    E: { cooldown: 0, maxCooldown: 15 },
+                    R: { cooldown: 0, maxCooldown: 12 }
+                };
+                
+                this.generateFloor();
+            }
+            
+            generateFloor() {
+                this.rooms = this.mapGen.generateFloor(this.floor);
+                this.currentRoom = 0;
+                this.loadRoom(0);
+            }
+            
+            loadRoom(roomIndex) {
+                this.currentRoom = roomIndex;
+                const room = this.rooms[roomIndex];
+                
+                // 生成房间布局
+                this.grid = this.mapGen.generateRoomLayout(room.type, room.theme);
+                
+                // 重置玩家位置
+                this.player.x = 2;
+                this.player.y = 2;
+                this.claimCell(2, 2);
+                
+                // 根据房间类型生成内容
+                this.enemies = [];
+                this.exitOpen = false;
+                
+                switch(room.type) {
+                    case 'normal':
+                        this.spawnEnemies(5 + this.floor * 2);
+                        this.setupNormalExit();
+                        break;
+                    case 'elite':
+                        this.spawnEnemies(8 + this.floor * 2);
+                        this.setupNormalExit();
+                        break;
+                    case 'shop':
+                        this.setupShop();
+                        break;
+                    case 'event':
+                        this.setupNormalExit();
+                        setTimeout(() => this.triggerEvent(), 500);
+                        break;
+                        this.triggerEvent();
+                        break;
+                    case 'boss':
+                        this.spawnBoss();
+                        break;
+                }
+                
+                this.updateUI();
+                this.updateBCDisplay();
+                document.getElementById('levelInfo').textContent = 
+                    `${room.theme.name} - 第${this.floor}层 (${roomIndex + 1}/${this.rooms.length})`;
+            }
+            
+            spawnEnemies(count) {
+                for (let i = 0; i < count; i++) {
+                    this.spawnEnemy();
+                }
+            }
+            
+            spawnEnemy() {
+                let x, y, attempts = 0;
+                do {
+                    x = Math.floor(Math.random() * (this.GRID_WIDTH - 2)) + 1;
+                    y = Math.floor(Math.random() * (this.GRID_HEIGHT - 2)) + 1;
+                    attempts++;
+                } while ((this.grid[y][x].state === 'wall' || 
+                         (Math.abs(x - this.player.x) < 5 && Math.abs(y - this.player.y) < 5)) && 
+                         attempts < 50);
+                
+                if (attempts < 50) {
+                    const room = this.rooms[this.currentRoom];
+                    const healthMult = room.theme.enemyMult;
+                    
+                    this.enemies.push({
+                        x, y,
+                        health: 30 * healthMult,
+                        maxHealth: 30 * healthMult,
+                        speed: 0.015,
+                        inDominion: false,
+                        type: 'normal'
+                    });
+                }
+            }
+            
+            spawnBoss() {
+                this.boss = {
+                    x: this.GRID_WIDTH / 2,
+                    y: this.GRID_HEIGHT / 2,
+                    health: 500 + this.floor * 150,
+                    maxHealth: 500 + this.floor * 150,
+                    speed: 0.008,
+                    attackTimer: 0,
+                    spawnTimer: 0
+                };
+                this.showStatus('⚠️ BOSS战！击败Boss开启出口！', 'boss');
+            }
+            
+            setupNormalExit() {
+                this.exitPos = this.findFarthestPosition();
+                this.grid[this.exitPos.y][this.exitPos.x].state = 'empty';
+            }
+            
+            setupShop() {
+                this.exitOpen = true;
+                this.exitPos = { x: this.GRID_WIDTH - 3, y: this.GRID_HEIGHT - 3 };
+                this.showStatus('🏪 商店区域！准备进入下一层', 'win');
+            }
+            
+            triggerEvent() {
+                const event = this.eventSystem.getRandomEvent();
+                this.showEventPanel(event);
+                this.setupNormalExit();
+            }
+            
+            showEventPanel(event) {
+                document.getElementById('eventTitle').textContent = event.title;
+                document.getElementById('eventDescription').textContent = event.desc;
+                
+                const container = document.getElementById('eventOptions');
+                container.innerHTML = '';
+                
+                event.choices.forEach(choice => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option';
+                    btn.style.margin = '10px 0';
+                    btn.innerHTML = `
+                        <div class="option-title">${choice.text}</div>
+                    `;
+                    btn.onclick = () => {
+                        const result = choice.action(this);
+                        this.showStatus(result, 'event');
+                        document.getElementById('eventPanel').classList.remove('show');
+                        this.paused = false;
+                        this.updateUI();
+                        this.updateBCDisplay();
+                    };
+                    container.appendChild(btn);
+                });
+                
+                document.getElementById('eventPanel').classList.add('show');
+                this.paused = true;
+                AudioSys.playEvent();
+            }
+            
+            findFarthestPosition() {
+                let queue = [{x: 2, y: 2, dist: 0}];
+                let visited = new Set(['2,2']);
+                let farthest = {x: 2, y: 2, dist: 0};
+                
+                while (queue.length > 0) {
+                    let curr = queue.shift();
+                    if (curr.dist > farthest.dist) {
+                        farthest = curr;
+                    }
+                    
+                    const dirs = [[0,1], [0,-1], [1,0], [-1,0]];
+                    for (let [dx, dy] of dirs) {
+                        let nx = curr.x + dx, ny = curr.y + dy;
+                        if (nx > 0 && nx < this.GRID_WIDTH - 1 && 
+                            ny > 0 && ny < this.GRID_HEIGHT - 1 &&
+                            this.grid[ny][nx].state !== 'wall' &&
+                            !visited.has(`${nx},${ny}`)) {
+                            visited.add(`${nx},${ny}`);
+                            queue.push({x: nx, y: ny, dist: curr.dist + 1});
+                        }
+                    }
+                }
+                return {x: farthest.x, y: farthest.y};
+            }
+            
+            claimCell(x, y) {
+                if (this.grid[y][x].state !== 'wall' && !this.grid[y][x].isDominion) {
+                    this.grid[y][x].isDominion = true;
+                    this.score += 10 * (1 + this.combo * 0.1);
+                    this.createParticles(x, y, '#00ff88', 8);
+                    AudioSys.playClaim();
+                    this.updateDominionPercent();
+                    return true;
+                }
+                return false;
+            }
+            
+            updateDominionPercent() {
+                let dominionCount = 0;
+                let totalCells = 0;
+                for (let y = 1; y < this.GRID_HEIGHT - 1; y++) {
+                    for (let x = 1; x < this.GRID_WIDTH - 1; x++) {
+                        if (this.grid[y][x].state !== 'wall') {
+                            totalCells++;
+                            if (this.grid[y][x].isDominion) dominionCount++;
+                        }
+                    }
+                }
+                this.dominionPercent = Math.floor((dominionCount / totalCells) * 100);
+                
+                if (this.dominionPercent >= 80 && !this.exitOpen && !this.boss) {
+                    this.exitOpen = true;
+                    this.createParticles(this.exitPos.x, this.exitPos.y, '#ffaa00', 20);
+                    AudioSys.playTone(880, 0.5, 'sine', 0.3);
+                    this.showStatus('🚪 出口已开启！', 'win');
+                }
+            }
+            
+            createParticles(x, y, color, count = 5) {
+                const px = x * this.CELL_SIZE + this.CELL_SIZE / 2 + 80;
+                const py = y * this.CELL_SIZE + this.CELL_SIZE / 2 + 40;
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+                    const speed = 2 + Math.random() * 4;
+                    this.particles.push({
+                        x: px, y: py,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        life: 1,
+                        color: color,
+                        size: 3 + Math.random() * 4
+                    });
+                }
+            }
+            
+            setupInputs() {
+                window.addEventListener('keydown', (e) => {
+                    this.keys[e.key.toLowerCase()] = true;
+                    
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        this.dash();
+                    }
+                    if (e.key === 'q' || e.key === 'Q') this.useSkill('Q');
+                    if (e.key === 'e' || e.key === 'E') this.useSkill('E');
+                    if (e.key === 'r' || e.key === 'R') this.useSkill('R');
+                });
+                
+                window.addEventListener('keyup', (e) => {
+                    this.keys[e.key.toLowerCase()] = false;
+                });
+            }
+            
+            dash() {
+                if (this.gameOver || this.player.dashCooldown > 0) return;
+                
+                let dx = 0, dy = 0;
+                if (this.keys['w']) dy = -1;
+                if (this.keys['s']) dy = 1;
+                if (this.keys['a']) dx = -1;
+                if (this.keys['d']) dx = 1;
+                
+                if (dx !== 0 || dy !== 0) {
+                    this.player.dashCooldown = 3 * this.skillCooldownMult;
+                    const dashDist = 3;
+                    
+                    for (let i = 1; i <= dashDist; i++) {
+                        let nx = Math.round(this.player.x + dx * i);
+                        let ny = Math.round(this.player.y + dy * i);
+                        if (this.isValidMove(nx, ny)) {
+                            this.player.x = nx;
+                            this.player.y = ny;
+                            this.claimCell(nx, ny);
+                            this.createParticles(nx, ny, '#00ffff', 3);
+                        }
+                    }
+                }
+            }
+            
+            useSkill(skill) {
+                if (this.gameOver || this.skills[skill].cooldown > 0) return;
+                
+                this.skills[skill].cooldown = this.skills[skill].maxCooldown * this.skillCooldownMult;
+                
+                switch(skill) {
+                    case 'Q':
+                        AudioSys.playExplosion();
+                        for (let dy = -1; dy <= 1; dy++) {
+                            for (let dx = -1; dx <= 1; dx++) {
+                                let nx = Math.round(this.player.x) + dx;
+                                let ny = Math.round(this.player.y) + dy;
+                                this.createParticles(nx, ny, '#ff6600', 10);
+                                
+                                this.enemies.forEach(enemy => {
+                                    if (Math.abs(enemy.x - nx) < 1.5 && Math.abs(enemy.y - ny) < 1.5) {
+                                        enemy.health -= 50 * this.player.damageMult;
+                                    }
+                                });
+                                
+                                if (this.boss && Math.abs(this.boss.x - nx) < 2 && Math.abs(this.boss.y - ny) < 2) {
+                                    this.boss.health -= 50 * this.player.damageMult;
+                                }
+                            }
+                        }
+                        break;
+                    case 'E':
+                        this.player.shieldTime = 5;
+                        break;
+                    case 'R':
+                        this.player.speedTime = 5;
+                        break;
+                }
+                
+                this.updateSkillUI();
+            }
+            
+            isValidMove(x, y) {
+                return x >= 0 && x < this.GRID_WIDTH && 
+                       y >= 0 && y < this.GRID_HEIGHT && 
+                       this.grid[y][x].state !== 'wall';
+            }
+            
+            nextRoom() {
+                if (this.currentRoom < this.rooms.length - 1) {
+                    // 显示祝福诅咒选择
+                    this.showBCChoice();
+                } else {
+                    // 下一层
+                    this.floor++;
+                    this.showStatus(`进入第 ${this.floor} 层！`, 'win');
+                    this.generateFloor();
+                }
+            }
+            
+            showBCChoice() {
+                const blessings = [this.bcSystem.getRandomBlessing(), this.bcSystem.getRandomBlessing()];
+                const curses = [this.bcSystem.getRandomCurse(), this.bcSystem.getRandomCurse()];
+                
+                const blessingContainer = document.getElementById('blessingOptions');
+                blessingContainer.innerHTML = '';
+                blessings.forEach((b, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'option';
+                    div.innerHTML = `
+                        <div class="option-title">${b.icon} ${b.name}</div>
+                        <div class="option-desc">${b.desc}</div>
+                    `;
+                    div.onclick = () => {
+                        this.selectedBlessing = b;
+                        this.updateBCSelection();
+                    };
+                    blessingContainer.appendChild(div);
+                });
+                
+                const curseContainer = document.getElementById('curseOptions');
+                curseContainer.innerHTML = '';
+                curses.forEach((c, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'option curse-option';
+                    div.innerHTML = `
+                        <div class="option-title">${c.icon} ${c.name}</div>
+                        <div class="option-desc">${c.desc}</div>
+                    `;
+                    div.onclick = () => {
+                        this.selectedCurse = c;
+                        this.updateBCSelection();
+                    };
+                    curseContainer.appendChild(div);
+                });
+                
+                this.selectedBlessing = null;
+                this.selectedCurse = null;
+                
+                document.getElementById('bcChoicePanel').classList.add('show');
+                this.paused = true;
+            }
+            
+            updateBCSelection() {
+                if (this.selectedBlessing && this.selectedCurse) {
+                    this.bcSystem.applyBlessing(this.selectedBlessing, this);
+                    this.bcSystem.applyCurse(this.selectedCurse, this);
+                    document.getElementById('bcChoicePanel').classList.remove('show');
+                    this.paused = false;
+                    this.loadRoom(this.currentRoom + 1);
+                    this.updateBCDisplay();
+                }
+            }
+            
+            addCombo() {
+                this.combo++;
+                this.comboTimer = 3;
+                this.totalKills++;
+                if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+                
+                if (this.combo >= 2) {
+                    const comboDisplay = document.getElementById('comboDisplay');
+                    comboDisplay.textContent = `${this.combo} 连击!`;
+                    comboDisplay.classList.add('show');
+                    setTimeout(() => comboDisplay.classList.remove('show'), 1000);
+                }
+            }
+            
+            update(delta) {
+                if (this.gameOver || this.paused) return;
+                
+                this.gameTime += delta;
+                
+                if (this.comboTimer > 0) {
+                    this.comboTimer -= delta;
+                    if (this.comboTimer <= 0) this.combo = 0;
+                }
+                
+                if (this.player.dashCooldown > 0) this.player.dashCooldown -= delta;
+                for (let key in this.skills) {
+                    if (this.skills[key].cooldown > 0) {
+                        this.skills[key].cooldown -= delta;
+                        if (this.skills[key].cooldown < 0) this.skills[key].cooldown = 0;
+                    }
+                }
+                
+                // 玩家移动
+                let moveInterval = this.player.speedTime > 0 ? 0.06 : (0.12 / this.player.speedMult);
+                if (this.gameTime % moveInterval < delta) {
+                    let dx = 0, dy = 0;
+                    if (this.keys['w']) dy = -1;
+                    if (this.keys['s']) dy = 1;
+                    if (this.keys['a']) dx = -1;
+                    if (this.keys['d']) dx = 1;
+                    
+                    if (dx !== 0 || dy !== 0) {
+                        let nx = Math.round(this.player.x + dx);
+                        let ny = Math.round(this.player.y + dy);
+                        if (this.isValidMove(nx, ny)) {
+                            this.player.x = nx;
+                            this.player.y = ny;
+                            this.claimCell(nx, ny);
+                            
+                            if (this.exitOpen && nx === this.exitPos.x && ny === this.exitPos.y) {
+                                this.nextRoom();
+                                return;
+                            }
+                        }
+                    }
+                }
+                
+                if (this.player.shieldTime > 0) this.player.shieldTime -= delta;
+                if (this.player.speedTime > 0) this.player.speedTime -= delta;
+                
+                // 更新Boss
+                if (this.boss) {
+                    this.updateBoss(delta);
+                }
+                
+                // 更新敌人
+                this.enemies.forEach((enemy, index) => {
+                    const ex = Math.floor(enemy.x);
+                    const ey = Math.floor(enemy.y);
+                    if (ex >= 0 && ex < this.GRID_WIDTH && ey >= 0 && ey < this.GRID_HEIGHT) {
+                        enemy.inDominion = this.grid[ey][ex].isDominion;
+                    }
+                    
+                    if (enemy.inDominion) {
+                        enemy.health -= 5 * this.dominionDamageMult * delta;
+                    }
+                    
+                    let dx = this.player.x - enemy.x;
+                    let dy = this.player.y - enemy.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist > 0.3) {
+                        let speed = enemy.inDominion ? enemy.speed * 0.7 : enemy.speed;
+                        enemy.x += (dx / dist) * speed * this.player.speedMult;
+                        enemy.y += (dy / dist) * speed * this.player.speedMult;
+                    }
+                    
+                    if (dist < 0.6 && this.player.shieldTime <= 0) {
+                        this.player.health -= 15 * this.damageTakenMult;
+                        enemy.health = 0;
+                        this.createParticles(this.player.x, this.player.y, '#ff0000', 10);
+                    }
+                    
+                    if (enemy.health <= 0) {
+                        this.createParticles(enemy.x, enemy.y, '#ff8800', 15);
+                        this.enemies.splice(index, 1);
+                        this.score += (50 + this.floor * 10) * (1 + this.combo * 0.2);
+                        this.gold += Math.floor(10 * this.goldMult);
+                        this.addCombo();
+                    }
+                });
+                
+                if (this.player.health <= 0) {
+                    this.lose();
+                }
+                
+                this.updateUI();
+            }
+            
+            updateBoss(delta) {
+                if (!this.boss) return;
+                
+                let dx = this.player.x - this.boss.x;
+                let dy = this.player.y - this.boss.y;
+                let dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist > 1) {
+                    this.boss.x += (dx / dist) * this.boss.speed;
+                    this.boss.y += (dy / dist) * this.boss.speed;
+                }
+                
+                this.boss.attackTimer += delta;
+                if (this.boss.attackTimer > 2) {
+                    this.boss.attackTimer = 0;
+                    if (dist < 3) {
+                        this.player.health -= 20 * this.damageTakenMult;
+                        this.createParticles(this.player.x, this.player.y, '#ff00ff', 15);
+                    }
+                }
+                
+                this.boss.spawnTimer += delta;
+                if (this.boss.spawnTimer > 5) {
+                    this.boss.spawnTimer = 0;
+                    this.spawnEnemy();
+                    this.spawnEnemy();
+                }
+                
+                if (this.boss.health <= 0) {
+                    this.createParticles(this.boss.x, this.boss.y, '#ff00ff', 50);
+                    this.boss = null;
+                    this.score += 2000;
+                    this.gold += 200;
+                    
+                    this.exitOpen = true;
+                    this.exitPos = { x: Math.floor(this.GRID_WIDTH / 2), y: this.GRID_HEIGHT - 2 };
+                    this.grid[this.exitPos.y][this.exitPos.x].state = 'empty';
+                    this.showStatus('🎉 Boss被击败！出口已开启！', 'win');
+                }
+            }
+            
+            draw() {
+                const ctx = this.ctx;
+                ctx.fillStyle = '#080810';
+                ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                const offsetX = 80;
+                const offsetY = 40;
+                
+                // 背景网格
+                ctx.strokeStyle = 'rgba(0, 255, 136, 0.03)';
+                for (let i = 0; i < this.canvas.width; i += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i, this.canvas.height);
+                    ctx.stroke();
+                }
+                
+                // 绘制游戏网格
+                for (let y = 0; y < this.GRID_HEIGHT; y++) {
+                    for (let x = 0; x < this.GRID_WIDTH; x++) {
+                        let cell = this.grid[y][x];
+                        let px = x * this.CELL_SIZE + offsetX;
+                        let py = y * this.CELL_SIZE + offsetY;
+                        
+                        if (cell.state === 'wall') {
+                            ctx.fillStyle = '#1a1a2e';
+                            ctx.fillRect(px, py, this.CELL_SIZE - 2, this.CELL_SIZE - 2);
+                        } else if (cell.isDominion) {
+                            const room = this.rooms[this.currentRoom];
+                            const themeColor = room ? room.theme.color : '#00ff88';
+                            ctx.fillStyle = themeColor + '40';
+                            ctx.fillRect(px, py, this.CELL_SIZE - 2, this.CELL_SIZE - 2);
+                            ctx.strokeStyle = themeColor;
+                            ctx.strokeRect(px, py, this.CELL_SIZE - 2, this.CELL_SIZE - 2);
+                        } else {
+                            ctx.fillStyle = '#0f0f1a';
+                            ctx.fillRect(px, py, this.CELL_SIZE - 2, this.CELL_SIZE - 2);
+                        }
+                    }
+                }
+                
+                // 绘制出口
+                if (this.exitOpen) {
+                    const px = this.exitPos.x * this.CELL_SIZE + offsetX;
+                    const py = this.exitPos.y * this.CELL_SIZE + offsetY;
+                    const pulse = Math.sin(Date.now() / 200) * 0.3 + 0.7;
+                    ctx.fillStyle = `rgba(0, 255, 0, ${pulse})`;
+                    ctx.beginPath();
+                    ctx.arc(px + this.CELL_SIZE/2, py + this.CELL_SIZE/2, 25, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#00ff00';
+                    ctx.font = 'bold 24px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('🚪', px + this.CELL_SIZE/2, py + this.CELL_SIZE/2 + 8);
+                    ctx.textAlign = 'left';
+                }
+                
+                // 绘制Boss
+                if (this.boss) {
+                    const px = this.boss.x * this.CELL_SIZE + offsetX + this.CELL_SIZE / 2;
+                    const py = this.boss.y * this.CELL_SIZE + offsetY + this.CELL_SIZE / 2;
+                    
+                    const pulse = Math.sin(Date.now() / 300) * 0.2 + 0.8;
+                    ctx.fillStyle = `rgba(255, 0, 255, ${pulse})`;
+                    ctx.beginPath();
+                    ctx.arc(px, py, 40, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.shadowColor = '#ff00ff';
+                    ctx.shadowBlur = 30;
+                    ctx.fillRect(px - 20, py - 20, 40, 40);
+                    ctx.shadowBlur = 0;
+                    
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(px - 40, py - 35, 80, 8);
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.fillRect(px - 40, py - 35, 80 * (this.boss.health / this.boss.maxHealth), 8);
+                    
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('BOSS', px, py - 40);
+                    ctx.textAlign = 'left';
+                }
+                
+                // 绘制敌人
+                this.enemies.forEach(enemy => {
+                    const px = enemy.x * this.CELL_SIZE + offsetX + this.CELL_SIZE / 2;
+                    const py = enemy.y * this.CELL_SIZE + offsetY + this.CELL_SIZE / 2;
+                    
+                    ctx.fillStyle = enemy.inDominion ? '#ff6666' : '#ff4444';
+                    ctx.beginPath();
+                    ctx.moveTo(px, py - 14);
+                    ctx.lineTo(px + 14, py + 10);
+                    ctx.lineTo(px - 14, py + 10);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(px - 14, py - 22, 28, 4);
+                    ctx.fillStyle = enemy.health > enemy.maxHealth * 0.5 ? '#00ff88' : '#ff4444';
+                    ctx.fillRect(px - 14, py - 22, 28 * (enemy.health / enemy.maxHealth), 4);
+                });
+                
+                // 绘制玩家
+                const px = this.player.x * this.CELL_SIZE + offsetX + this.CELL_SIZE / 2;
+                const py = this.player.y * this.CELL_SIZE + offsetY + this.CELL_SIZE / 2;
+                
+                if (this.player.shieldTime > 0) {
+                    ctx.strokeStyle = '#00ffff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(px, py, 22, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                ctx.fillStyle = '#00ff88';
+                ctx.shadowColor = '#00ff88';
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.moveTo(px, py - 16);
+                ctx.lineTo(px + 14, py + 12);
+                ctx.lineTo(px - 14, py + 12);
+                ctx.closePath();
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                // 绘制粒子
+                this.particles.forEach((p, i) => {
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.life;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= 0.02;
+                    
+                    if (p.life <= 0) this.particles.splice(i, 1);
+                });
+            }
+            
+            updateUI() {
+                document.getElementById('health').textContent = Math.max(0, Math.floor(this.player.health));
+                document.getElementById('dominion').textContent = this.dominionPercent + '%';
+                document.getElementById('score').textContent = Math.floor(this.score);
+                document.getElementById('gold').textContent = this.gold;
+                document.getElementById('combo').textContent = 'x' + this.combo;
+                document.getElementById('kills').textContent = this.totalKills;
+                
+                for (let key in this.skills) {
+                    let el = document.getElementById('skill' + key);
+                    if (this.skills[key].cooldown <= 0) {
+                        el.classList.add('ready');
+                        el.style.opacity = '1';
+                    } else {
+                        el.classList.remove('ready');
+                        el.style.opacity = '0.4';
+                    }
+                }
+            }
+            
+            updateBCDisplay() {
+                const container = document.getElementById('activeBC');
+                container.innerHTML = '';
+                
+                const bcList = this.bcSystem.getDisplayList();
+                bcList.forEach(bc => {
+                    const div = document.createElement('div');
+                    div.className = bc.type;
+                    div.innerHTML = `${bc.icon} ${bc.name}`;
+                    container.appendChild(div);
+                });
+            }
+            
+            showBlessingsCurses() {
+                const container = document.getElementById('bcList');
+                container.innerHTML = '';
+                
+                const bcList = this.bcSystem.getDisplayList();
+                if (bcList.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: #666;">暂无祝福或诅咒</div>';
+                } else {
+                    bcList.forEach(bc => {
+                        const div = document.createElement('div');
+                        div.className = 'bc-item ' + bc.type;
+                        div.innerHTML = `
+                            <div class="bc-icon">${bc.icon}</div>
+                            <div class="bc-info">
+                                <div class="bc-name">${bc.name}</div>
+                                <div class="bc-desc">${bc.desc}</div>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    });
+                }
+                
+                document.getElementById('bcPanel').classList.add('show');
+                this.paused = true;
+            }
+            
+            showMap() {
+                const container = document.getElementById('mapPreview');
+                container.innerHTML = '';
+                
+                this.rooms.forEach((room, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'map-node ' + room.type;
+                    if (i === this.currentRoom) div.classList.add('current');
+                    if (i < this.currentRoom) div.classList.add('completed');
+                    
+                    const icons = { normal: '⚔️', elite: '👹', shop: '🏪', event: '❓', boss: '👑' };
+                    div.textContent = icons[room.type] || '⚔️';
+                    
+                    container.appendChild(div);
+                });
+                
+                document.getElementById('mapPanel').classList.add('show');
+                this.paused = true;
+            }
+            
+            showStatus(msg, type = '') {
+                const status = document.getElementById('status');
+                status.textContent = msg;
+                status.className = 'status-message' + (type ? ' ' + type : '');
+            }
+            
+            lose() {
+                this.gameOver = true;
+                document.getElementById('finalScore').textContent = Math.floor(this.score);
+                document.getElementById('finalKills').textContent = this.totalKills;
+                document.getElementById('finalCombo').textContent = this.maxCombo;
+                document.getElementById('finalLevel').textContent = this.floor;
+                document.getElementById('gameOverPanel').classList.add('show');
+            }
+            
+            restart() {
+                this.floor = 1;
+                this.bcSystem.clear();
+                this.resetGame();
+                document.getElementById('gameOverPanel').classList.remove('show');
+                this.showStatus('点击格子开始占领领地！占领80%生成出口');
+            }
+            
+            togglePause() {
+                this.paused = !this.paused;
+                this.showStatus(this.paused ? '⏸️ 游戏暂停' : '▶️ 游戏继续');
+            }
+            
+            loop(timestamp) {
+                let delta = (timestamp - this.lastTime) / 1000;
+                this.lastTime = timestamp;
+                if (delta > 0.1) delta = 0.1;
+                
+                this.update(delta);
+                this.draw();
+                requestAnimationFrame((t) => this.loop(t));
+            }
+        }
+        
+        const game = new Game();
+    </script>
+</body>
+</html>

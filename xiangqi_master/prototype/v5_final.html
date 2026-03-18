@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>象棋大师 - 修正版 v5</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: linear-gradient(180deg, #F5F5F5 0%, #E8EAF6 100%);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        
+        /* 顶部 */
+        .header {
+            background: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .back-btn {
+            font-size: 20px;
+            color: #666;
+            cursor: pointer;
+        }
+        
+        .music-toggle {
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 20px;
+            background: #E3F2FD;
+        }
+        
+        /* 关卡进度 */
+        .level-indicator {
+            background: white;
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .level-dots {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+        
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #E0E0E0;
+            transition: all 0.3s;
+        }
+        
+        .dot.completed {
+            background: #4CAF50;
+            transform: scale(1.2);
+        }
+        
+        .dot.current {
+            background: #2196F3;
+            transform: scale(1.5);
+            box-shadow: 0 0 8px #2196F3;
+        }
+        
+        /* 标题区 */
+        .lesson-header {
+            background: white;
+            padding: 16px;
+        }
+        
+        .lesson-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            color: #2196F3;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .lesson-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .lesson-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+        
+        /* Max */
+        .max-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px;
+        }
+        
+        .max-avatar {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            border: 3px solid #2196F3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .max-eyes {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .eye {
+            width: 6px;
+            height: 10px;
+            background: #333;
+            border-radius: 50%;
+        }
+        
+        .max-speech {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 16px;
+            position: relative;
+            flex: 1;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .max-speech::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 8px solid transparent;
+            border-right-color: white;
+        }
+        
+        .max-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+        }
+        
+        /* 棋盘容器 */
+        .board-wrapper {
+            background: linear-gradient(135deg, #D4A574, #C49A6C);
+            padding: 12px;
+            margin: 16px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        
+        /* 正确棋盘 */
+        .board {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1.125;
+            background: #E8C9A0;
+        }
+        
+        /* 棋盘边框 */
+        .board-border {
+            position: absolute;
+            inset: 0;
+            border: 2px solid #8B6914;
+        }
+        
+        /* 网格线 */
+        .grid-lines {
+            position: absolute;
+            inset: 0;
+        }
+        
+        .grid-line-h {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #8B6914;
+        }
+        
+        .grid-line-v {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: #8B6914;
+        }
+        
+        /* 九宫 */
+        .palace {
+            position: absolute;
+            left: 37.5%;
+            width: 25%;
+            height: 22.22%;
+            border: 1px solid #8B6914;
+        }
+        
+        .palace-top {
+            top: 0;
+        }
+        
+        .palace-bottom {
+            bottom: 0;
+        }
+        
+        .palace::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent 49.5%, #8B6914 49.5%, #8B6914 50.5%, transparent 50.5%),
+                        linear-gradient(-45deg, transparent 49.5%, #8B6914 49.5%, #8B6914 50.5%, transparent 50.5%);
+        }
+        
+        /* 楚河汉界 - 只有横线，没有竖线 */
+        .river-area {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 44.44%;
+            height: 11.11%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .river-text {
+            font-size: 20px;
+            color: #8B6914;
+            font-weight: bold;
+            letter-spacing: 12px;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+        }
+        
+        /* 棋子层 */
+        .pieces-layer {
+            position: absolute;
+            inset: 0;
+        }
+        
+        /* 更大的棋子 */
+        .piece {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.35), inset 0 2px 6px rgba(255,255,255,0.4);
+            z-index: 10;
+        }
+        
+        .piece:hover {
+            transform: translate(-50%, -50%) scale(1.15);
+        }
+        
+        .piece.selected {
+            box-shadow: 0 0 0 5px #2196F3, 0 4px 16px rgba(0,0,0,0.35);
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 5px #2196F3, 0 4px 16px rgba(0,0,0,0.35); }
+            50% { box-shadow: 0 0 0 8px #64B5F6, 0 4px 16px rgba(0,0,0,0.35); }
+        }
+        
+        .piece-red {
+            background: linear-gradient(135deg, #D32F2F, #B71C1C);
+            color: white;
+            border: 2px solid #FFCDD2;
+        }
+        
+        .piece-black {
+            background: linear-gradient(135deg, #424242, #212121);
+            color: white;
+            border: 2px solid #BDBDBD;
+        }
+        
+        .piece.target {
+            background: rgba(76, 175, 80, 0.3);
+            border: 3px dashed #4CAF50;
+            animation: targetPulse 2s infinite;
+        }
+        
+        @keyframes targetPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+        }
+        
+        /* 合法移动提示 */
+        .valid-move {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle, #4CAF50, #2E7D32);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            animation: validPulse 1.5s infinite;
+            box-shadow: 0 0 10px #4CAF50;
+            z-index: 5;
+        }
+        
+        @keyframes validPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            50% { transform: translate(-50%, -50%) scale(1.4); opacity: 0.4; }
+        }
+        
+        /* 移动特效 */
+        .move-effect {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(33,150,243,0.5), transparent);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            animation: ripple 0.6s ease-out;
+            z-index: 8;
+        }
+        
+        @keyframes ripple {
+            from { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            to { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+        }
+        
+        /* 星星特效 */
+        .star-effect {
+            position: absolute;
+            font-size: 24px;
+            pointer-events: none;
+            animation: starFloat 1s ease-out forwards;
+            z-index: 20;
+        }
+        
+        @keyframes starFloat {
+            0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(1.5) rotate(360deg); opacity: 0; }
+        }
+        
+        /* 底部操作 */
+        .actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 16px;
+            box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 28px;
+            border: none;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #F5F5F5, #EEEEEE);
+            color: #666;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            box-shadow: 0 4px 12px rgba(33,150,243,0.3);
+        }
+        
+        /* 成功弹窗 */
+        .success-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+        }
+        
+        .success-modal.show {
+            display: flex;
+        }
+        
+        .success-content {
+            background: white;
+            border-radius: 24px;
+            padding: 40px 32px;
+            text-align: center;
+            max-width: 320px;
+            animation: contentIn 0.5s ease;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes contentIn {
+            from { opacity: 0; transform: scale(0.8) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        .success-icon {
+            font-size: 72px;
+            margin-bottom: 16px;
+            animation: iconBounce 0.6s ease;
+        }
+        
+        @keyframes iconBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+        
+        .success-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .success-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .success-reward {
+            font-size: 20px;
+            color: #2196F3;
+            font-weight: 700;
+            margin-bottom: 24px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-radius: 12px;
+        }
+        
+        .btn-continue {
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 28px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(76,175,80,0.4);
+        }
+        
+        /* 大关结算画面 - 多邻国风格 */
+        .final-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: white;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            flex-direction: column;
+        }
+        
+        .final-modal.show {
+            display: flex;
+            animation: finalIn 0.5s ease;
+        }
+        
+        @keyframes finalIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .final-content {
+            text-align: center;
+            padding: 40px 24px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        /* Max庆祝形象 */
+        .final-max {
+            width: 150px;
+            height: 150px;
+            background: white;
+            border-radius: 50%;
+            border: 4px solid #2196F3;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            animation: maxCelebrate 1s ease infinite alternate;
+        }
+        
+        @keyframes maxCelebrate {
+            0% { transform: scale(1) rotate(-5deg); }
+            100% { transform: scale(1.05) rotate(5deg); }
+        }
+        
+        .final-max-eyes {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .final-max-eye {
+            width: 10px;
+            height: 16px;
+            background: #333;
+            border-radius: 50%;
+        }
+        
+        .final-max::before,
+        .final-max::after {
+            content: '✨';
+            position: absolute;
+            font-size: 24px;
+            animation: sparkle 1s ease infinite alternate;
+        }
+        
+        .final-max::before {
+            top: -10px;
+            left: -10px;
+        }
+        
+        .final-max::after {
+            top: -10px;
+            right: -10px;
+            animation-delay: 0.5s;
+        }
+        
+        @keyframes sparkle {
+            0% { transform: scale(0.8); opacity: 0.7; }
+            100% { transform: scale(1.2); opacity: 1; }
+        }
+        
+        .final-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #2196F3;
+            margin-bottom: 12px;
+        }
+        
+        .final-subtitle {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 32px;
+        }
+        
+        /* 统计卡片 */
+        .final-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .final-stat-card {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            padding: 20px 16px;
+            border: 3px solid;
+            text-align: center;
+        }
+        
+        .final-stat-card.yellow {
+            border-color: #FFC107;
+        }
+        
+        .final-stat-card.blue {
+            border-color: #2196F3;
+        }
+        
+        .final-stat-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .final-stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        
+        .final-stat-card.yellow .final-stat-value {
+            color: #FFC107;
+        }
+        
+        .final-stat-card.blue .final-stat-value {
+            color: #2196F3;
+        }
+        
+        .btn-final {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            padding: 18px 48px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(33,150,243,0.4);
+            transition: all 0.2s;
+            width: 100%;
+            max-width: 320px;
+        }
+        
+        .btn-final:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(33,150,243,0.5);
+        }
+        
+        /* 彩纸特效 */
+        .confetti {
+            position: fixed;
+            font-size: 24px;
+            pointer-events: none;
+            z-index: 201;
+            animation: confettiFall 3s ease-out forwards;
+        }
+        
+        @keyframes confettiFall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        /* 错误抖动 */
+        .shake {
+            animation: shake 0.5s ease;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span class="back-btn" onclick="location.reload()">←</span>
+        <span style="font-weight: 700;">认识马：马走日</span>
+        <span class="music-toggle" onclick="toggleMusic()" id="musicBtn">🎵</span>
+    </div>
+    
+    <div class="level-indicator">
+        <div class="level-dots" id="levelDots"></div>
+    </div>
+    
+    <div class="lesson-header">
+        <span class="lesson-tag">💡 实战练习 <span id="subLevelNum">1/10</span></span>
+        <div class="lesson-title" id="lessonTitle">基础走法</div>
+        <div class="lesson-subtitle" id="lessonSubtitle">学习马的基本走法</div>
+    </div>
+    
+    <div class="max-container">
+        <div class="max-avatar">
+            <div class="max-eyes">
+                <div class="eye"></div>
+                <div class="eye"></div>
+            </div>
+        </div>
+        <div class="max-speech">
+            <div class="max-text" id="maxText">马走"日"字——先横或竖走一格，再斜走一格。点击马开始练习！</div>
+        </div>
+    </div>
+    
+    <div class="board-wrapper">
+        <div class="board" id="board">
+            <div class="board-border"></div>
+            <div class="grid-lines" id="gridLines"></div>
+            
+            <div class="palace palace-top"></div>
+            <div class="palace palace-bottom"></div>
+            
+            <div class="river-area">
+                <span class="river-text">楚 河 汉 界</span>
+            </div>
+            
+            <div class="pieces-layer" id="piecesLayer"></div>
+        </div>
+    </div>
+    
+    <div class="actions">
+        <button class="action-btn btn-secondary" onclick="resetLevel()">
+            <span>↩️</span>
+            <span>重置</span>
+        </button>
+        <button class="action-btn btn-primary" onclick="showHint()">
+            <span>💡</span>
+            <span>提示</span>
+        </button>
+    </div>
+    
+    <!-- 小关成功弹窗 -->
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <div class="success-icon">🎉</div>
+            <div class="success-title">太棒了！</div>
+            <div class="success-text" id="successText"></div>
+            <div class="success-reward">+10 宝石 💎</div>
+            <button class="btn-continue" onclick="nextSubLevel()">继续 →</button>
+        </div>
+    </div>
+    
+    <!-- 大关结算画面 -->
+    <div class="final-modal" id="finalModal">
+        <div class="final-content">
+            <!-- Max庆祝形象 -->
+            <div class="final-max">
+                <div class="final-max-eyes">
+                    <div class="final-max-eye"></div>
+                    <div class="final-max-eye"></div>
+                </div>
+            </div>
+            
+            <div class="final-title">瞧瞧这连击！</div>
+            <div class="final-subtitle">完成 10 关？冲冲冲！</div>
+            
+            <div class="final-stats">
+                <div class="final-stat-card yellow">
+                    <div class="final-stat-label">总经验</div>
+                    <div class="final-stat-value">⚡ 50</div>
+                </div>
+                <div class="final-stat-card blue">
+                    <div class="final-stat-label">获得宝石</div>
+                    <div class="final-stat-value">💎 100</div>
+                </div>
+            </div>
+            
+            <button class="btn-final" onclick="location.reload()">领取奖励 →</button>
+        </div>
+    </div>
+    
+    <script>
+        // 音频
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+        let isMusicPlaying = false;
+        let musicInterval = null;
+        
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+        }
+        
+        function playBetterBGM() {
+            if (!isMusicPlaying) return;
+            const chords = [
+                [523.25, 659.25, 783.99],
+                [392.00, 493.88, 587.33],
+                [440.00, 554.37, 659.25],
+                [349.23, 440.00, 523.25],
+            ];
+            let currentChord = 0;
+            
+            function playChord() {
+                if (!isMusicPlaying) return;
+                const chord = chords[currentChord];
+                const duration = 1.5;
+                
+                chord.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    osc.type = 'sine';
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.06, audioCtx.currentTime + duration - 0.3);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration);
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + duration);
+                });
+                
+                currentChord = (currentChord + 1) % chords.length;
+                musicInterval = setTimeout(playChord, duration * 1000);
+            }
+            playChord();
+        }
+        
+        function toggleMusic() {
+            initAudio();
+            isMusicPlaying = !isMusicPlaying;
+            document.getElementById('musicBtn').textContent = isMusicPlaying ? '🔊' : '🔇';
+            if (isMusicPlaying) playBetterBGM();
+            else clearTimeout(musicInterval);
+        }
+        
+        function playSelectSound() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.15);
+        }
+        
+        function playMoveSound() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.2);
+        }
+        
+        function playSuccessSound() {
+            initAudio();
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.1);
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.1);
+                gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + i * 0.1 + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.3);
+                osc.start(audioCtx.currentTime + i * 0.1);
+                osc.stop(audioCtx.currentTime + i * 0.1 + 0.3);
+            });
+        }
+        
+        function playErrorSound() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+            osc.type = 'sawtooth';
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+        
+        // 10个子关卡
+        const subLevels = [
+            { title: '基础走法', subtitle: '学习马的基本走法', maxText: '马走"日"字——先横或竖走一格，再斜走一格。点击马开始练习！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 2, y: 6, type: 'normal' }] }, successText: '很好！你掌握了基本走法！' },
+            { title: '向右上方', subtitle: '马走日字右上方', maxText: '试试让马向右上方走日字！', setup: { horse: { x: 2, y: 7 }, targets: [{ x: 3, y: 5, type: 'normal' }] }, successText: '完美！右上方走法正确！' },
+            { title: '向左上方', subtitle: '马走日字左上方', maxText: '现在试试向左上方走！', setup: { horse: { x: 6, y: 7 }, targets: [{ x: 5, y: 5, type: 'normal' }] }, successText: '很好！左上方也学会了！' },
+            { title: '向右下方', subtitle: '马走日字右下方', maxText: '试试向右下方走日字！', setup: { horse: { x: 2, y: 2 }, targets: [{ x: 3, y: 4, type: 'normal' }] }, successText: '不错！右下方走法掌握！' },
+            { title: '向左下方', subtitle: '马走日字左下方', maxText: '现在向左下方走！', setup: { horse: { x: 6, y: 2 }, targets: [{ x: 5, y: 4, type: 'normal' }] }, successText: '太棒了！四个方向都学会了！' },
+            { title: '吃子练习1', subtitle: '用马吃掉对方的兵', maxText: '马不仅可以移动，还可以吃子！吃掉对方的兵！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 2, y: 6, type: 'capture' }], otherPieces: [{ x: 2, y: 6, type: 'black', piece: '卒' }] }, successText: '漂亮！马走日吃子成功！' },
+            { title: '吃子练习2', subtitle: '吃掉对方的炮', maxText: '继续练习吃子，这次吃掉炮！', setup: { horse: { x: 3, y: 5 }, targets: [{ x: 5, y: 4, type: 'capture' }], otherPieces: [{ x: 5, y: 4, type: 'black', piece: '炮' }] }, successText: '很好！吃子技巧掌握！' },
+            { title: '逃脱危险', subtitle: '从对方车的威胁下逃脱', maxText: '你的马被车盯上了！快用日字走法逃到安全位置！', setup: { horse: { x: 4, y: 5 }, targets: [{ x: 2, y: 4, type: 'escape' }], otherPieces: [{ x: 4, y: 2, type: 'black', piece: '车' }] }, successText: '好样的！成功逃脱！' },
+            { title: '蹩马腿1', subtitle: '理解蹩马腿的限制', maxText: '马前面有棋子时会"蹩马腿"，注意看哪些方向不能走！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 6, y: 6, type: 'normal' }], otherPieces: [{ x: 4, y: 6, type: 'black', piece: '卒' }] }, successText: '正确！你理解了蹩马腿！' },
+            { title: '蹩马腿2', subtitle: '综合应用', maxText: '最后一关！综合运用马走日和蹩马腿的知识！', setup: { horse: { x: 3, y: 4 }, targets: [{ x: 4, y: 2, type: 'capture' }], otherPieces: [{ x: 2, y: 3, type: 'black', piece: '卒' }, { x: 4, y: 2, type: 'black', piece: '炮' }] }, successText: '恭喜！你完全掌握了马的走法！' }
+        ];
+        
+        let currentSubLevel = 0;
+        let selectedPiece = null;
+        let validMoves = [];
+        
+        function init() {
+            renderLevelDots();
+            renderBoard();
+            renderPieces();
+        }
+        
+        function renderLevelDots() {
+            const dots = document.getElementById('levelDots');
+            dots.innerHTML = '';
+            for (let i = 0; i < subLevels.length; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                if (i < currentSubLevel) dot.classList.add('completed');
+                if (i === currentSubLevel) dot.classList.add('current');
+                dots.appendChild(dot);
+            }
+        }
+        
+        function renderBoard() {
+            const gridLines = document.getElementById('gridLines');
+            // 10条横线
+            for (let i = 0; i <= 9; i++) {
+                const line = document.createElement('div');
+                line.className = 'grid-line-h';
+                line.style.top = (i * 11.11) + '%';
+                gridLines.appendChild(line);
+            }
+            // 9条竖线（只在楚河汉界外）
+            for (let i = 0; i <= 8; i++) {
+                // 上半部分
+                const line1 = document.createElement('div');
+                line1.className = 'grid-line-v';
+                line1.style.left = (i * 12.5) + '%';
+                line1.style.top = '0';
+                line1.style.height = '44.44%';
+                gridLines.appendChild(line1);
+                
+                // 下半部分
+                const line2 = document.createElement('div');
+                line2.className = 'grid-line-v';
+                line2.style.left = (i * 12.5) + '%';
+                line2.style.top = '55.55%';
+                line2.style.height = '44.45%';
+                gridLines.appendChild(line2);
+            }
+        }
+        
+        function renderPieces() {
+            const layer = document.getElementById('piecesLayer');
+            layer.innerHTML = '';
+            
+            const level = subLevels[currentSubLevel];
+            
+            // 更大的棋子
+            const horse = document.createElement('div');
+            horse.className = 'piece piece-red';
+            horse.textContent = '馬';
+            horse.style.left = (level.setup.horse.x * 12.5) + '%';
+            horse.style.top = (level.setup.horse.y * 11.11) + '%';
+            horse.onclick = (e) => selectPiece(e, level.setup.horse.x, level.setup.horse.y);
+            layer.appendChild(horse);
+            
+            if (level.setup.otherPieces) {
+                level.setup.otherPieces.forEach(p => {
+                    const piece = document.createElement('div');
+                    piece.className = 'piece piece-' + p.type;
+                    piece.textContent = p.piece;
+                    piece.style.left = (p.x * 12.5) + '%';
+                    piece.style.top = (p.y * 11.11) + '%';
+                    piece.dataset.x = p.x;
+                    piece.dataset.y = p.y;
+                    layer.appendChild(piece);
+                });
+            }
+            
+            if (level.setup.targets) {
+                level.setup.targets.forEach(t => {
+                    const target = document.createElement('div');
+                    target.className = 'piece target';
+                    target.style.left = (t.x * 12.5) + '%';
+                    target.style.top = (t.y * 11.11) + '%';
+                    target.dataset.x = t.x;
+                    target.dataset.y = t.y;
+                    target.dataset.type = t.type;
+                    target.onclick = () => moveToTarget(t);
+                    layer.appendChild(target);
+                });
+            }
+        }
+        
+        function selectPiece(e, x, y) {
+            e.stopPropagation();
+            playSelectSound();
+            
+            document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+            document.querySelectorAll('.valid-move').forEach(m => m.remove());
+            
+            const piece = e.target;
+            piece.classList.add('selected');
+            selectedPiece = { x, y, element: piece };
+            
+            validMoves = calculateHorseMoves(x, y);
+            showValidMoves(validMoves);
+        }
+        
+        function calculateHorseMoves(x, y) {
+            const moves = [];
+            const level = subLevels[currentSubLevel];
+            
+            const directions = [
+                { dx: 1, dy: 2, blockX: 0, blockY: 1 },
+                { dx: 2, dy: 1, blockX: 1, blockY: 0 },
+                { dx: 2, dy: -1, blockX: 1, blockY: 0 },
+                { dx: 1, dy: -2, blockX: 0, blockY: -1 },
+                { dx: -1, dy: -2, blockX: 0, blockY: -1 },
+                { dx: -2, dy: -1, blockX: -1, blockY: 0 },
+                { dx: -2, dy: 1, blockX: -1, blockY: 0 },
+                { dx: -1, dy: 2, blockX: 0, blockY: 1 }
+            ];
+            
+            directions.forEach(dir => {
+                const newX = x + dir.dx;
+                const newY = y + dir.dy;
+                const blockX = x + dir.blockX;
+                const blockY = y + dir.blockY;
+                
+                if (newX < 0 || newX > 8 || newY < 0 || newY > 9) return;
+                
+                const blocked = level.setup.otherPieces?.some(p => 
+                    p.x === blockX && p.y === blockY
+                );
+                
+                if (!blocked) {
+                    moves.push({ x: newX, y: newY });
+                }
+            });
+            
+            return moves;
+        }
+        
+        function showValidMoves(moves) {
+            const layer = document.getElementById('piecesLayer');
+            moves.forEach(move => {
+                const indicator = document.createElement('div');
+                indicator.className = 'valid-move';
+                indicator.style.left = (move.x * 12.5) + '%';
+                indicator.style.top = (move.y * 11.11) + '%';
+                layer.appendChild(indicator);
+            });
+        }
+        
+        function createMoveEffect(x, y) {
+            const layer = document.getElementById('piecesLayer');
+            const effect = document.createElement('div');
+            effect.className = 'move-effect';
+            effect.style.left = (x * 12.5) + '%';
+            effect.style.top = (y * 11.11) + '%';
+            layer.appendChild(effect);
+            setTimeout(() => effect.remove(), 600);
+        }
+        
+        function createStarEffect(x, y) {
+            const layer = document.getElementById('piecesLayer');
+            for (let i = 0; i < 6; i++) {
+                const star = document.createElement('div');
+                star.className = 'star-effect';
+                star.textContent = '⭐';
+                star.style.left = (x * 12.5) + '%';
+                star.style.top = (y * 11.11) + '%';
+                const angle = (i / 6) * Math.PI * 2;
+                const distance = 60;
+                star.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                star.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+                layer.appendChild(star);
+                setTimeout(() => star.remove(), 1000);
+            }
+        }
+        
+        function createConfetti() {
+            const colors = ['🎉', '🎊', '✨', '⭐', '🌟', '💎', '🏆'];
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.textContent = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    confetti.style.fontSize = (20 + Math.random() * 20) + 'px';
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 100);
+            }
+        }
+        
+        function moveToTarget(target) {
+            if (!selectedPiece) {
+                updateMaxText('先点击选择你的马！');
+                return;
+            }
+            
+            const isValid = validMoves.some(m => m.x === target.x && m.y === target.y);
+            
+            if (!isValid) {
+                playErrorSound();
+                updateMaxText('马走"日"字，这个位置走不到哦！再试试？');
+                document.querySelector('.board-wrapper').classList.add('shake');
+                setTimeout(() => {
+                    document.querySelector('.board-wrapper').classList.remove('shake');
+                }, 500);
+                return;
+            }
+            
+            playMoveSound();
+            createMoveEffect(target.x, target.y);
+            
+            selectedPiece.element.style.left = (target.x * 12.5) + '%';
+            selectedPiece.element.style.top = (target.y * 11.11) + '%';
+            
+            document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+            document.querySelectorAll('.valid-move').forEach(m => m.remove());
+            
+            if (target.type === 'capture') {
+                const targetPiece = document.querySelector(`[data-x="${target.x}"][data-y="${target.y}"]`);
+                if (targetPiece && targetPiece.classList.contains('piece-black')) {
+                    targetPiece.remove();
+                }
+            }
+            
+            setTimeout(() => {
+                playSuccessSound();
+                createStarEffect(target.x, target.y);
+                showSuccess();
+            }, 300);
+        }
+        
+        function updateMaxText(text) {
+            document.getElementById('maxText').textContent = text;
+        }
+        
+        function showHint() {
+            playSelectSound();
+            const level = subLevels[currentSubLevel];
+            const target = level.setup.targets[0];
+            updateMaxText(`提示：马在 (${level.setup.horse.x}, ${level.setup.horse.y})，目标是 (${target.x}, ${target.y})，形成"日"字！`);
+        }
+        
+        function showSuccess() {
+            const level = subLevels[currentSubLevel];
+            document.getElementById('successText').textContent = level.successText;
+            document.getElementById('successModal').classList.add('show');
+        }
+        
+        function nextSubLevel() {
+            document.getElementById('successModal').classList.remove('show');
+            currentSubLevel++;
+            
+            if (currentSubLevel >= subLevels.length) {
+                // 大关完成，显示结算画面
+                createConfetti();
+                document.getElementById('finalModal').classList.add('show');
+                return;
+            }
+            
+            const level = subLevels[currentSubLevel];
+            document.getElementById('subLevelNum').textContent = (currentSubLevel + 1) + '/10';
+            document.getElementById('lessonTitle').textContent = level.title;
+            document.getElementById('lessonSubtitle').textContent = level.subtitle;
+            updateMaxText(level.maxText);
+            
+            selectedPiece = null;
+            validMoves = [];
+            
+            renderLevelDots();
+            renderPieces();
+        }
+        
+        function resetLevel() {
+            playSelectSound();
+            selectedPiece = null;
+            validMoves = [];
+            document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+            document.querySelectorAll('.valid-move').forEach(m => m.remove());
+            renderPieces();
+            updateMaxText(subLevels[currentSubLevel].maxText);
+        }
+        
+        document.getElementById('board').onclick = function(e) {
+            if (e.target === this || e.target.classList.contains('grid-lines')) {
+                document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+                document.querySelectorAll('.valid-move').forEach(m => m.remove());
+                selectedPiece = null;
+            }
+        };
+        
+        init();
+    </script>
+</body>
+</html>

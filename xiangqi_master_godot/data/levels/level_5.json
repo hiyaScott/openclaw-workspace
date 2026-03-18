@@ -1,0 +1,38 @@
+{
+  "id": 5,
+  "name": "吃子进阶",
+  "description": "练习吃对方的炮",
+  "juIndex": 5,
+  "multiStep": false,
+  "pieces": [
+    {
+      "type": 0,
+      "side": 0,
+      "name": "马",
+      "x": 3,
+      "y": 5
+    },
+    {
+      "type": 2,
+      "side": 1,
+      "name": "炮",
+      "x": 5,
+      "y": 4
+    }
+  ],
+  "steps": [
+    {
+      "target": [
+        {"x": 5, "y": 4}
+      ],
+      "hintType": "text",
+      "hintText": "继续练习吃子，这次吃掉炮！炮在你的右上方",
+      "msg": "漂亮！吃掉了炮！"
+    }
+  ],
+  "successText": "太棒了！",
+  "starConditions": {
+    "firstTry": true,
+    "withinTime": 30
+  }
+}

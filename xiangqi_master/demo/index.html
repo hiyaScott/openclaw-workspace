@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>象棋大师DEMO - 认识马</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: linear-gradient(180deg, #F5F5F5 0%, #E8EAF6 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* 连胜显示 */
+        .streak-bar {
+            background: white;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .streak-fire {
+            font-size: 20px;
+            animation: flame 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes flame {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.2); }
+        }
+        
+        .streak-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #FF6B35;
+        }
+        
+        /* 单路径进度条 */
+        .path-progress {
+            background: white;
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .path-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .path-bar {
+            height: 8px;
+            background: #E0E0E0;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .path-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .path-nodes {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            padding: 0 4px;
+        }
+        
+        .path-node {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #E0E0E0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .path-node.completed {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .path-node.current {
+            background: #2196F3;
+            color: white;
+            transform: scale(1.2);
+            box-shadow: 0 0 12px #2196F3;
+            animation: nodePulse 1.5s infinite;
+        }
+        
+        @keyframes nodePulse {
+            0%, 100% { box-shadow: 0 0 12px #2196F3; }
+            50% { box-shadow: 0 0 20px #2196F3; }
+        }
+        
+        /* 关卡标题 */
+        .level-header {
+            background: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .level-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            color: #2196F3;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .level-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .level-subtitle {
+            font-size: 15px;
+            color: #666;
+        }
+        
+        /* Max角色 */
+        .max-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-radius: 20px;
+            padding: 16px;
+            margin: 16px;
+        }
+        
+        .max-avatar {
+            width: 56px;
+            height: 56px;
+            background: white;
+            border-radius: 50%;
+            border: 3px solid #2196F3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            animation: maxFloat 3s ease-in-out infinite;
+        }
+        
+        @keyframes maxFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        
+        .max-eyes {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .max-eye {
+            width: 5px;
+            height: 9px;
+            background: #333;
+            border-radius: 50%;
+        }
+        
+        .max-speech {
+            background: white;
+            border-radius: 16px;
+            padding: 14px 18px;
+            position: relative;
+            flex: 1;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        
+        .max-speech::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 10px solid transparent;
+            border-right-color: white;
+        }
+        
+        .max-text {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.5;
+        }
+        
+        /* 棋盘 */
+        .board-wrapper {
+            background: linear-gradient(135deg, #D4A574, #C49A6C);
+            padding: 12px;
+            margin: 16px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        }
+        
+        .board {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1/1.125;
+            background: #E8C9A0;
+        }
+        
+        .board-border {
+            position: absolute;
+            inset: 0;
+            border: 2px solid #8B6914;
+        }
+        
+        .grid-lines {
+            position: absolute;
+            inset: 0;
+        }
+        
+        .grid-line-h {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #8B6914;
+        }
+        
+        .grid-line-v {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: #8B6914;
+        }
+        
+        .palace {
+            position: absolute;
+            left: 37.5%;
+            width: 25%;
+            height: 22.22%;
+            border: 1px solid #8B6914;
+        }
+        
+        .palace-top { top: 0; }
+        .palace-bottom { bottom: 0; }
+        
+        .palace::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent 49.5%, #8B6914 49.5%, #8B6914 50.5%, transparent 50.5%),
+                        linear-gradient(-45deg, transparent 49.5%, #8B6914 49.5%, #8B6914 50.5%, transparent 50.5%);
+        }
+        
+        .river-area {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 44.44%;
+            height: 11.11%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .river-text {
+            font-size: 18px;
+            color: #8B6914;
+            font-weight: bold;
+            letter-spacing: 10px;
+        }
+        
+        /* 棋子 */
+        .pieces-layer {
+            position: absolute;
+            inset: 0;
+        }
+        
+        .piece {
+            position: absolute;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.35), inset 0 2px 6px rgba(255,255,255,0.4);
+            z-index: 10;
+        }
+        
+        .piece:active {
+            transform: translate(-50%, -50%) scale(0.95);
+        }
+        
+        .piece.selected {
+            box-shadow: 0 0 0 5px #2196F3, 0 4px 16px rgba(0,0,0,0.35);
+            animation: piecePulse 1s infinite;
+        }
+        
+        @keyframes piecePulse {
+            0%, 100% { box-shadow: 0 0 0 5px #2196F3, 0 4px 16px rgba(0,0,0,0.35); }
+            50% { box-shadow: 0 0 0 8px #64B5F6, 0 4px 16px rgba(0,0,0,0.35); }
+        }
+        
+        .piece-red {
+            background: linear-gradient(135deg, #D32F2F, #B71C1C);
+            color: white;
+            border: 2px solid #FFCDD2;
+        }
+        
+        .piece-black {
+            background: linear-gradient(135deg, #424242, #212121);
+            color: white;
+            border: 2px solid #BDBDBD;
+        }
+        
+        .piece.target {
+            background: rgba(76, 175, 80, 0.25);
+            border: 3px dashed #4CAF50;
+            animation: targetPulse 2s infinite;
+        }
+        
+        @keyframes targetPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+        }
+        
+        /* 提示点 - 即时反馈 */
+        .valid-move {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: radial-gradient(circle, #4CAF50, #2E7D32);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            animation: validPulse 1.2s infinite;
+            box-shadow: 0 0 10px #4CAF50;
+            z-index: 5;
+        }
+        
+        @keyframes validPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.85; }
+            50% { transform: translate(-50%, -50%) scale(1.4); opacity: 0.4; }
+        }
+        
+        /* 特效 */
+        .move-effect {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(33,150,243,0.5), transparent);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            animation: ripple 0.5s ease-out;
+            z-index: 8;
+        }
+        
+        @keyframes ripple {
+            from { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            to { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+        }
+        
+        .star-effect {
+            position: absolute;
+            font-size: 22px;
+            pointer-events: none;
+            animation: starFloat 0.8s ease-out forwards;
+            z-index: 20;
+        }
+        
+        @keyframes starFloat {
+            0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(1.5) rotate(360deg); opacity: 0; }
+        }
+        
+        /* 底部操作 */
+        .actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 20px;
+            box-shadow: 0 -2px 16px rgba(0,0,0,0.08);
+            padding-bottom: calc(16px + env(safe-area-inset-bottom));
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 28px;
+            border: none;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        
+        .action-btn:active {
+            transform: scale(0.96);
+        }
+        
+        .btn-secondary {
+            background: #F5F5F5;
+            color: #666;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            box-shadow: 0 4px 16px rgba(33,150,243,0.35);
+        }
+        
+        /* 成功弹窗 - 即时反馈 */
+        .success-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(6px);
+        }
+        
+        .success-modal.show {
+            display: flex;
+            animation: modalIn 0.3s ease;
+        }
+        
+        @keyframes modalIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .success-content {
+            background: white;
+            border-radius: 28px;
+            padding: 36px 28px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            animation: contentIn 0.4s ease;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes contentIn {
+            from { opacity: 0; transform: scale(0.85) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            animation: iconBounce 0.5s ease;
+        }
+        
+        @keyframes iconBounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.25); }
+        }
+        
+        .success-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .success-text {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .success-xp {
+            font-size: 18px;
+            color: #2196F3;
+            font-weight: 700;
+            margin-bottom: 24px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-radius: 16px;
+        }
+        
+        .btn-continue {
+            background: linear-gradient(135deg, #4CAF50, #388E3C);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 28px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 16px rgba(76,175,80,0.35);
+        }
+        
+        /* 大关结算 */
+        .final-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            flex-direction: column;
+        }
+        
+        .final-modal.show {
+            display: flex;
+        }
+        
+        .final-content {
+            text-align: center;
+            padding: 40px 24px;
+            width: 100%;
+            max-width: 360px;
+        }
+        
+        .final-max {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            border: 4px solid #2196F3;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            animation: finalMaxCelebrate 1s ease infinite alternate;
+        }
+        
+        @keyframes finalMaxCelebrate {
+            0% { transform: scale(1) rotate(-5deg); }
+            100% { transform: scale(1.08) rotate(5deg); }
+        }
+        
+        .final-max-eyes {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .final-max-eye {
+            width: 8px;
+            height: 14px;
+            background: #333;
+            border-radius: 50%;
+        }
+        
+        .final-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .final-subtitle {
+            font-size: 17px;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 32px;
+        }
+        
+        .final-stats {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        
+        .final-stat-card {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            padding: 20px 16px;
+            text-align: center;
+        }
+        
+        .final-stat-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .final-stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2196F3;
+        }
+        
+        .btn-final {
+            background: white;
+            color: #764ba2;
+            border: none;
+            padding: 18px 48px;
+            border-radius: 30px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            width: 100%;
+        }
+        
+        /* 彩纸 */
+        .confetti {
+            position: fixed;
+            font-size: 24px;
+            pointer-events: none;
+            z-index: 201;
+            animation: confettiFall 2.5s ease-out forwards;
+        }
+        
+        @keyframes confettiFall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        /* 错误反馈 */
+        .shake {
+            animation: shake 0.4s ease;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        
+        .error-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(244, 67, 54, 0.95);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 28px;
+            font-size: 15px;
+            font-weight: 600;
+            z-index: 150;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .error-toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 连胜显示 -->
+    <div class="streak-bar">
+        <span class="streak-fire">🔥</span>
+        <span class="streak-text">连胜 <span id="streakCount">3</span> 天</span>
+    </div>
+    
+    <!-- 单路径进度 -->
+    <div class="path-progress">
+        <div class="path-label">第二章：认识马 <span id="levelNum">1</span>/10</div>
+        <div class="path-bar">
+            <div class="path-fill" id="pathFill" style="width: 10%"></div>
+        </div>
+        <div class="path-nodes" id="pathNodes">
+            <!-- 动态生成 -->
+        </div>
+    </div>
+    
+    <!-- 关卡标题 -->
+    <div class="level-header">
+        <div class="level-tag">💡 实战练习</div>
+        <div class="level-title" id="levelTitle">基础走法</div>
+        <div class="level-subtitle" id="levelSubtitle">学习马的基本走法</div>
+    </div>
+    
+    <!-- Max -->
+    <div class="max-container">
+        <div class="max-avatar">
+            <div class="max-eyes">
+                <div class="max-eye"></div>
+                <div class="max-eye"></div>
+            </div>
+        </div>
+        <div class="max-speech">
+            <div class="max-text" id="maxText">马走"日"字——先横或竖走一格，再斜走一格。点击马开始练习！</div>
+        </div>
+    </div>
+    
+    <!-- 棋盘 -->
+    <div class="board-wrapper">
+        <div class="board" id="board">
+            <div class="board-border"></div>
+            <div class="grid-lines" id="gridLines"></div>
+            <div class="palace palace-top"></div>
+            <div class="palace palace-bottom"></div>
+            <div class="river-area">
+                <span class="river-text">楚 河 汉 界</span>
+            </div>
+            <div class="pieces-layer" id="piecesLayer"></div>
+        </div>
+    </div>
+    
+    <!-- 底部操作 -->
+    <div class="actions">
+        <button class="action-btn btn-secondary" onclick="resetLevel()">
+            <span>↩️</span>
+            <span>重置</span>
+        </button>
+        <button class="action-btn btn-primary" onclick="showHint()">
+            <span>💡</span>
+            <span>提示</span>
+        </button>
+    </div>
+    
+    <!-- 成功弹窗 -->
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <div class="success-icon">🎉</div>
+            <div class="success-title">太棒了！</div>
+            <div class="success-text" id="successText"></div>
+            <div class="success-xp">+10 XP 💎</div>
+            <button class="btn-continue" onclick="nextLevel()">继续 →</button>
+        </div>
+    </div>
+    
+    <!-- 大关结算 -->
+    <div class="final-modal" id="finalModal">
+        <div class="final-content">
+            <div class="final-max">
+                <div class="final-max-eyes">
+                    <div class="final-max-eye"></div>
+                    <div class="final-max-eye"></div>
+                </div>
+            </div>
+            
+            <div class="final-title">章节完成！</div>
+            <div class="final-subtitle">你掌握了马的走法</div>
+            
+            <div class="final-stats">
+                <div class="final-stat-card">
+                    <div class="final-stat-label">总经验</div>
+                    <div class="final-stat-value">⚡ 50</div>
+                </div>
+                <div class="final-stat-card">
+                    <div class="final-stat-label">宝石</div>
+                    <div class="final-stat-value">💎 100</div>
+                </div>
+            </div>
+            
+            <button class="btn-final" onclick="location.reload()">继续学习 →</button>
+        </div>
+    </div>
+    
+    <!-- 错误提示 -->
+    <div class="error-toast" id="errorToast">马走"日"字，这个位置走不到哦！</div>
+    
+    <script>
+        // 音频上下文
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+        
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+        }
+        
+        // 音效 - 即时反馈
+        function playSelectSound() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.08);
+            gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.12);
+        }
+        
+        function playMoveSound() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.15);
+        }
+        
+        function playSuccessSound() {
+            initAudio();
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.08);
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.08);
+                gain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + i * 0.08 + 0.04);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.08 + 0.25);
+                osc.start(audioCtx.currentTime + i * 0.08);
+                osc.stop(audioCtx.currentTime + i * 0.08 + 0.25);
+            });
+        }
+        
+        function playErrorSound() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+            osc.type = 'sawtooth';
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.25);
+        }
+        
+        // 关卡数据 - 单路径设计
+        const levels = [
+            { title: '基础走法', subtitle: '向右上方走', maxText: '马走"日"字——先横或竖走一格，再斜走一格。点击马，向右上方走！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 5, y: 5 }] }, successText: '太棒了！你学会了向右上方走！' },
+            { title: '基础走法', subtitle: '向左上方走', maxText: '现在试试向左上方走！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 3, y: 5 }] }, successText: '很好！左上方也学会了！' },
+            { title: '基础走法', subtitle: '四个方向', maxText: '马有四个方向可以走！选一个目标走吧！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 2, y: 6 }, { x: 6, y: 6 }] }, successText: '完美！马确实可以走多个方向！' },
+            { title: '吃子练习', subtitle: '吃掉对方的兵', maxText: '马不仅可以移动，还可以吃子！吃掉对方的兵！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 2, y: 6, type: 'capture' }], otherPieces: [{ x: 2, y: 6, type: 'black', piece: '卒' }] }, successText: '漂亮！马走日吃子成功！' },
+            { title: '吃子练习', subtitle: '吃掉对方的炮', maxText: '继续练习吃子，这次吃掉炮！', setup: { horse: { x: 3, y: 5 }, targets: [{ x: 5, y: 4, type: 'capture' }], otherPieces: [{ x: 5, y: 4, type: 'black', piece: '炮' }] }, successText: '很好！吃子技巧掌握！' },
+            { title: '躲避危险', subtitle: '从车威胁下逃脱', maxText: '危险！你的马被车盯上了！快用日字走法逃到安全位置！', setup: { horse: { x: 4, y: 5 }, targets: [{ x: 2, y: 4, type: 'escape' }, { x: 6, y: 4, type: 'escape' }], otherPieces: [{ x: 4, y: 2, type: 'black', piece: '车' }] }, successText: '好样的！成功逃脱！' },
+            { title: '蹩马腿', subtitle: '理解蹩马腿的限制', maxText: '马前面有棋子时会"蹩马腿"，注意看哪些方向不能走！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 6, y: 6 }], otherPieces: [{ x: 4, y: 6, type: 'black', piece: '卒' }] }, successText: '正确！你理解了蹩马腿！' },
+            { title: '综合决策', subtitle: '吃子还是躲避？', maxText: '小心！你可以吃掉卒，但会被车反击！怎么办？', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 2, y: 6, type: 'capture' }, { x: 3, y: 5, type: 'escape' }], otherPieces: [{ x: 2, y: 6, type: 'black', piece: '卒' }, { x: 2, y: 3, type: 'black', piece: '车' }] }, successText: '好判断！你学会了权衡利弊！' },
+            { title: '无提示挑战', subtitle: '自己计算走法', maxText: '这次没有提示了！自己算算马能走到哪？', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 5, y: 5 }], noHint: true }, successText: '太棒了！你已经完全掌握马的走法了！' },
+            { title: '终极挑战', subtitle: '连续博弈', maxText: '终极挑战！完成这关就通关了！', setup: { horse: { x: 4, y: 7 }, targets: [{ x: 2, y: 6, type: 'capture' }], otherPieces: [{ x: 2, y: 6, type: 'black', piece: '卒' }] }, successText: '恭喜！你完全掌握了马的走法！' }
+        ];
+        
+        let currentLevel = 0;
+        let streak = 3;
+        let selectedPiece = null;
+        let validMoves = [];
+        
+        function init() {
+            renderPathNodes();
+            renderBoard();
+            renderLevel();
+        }
+        
+        function renderPathNodes() {
+            const nodes = document.getElementById('pathNodes');
+            nodes.innerHTML = '';
+            for (let i = 0; i < 10; i++) {
+                const node = document.createElement('div');
+                node.className = 'path-node';
+                if (i < currentLevel) {
+                    node.classList.add('completed');
+                    node.textContent = '✓';
+                } else if (i === currentLevel) {
+                    node.classList.add('current');
+                    node.textContent = i + 1;
+                } else {
+                    node.textContent = i + 1;
+                }
+                nodes.appendChild(node);
+            }
+        }
+        
+        function renderBoard() {
+            const gridLines = document.getElementById('gridLines');
+            for (let i = 0; i <= 9; i++) {
+                const line = document.createElement('div');
+                line.className = 'grid-line-h';
+                line.style.top = (i * 11.11) + '%';
+                gridLines.appendChild(line);
+            }
+            for (let i = 0; i <= 8; i++) {
+                const line1 = document.createElement('div');
+                line1.className = 'grid-line-v';
+                line1.style.left = (i * 12.5) + '%';
+                line1.style.top = '0';
+                line1.style.height = '44.44%';
+                gridLines.appendChild(line1);
+                
+                const line2 = document.createElement('div');
+                line2.className = 'grid-line-v';
+                line2.style.left = (i * 12.5) + '%';
+                line2.style.top = '55.55%';
+                line2.style.height = '44.45%';
+                gridLines.appendChild(line2);
+            }
+        }
+        
+        function renderLevel() {
+            const level = levels[currentLevel];
+            document.getElementById('levelNum').textContent = currentLevel + 1;
+            document.getElementById('levelTitle').textContent = level.title;
+            document.getElementById('levelSubtitle').textContent = level.subtitle;
+            document.getElementById('maxText').textContent = level.maxText;
+            document.getElementById('pathFill').style.width = ((currentLevel + 1) / 10 * 100) + '%';
+            
+            renderPieces();
+        }
+        
+        function renderPieces() {
+            const layer = document.getElementById('piecesLayer');
+            layer.innerHTML = '';
+            
+            const level = levels[currentLevel];
+            
+            const horse = document.createElement('div');
+            horse.className = 'piece piece-red';
+            horse.textContent = '馬';
+            horse.style.left = (level.setup.horse.x * 12.5) + '%';
+            horse.style.top = (level.setup.horse.y * 11.11) + '%';
+            horse.onclick = (e) => selectPiece(e, level.setup.horse.x, level.setup.horse.y);
+            layer.appendChild(horse);
+            
+            if (level.setup.otherPieces) {
+                level.setup.otherPieces.forEach(p => {
+                    const piece = document.createElement('div');
+                    piece.className = 'piece piece-' + p.type;
+                    piece.textContent = p.piece;
+                    piece.style.left = (p.x * 12.5) + '%';
+                    piece.style.top = (p.y * 11.11) + '%';
+                    piece.dataset.x = p.x;
+                    piece.dataset.y = p.y;
+                    layer.appendChild(piece);
+                });
+            }
+            
+            if (level.setup.targets) {
+                level.setup.targets.forEach(t => {
+                    const target = document.createElement('div');
+                    target.className = 'piece target';
+                    target.style.left = (t.x * 12.5) + '%';
+                    target.style.top = (t.y * 11.11) + '%';
+                    target.dataset.x = t.x;
+                    target.dataset.y = t.y;
+                    target.dataset.type = t.type || 'normal';
+                    target.onclick = () => moveToTarget(t);
+                    layer.appendChild(target);
+                });
+            }
+        }
+        
+        function selectPiece(e, x, y) {
+            e.stopPropagation();
+            playSelectSound();
+            
+            document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+            document.querySelectorAll('.valid-move').forEach(m => m.remove());
+            
+            const piece = e.target;
+            piece.classList.add('selected');
+            selectedPiece = { x, y, element: piece };
+            
+            const level = levels[currentLevel];
+            if (!level.setup.noHint) {
+                validMoves = calculateHorseMoves(x, y);
+                showValidMoves(validMoves);
+            }
+        }
+        
+        function calculateHorseMoves(x, y) {
+            const moves = [];
+            const level = levels[currentLevel];
+            
+            const directions = [
+                { dx: 1, dy: 2, blockX: 0, blockY: 1 },
+                { dx: 2, dy: 1, blockX: 1, blockY: 0 },
+                { dx: 2, dy: -1, blockX: 1, blockY: 0 },
+                { dx: 1, dy: -2, blockX: 0, blockY: -1 },
+                { dx: -1, dy: -2, blockX: 0, blockY: -1 },
+                { dx: -2, dy: -1, blockX: -1, blockY: 0 },
+                { dx: -2, dy: 1, blockX: -1, blockY: 0 },
+                { dx: -1, dy: 2, blockX: 0, blockY: 1 }
+            ];
+            
+            directions.forEach(dir => {
+                const newX = x + dir.dx;
+                const newY = y + dir.dy;
+                const blockX = x + dir.blockX;
+                const blockY = y + dir.blockY;
+                
+                if (newX < 0 || newX > 8 || newY < 0 || newY > 9) return;
+                
+                const blocked = level.setup.otherPieces?.some(p => 
+                    p.x === blockX && p.y === blockY
+                );
+                
+                if (!blocked) {
+                    moves.push({ x: newX, y: newY });
+                }
+            });
+            
+            return moves;
+        }
+        
+        function showValidMoves(moves) {
+            const layer = document.getElementById('piecesLayer');
+            moves.forEach(move => {
+                const indicator = document.createElement('div');
+                indicator.className = 'valid-move';
+                indicator.style.left = (move.x * 12.5) + '%';
+                indicator.style.top = (move.y * 11.11) + '%';
+                layer.appendChild(indicator);
+            });
+        }
+        
+        function moveToTarget(target) {
+            if (!selectedPiece) {
+                showError('先点击选择你的马！');
+                return;
+            }
+            
+            const level = levels[currentLevel];
+            let isValid = false;
+            
+            if (level.setup.noHint) {
+                const moves = calculateHorseMoves(selectedPiece.x, selectedPiece.y);
+                isValid = moves.some(m => m.x === target.x && m.y === target.y);
+            } else {
+                isValid = validMoves.some(m => m.x === target.x && m.y === target.y);
+            }
+            
+            if (!isValid) {
+                playErrorSound();
+                showError('马走"日"字，这个位置走不到哦！');
+                document.querySelector('.board-wrapper').classList.add('shake');
+                setTimeout(() => {
+                    document.querySelector('.board-wrapper').classList.remove('shake');
+                }, 400);
+                return;
+            }
+            
+            playMoveSound();
+            createMoveEffect(target.x, target.y);
+            
+            selectedPiece.element.style.left = (target.x * 12.5) + '%';
+            selectedPiece.element.style.top = (target.y * 11.11) + '%';
+            
+            document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+            document.querySelectorAll('.valid-move').forEach(m => m.remove());
+            
+            if (target.type === 'capture') {
+                const targetPiece = document.querySelector(`[data-x="${target.x}"][data-y="${target.y}"]`);
+                if (targetPiece && targetPiece.classList.contains('piece-black')) {
+                    targetPiece.remove();
+                }
+            }
+            
+            setTimeout(() => {
+                playSuccessSound();
+                createStarEffect(target.x, target.y);
+                showSuccess();
+            }, 250);
+        }
+        
+        function createMoveEffect(x, y) {
+            const layer = document.getElementById('piecesLayer');
+            const effect = document.createElement('div');
+            effect.className = 'move-effect';
+            effect.style.left = (x * 12.5) + '%';
+            effect.style.top = (y * 11.11) + '%';
+            layer.appendChild(effect);
+            setTimeout(() => effect.remove(), 500);
+        }
+        
+        function createStarEffect(x, y) {
+            const layer = document.getElementById('piecesLayer');
+            for (let i = 0; i < 6; i++) {
+                const star = document.createElement('div');
+                star.className = 'star-effect';
+                star.textContent = '⭐';
+                star.style.left = (x * 12.5) + '%';
+                star.style.top = (y * 11.11) + '%';
+                const angle = (i / 6) * Math.PI * 2;
+                const distance = 50;
+                star.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                star.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+                layer.appendChild(star);
+                setTimeout(() => star.remove(), 800);
+            }
+        }
+        
+        function showError(text) {
+            const toast = document.getElementById('errorToast');
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+        
+        function showSuccess() {
+            const level = levels[currentLevel];
+            document.getElementById('successText').textContent = level.successText;
+            document.getElementById('successModal').classList.add('show');
+        }
+        
+        function nextLevel() {
+            document.getElementById('successModal').classList.remove('show');
+            currentLevel++;
+            streak++;
+            document.getElementById('streakCount').textContent = streak;
+            
+            if (currentLevel >= levels.length) {
+                createConfetti();
+                document.getElementById('finalModal').classList.add('show');
+                return;
+            }
+            
+            selectedPiece = null;
+            validMoves = [];
+            renderPathNodes();
+            renderLevel();
+        }
+        
+        function createConfetti() {
+            const colors = ['🎉', '✨', '⭐', '💎', '🏆', '🎊'];
+            for (let i = 0; i < 25; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.textContent = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.animationDelay = Math.random() * 0.3 + 's';
+                    confetti.style.fontSize = (18 + Math.random() * 16) + 'px';
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 2500);
+                }, i * 80);
+            }
+        }
+        
+        function resetLevel() {
+            playSelectSound();
+            selectedPiece = null;
+            validMoves = [];
+            document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+            document.querySelectorAll('.valid-move').forEach(m => m.remove());
+            renderPieces();
+        }
+        
+        function showHint() {
+            playSelectSound();
+            const level = levels[currentLevel];
+            const target = level.setup.targets[0];
+            document.getElementById('maxText').textContent = `提示：目标是 (${target.x}, ${target.y})，形成"日"字！`;
+        }
+        
+        document.getElementById('board').onclick = function(e) {
+            if (e.target === this || e.target.classList.contains('grid-lines')) {
+                document.querySelectorAll('.piece').forEach(p => p.classList.remove('selected'));
+                document.querySelectorAll('.valid-move').forEach(m => m.remove());
+                selectedPiece = null;
+            }
+        };
+        
+        init();
+    </script>
+</body>
+</html>

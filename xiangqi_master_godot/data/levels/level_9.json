@@ -1,0 +1,47 @@
+{
+  "id": 9,
+  "name": "移动+吃子",
+  "description": "先移动再吃子",
+  "juIndex": 9,
+  "multiStep": true,
+  "pieces": [
+    {
+      "type": 0,
+      "side": 0,
+      "name": "马",
+      "x": 4,
+      "y": 7
+    },
+    {
+      "type": 6,
+      "side": 1,
+      "name": "兵",
+      "x": 5,
+      "y": 4
+    }
+  ],
+  "steps": [
+    {
+      "target": [
+        {"x": 6, "y": 6},
+        {"x": 3, "y": 5}
+      ],
+      "hintType": "text",
+      "hintText": "先移动到安全位置，然后吃掉对方的兵！",
+      "msg": "很好！现在可以吃掉对方的兵了！"
+    },
+    {
+      "target": [
+        {"x": 5, "y": 4}
+      ],
+      "hintType": "text",
+      "hintText": "现在吃掉兵！",
+      "msg": "完美！移动和吃子都掌握了！"
+    }
+  ],
+  "successText": "太棒了！",
+  "starConditions": {
+    "firstTry": true,
+    "withinTime": 45
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "id": 8,
+  "name": "连续吃子",
+  "description": "两步吃掉两个子",
+  "juIndex": 8,
+  "multiStep": true,
+  "pieces": [
+    {
+      "type": 0,
+      "side": 0,
+      "name": "马",
+      "x": 4,
+      "y": 7
+    },
+    {
+      "type": 6,
+      "side": 1,
+      "name": "卒",
+      "x": 2,
+      "y": 6
+    },
+    {
+      "type": 2,
+      "side": 1,
+      "name": "炮",
+      "x": 4,
+      "y": 5
+    }
+  ],
+  "steps": [
+    {
+      "target": [
+        {"x": 2, "y": 6}
+      ],
+      "hintType": "text",
+      "hintText": "连续吃子挑战！先吃掉卒，再吃掉炮！",
+      "msg": "很好！吃掉一个，还有一个！"
+    },
+    {
+      "target": [
+        {"x": 4, "y": 5}
+      ],
+      "hintType": "text",
+      "hintText": "继续！吃掉炮！",
+      "msg": "漂亮！连续吃子成功！"
+    }
+  ],
+  "successText": "无敌！",
+  "starConditions": {
+    "firstTry": true,
+    "withinTime": 45
+  }
+}

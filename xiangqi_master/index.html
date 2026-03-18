@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>象棋大师 - 中国象棋教学</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #f5f5f5;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            width: 100%;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .logo {
+            font-size: 1.5em;
+            font-weight: 900;
+            color: #d4af37;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+        
+        .stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9em;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(212, 175, 55, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid #d4af37;
+        }
+        
+        .stat-icon {
+            font-size: 1.1em;
+        }
+        
+        .main-content {
+            flex: 1;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #d4af37, #f4cf57);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .level-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .chapter-title {
+            font-size: 1.1em;
+            color: #d4af37;
+            margin-bottom: 5px;
+        }
+        
+        .level-title {
+            font-size: 1.3em;
+            font-weight: 700;
+        }
+        
+        .master-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            width: 100%;
+        }
+        
+        .master-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #d4af37, #8b6914);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            border: 3px solid #f4cf57;
+        }
+        
+        .master-speech {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 15px;
+            border-radius: 15px;
+            position: relative;
+        }
+        
+        .master-speech::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 20px;
+            border: 10px solid transparent;
+            border-right-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .master-name {
+            font-size: 0.8em;
+            color: #d4af37;
+            margin-bottom: 5px;
+        }
+        
+        .master-text {
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        
+        .board-container {
+            width: 100%;
+            aspect-ratio: 9/10;
+            background: linear-gradient(135deg, #8b4513, #654321);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+        }
+        
+        #xiangqi-board {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .options-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .option-btn {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.1));
+            border: 2px solid #d4af37;
+            color: #f5f5f5;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .option-btn:hover {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.2));
+            transform: translateX(5px);
+        }
+        
+        .option-btn.correct {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.3), rgba(0, 255, 136, 0.2));
+            border-color: #00ff88;
+        }
+        
+        .option-btn.wrong {
+            background: linear-gradient(135deg, rgba(255, 68, 68, 0.3), rgba(255, 68, 68, 0.2));
+            border-color: #ff4444;
+        }
+        
+        .option-icon {
+            font-size: 1.3em;
+        }
+        
+        .feedback-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+        
+        .feedback-overlay.show {
+            display: flex;
+        }
+        
+        .feedback-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+        }
+        
+        .feedback-text {
+            font-size: 1.5em;
+            margin-bottom: 30px;
+        }
+        
+        .feedback-btn {
+            background: linear-gradient(135deg, #d4af37, #8b6914);
+            color: #1a1a2e;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #f5f5f5;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        
+        .nav-btn.primary {
+            background: linear-gradient(135deg, #d4af37, #8b6914);
+            color: #1a1a2e;
+            border: none;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">象棋大师</div>
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-icon">🔥</span>
+                <span id="streak">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">💎</span>
+                <span id="gems">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+        </div>
+        
+        <div class="level-info">
+            <div class="chapter-title">第一章：初识棋盘</div>
+            <div class="level-title" id="levelTitle">第1关：认识九宫</div>
+        </div>
+        
+        <div class="master-container">
+            <div class="master-avatar">👴</div>
+            <div class="master-speech">
+                <div class="master-name">棋仙爷爷</div>
+                <div class="master-text" id="masterText">欢迎来到象棋世界！中国象棋的棋盘中央有"楚河汉界"，将帅在九宫内活动。请看棋盘，九宫在哪里？</div>
+            </div>
+        </div>
+        
+        <div class="board-container">
+            <canvas id="xiangqi-board"></canvas>
+        </div>
+        
+        <div class="options-container" id="optionsContainer">
+            <!-- 动态生成选项 -->
+        </div>
+        
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="game.showHint()">💡 提示</button>
+            <button class="nav-btn primary" onclick="game.nextLevel()" id="nextBtn" style="display:none;">下一关 →</button>
+        </div>
+    </div>
+    
+    <div class="feedback-overlay" id="feedbackOverlay">
+        <div class="feedback-icon" id="feedbackIcon">🎉</div>
+        <div class="feedback-text" id="feedbackText">回答正确！</div>
+        <button class="feedback-btn" onclick="game.closeFeedback()">继续</button>
+    </div>
+
+    <script>
+        // 象棋教学游戏主类
+        class XiangqiMaster {
+            constructor() {
+                this.canvas = document.getElementById('xiangqi-board');
+                this.ctx = this.canvas.getContext('2d');
+                this.currentLevel = 0;
+                this.streak = 0;
+                this.gems = 0;
+                this.completedLevels = [];
+                
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                this.loadLevel(0);
+            }
+            
+            resizeCanvas() {
+                const container = this.canvas.parentElement;
+                this.canvas.width = container.clientWidth;
+                this.canvas.height = container.clientHeight;
+                this.drawBoard();
+            }
+            
+            // 关卡数据
+            getLevels() {
+                return [
+                    {
+                        id: 1,
+                        title: '第1关：认识九宫',
+                        masterText: '欢迎来到象棋世界！中国象棋的棋盘中央有"楚河汉界"，将帅在九宫内活动。请看棋盘，九宫在哪里？',
+                        boardType: 'empty',
+                        highlight: 'palace',
+                        options: [
+                            { text: '棋盘中央的斜线区域', icon: '📍', correct: false },
+                            { text: '棋盘两端的3x3方格区域', icon: '🏰', correct: true },
+                            { text: '楚河汉界两侧', icon: '〰️', correct: false },
+                            { text: '整个棋盘', icon: '⬜', correct: false }
+                        ],
+                        successText: '没错！九宫是棋盘两端3x3的方格区域，将帅只能在这里活动。'
+                    },
+                    {
+                        id: 2,
+                        title: '第2关：认识楚河汉界',
+                        masterText: '棋盘中央有一条分界线，叫做"楚河汉界"。它把棋盘分成哪两部分？',
+                        boardType: 'empty',
+                        highlight: 'river',
+                        options: [
+                            { text: '左右两部分', icon: '⬅️➡️', correct: false },
+                            { text: '上下两部分', icon: '⬆️⬇️', correct: true },
+                            { text: '对角两部分', icon: '↗️↘️', correct: false },
+                            { text: '四等分', icon: '➕', correct: false }
+                        ],
+                        successText: '对！楚河汉界将棋盘分为红方（下方）和黑方（上方）两部分。'
+                    },
+                    {
+                        id: 3,
+                        title: '第3关：认识将/帅',
+                        masterText: '这是红方的"帅"和黑方的"将"。它们只能在九宫内活动，每次走一步。将和帅能见面吗？',
+                        boardType: 'pieces',
+                        pieces: [{type: 'king', x: 4, y: 0, color: 'black'}, {type: 'king', x: 4, y: 9, color: 'red'}],
+                        highlight: 'none',
+                        options: [
+                            { text: '可以，随时都能见面', icon: '👋', correct: false },
+                            { text: '不能，中间必须有棋子挡住', icon: '🚫', correct: true },
+                            { text: '只能在九宫角见面', icon: '📐', correct: false },
+                            { text: '只能在楚河汉界见面', icon: '〰️', correct: false }
+                        ],
+                        successText: '正确！将帅不能在同一直线上无遮挡相对，这叫"白脸将"。'
+                    },
+                    {
+                        id: 4,
+                        title: '第4关：认识士/仕',
+                        masterText: '士（黑方）和仕（红方）是将帅的贴身护卫。它们怎么走？',
+                        boardType: 'pieces',
+                        pieces: [{type: 'advisor', x: 3, y: 0, color: 'black'}, {type: 'advisor', x: 5, y: 0, color: 'black'}],
+                        highlight: 'advisor-move',
+                        options: [
+                            { text: '横竖直线走', icon: '➕', correct: false },
+                            { text: '斜线走一格', icon: '✕', correct: true },
+                            { text: '可以出九宫', icon: '🚪', correct: false },
+                            { text: '可以走两格', icon: '2️⃣', correct: false }
+                        ],
+                        successText: '妙哉！士/仕只能在九宫内沿斜线走一格，是贴身保镖。'
+                    },
+                    {
+                        id: 5,
+                        title: '第5关：认识象/相',
+                        masterText: '象（黑方）和相（红方）是防守大将。它们走"田"字格，但不能过河。请看棋盘，象能走到哪些位置？',
+                        boardType: 'pieces',
+                        pieces: [{type: 'elephant', x: 2, y: 0, color: 'black'}],
+                        highlight: 'elephant-move',
+                        options: [
+                            { text: '整个棋盘任意位置', icon: '🌍', correct: false },
+                            { text: '只能在自己半边棋盘', icon: '⬆️', correct: true },
+                            { text: '只能沿边线走', icon: '⬜', correct: false },
+                            { text: '可以过河攻击', icon: '⚔️', correct: false }
+                        ],
+                        successText: '对！象走田字格，不能过河，是防守型棋子。'
+                    },
+                    {
+                        id: 6,
+                        title: '第6关：认识马',
+                        masterText: '马走"日"字格，但有个特殊规则——蹩脚。如果马前进方向有棋子挡住，就不能走。这叫什么？',
+                        boardType: 'pieces',
+                        pieces: [{type: 'horse', x: 1, y: 0, color: 'black'}, {type: 'pawn', x: 1, y: 1, color: 'black'}],
+                        highlight: 'horse-move',
+                        options: [
+                            { text: '绊马脚', icon: '🦶', correct: false },
+                            { text: '蹩马腿', icon: '🦵', correct: true },
+                            { text: '挡马头', icon: '🐴', correct: false },
+                            { text: '拦马腰', icon: '⛔', correct: false }
+                        ],
+                        successText: '没错！这叫"蹩马腿"，是马的特殊限制。'
+                    },
+                    {
+                        id: 7,
+                        title: '第7关：认识车',
+                        masterText: '车是象棋中最强的棋子之一，可以横竖直线走，不限格数。车的威力如何？',
+                        boardType: 'pieces',
+                        pieces: [{type: 'chariot', x: 0, y: 0, color: 'black'}],
+                        highlight: 'chariot-move',
+                        options: [
+                            { text: '只能走一格', icon: '1️⃣', correct: false },
+                            { text: '可以横竖不限格数', icon: '↔️↕️', correct: true },
+                            { text: '只能斜线走', icon: '↗️', correct: false },
+                            { text: '不能过河', icon: '🚫', correct: false }
+                        ],
+                        successText: '正确！车可以横竖直线走，不限格数，威力最大。'
+                    },
+                    {
+                        id: 8,
+                        title: '第8关：认识炮',
+                        masterText: '炮是象棋的特色棋子。移动时和车一样，但吃子时必须隔一个棋子。这叫什么？',
+                        boardType: 'pieces',
+                        pieces: [{type: 'cannon', x: 1, y: 2, color: 'black'}, {type: 'pawn', x: 1, y: 4, color: 'red'}],
+                        highlight: 'cannon-move',
+                        options: [
+                            { text: '隔山打牛', icon: '⛰️', correct: false },
+                            { text: '炮打隔子', icon: '💥', correct: true },
+                            { text: '跳吃', icon: '🦘', correct: false },
+                            { text: '飞吃', icon: '🦅', correct: false }
+                        ],
+                        successText: '对！炮移动时如车，吃子时必须隔一个棋子，叫"炮打隔子"。'
+                    },
+                    {
+                        id: 9,
+                        title: '第9关：认识兵/卒',
+                        masterText: '兵（黑方）和卒（红方）是最多的棋子。过河前只能前进，过河后可以横走。兵过河后威力如何？',
+                        boardType: 'pieces',
+                        pieces: [{type: 'pawn', x: 0, y: 3, color: 'black'}, {type: 'pawn', x: 2, y: 6, color: 'red'}],
+                        highlight: 'pawn-move',
+                        options: [
+                            { text: '威力不变', icon: '➡️', correct: false },
+                            { text: '威力大增，可以横走', icon: '⬆️➡️', correct: true },
+                            { text: '威力减弱', icon: '⬇️', correct: false },
+                            { text: '不能后退', icon: '🚫', correct: false }
+                        ],
+                        successText: '正确！兵过河前只能前进，过河后可以横走，但不能后退。'
+                    },
+                    {
+                        id: 10,
+                        title: '第10关：综合测试',
+                        masterText: '恭喜学完第一章！最后测试：哪个棋子可以斜线走且不能出九宫？',
+                        boardType: 'pieces',
+                        pieces: [
+                            {type: 'king', x: 4, y: 0, color: 'black'},
+                            {type: 'advisor', x: 3, y: 0, color: 'black'},
+                            {type: 'elephant', x: 2, y: 0, color: 'black'}
+                        ],
+                        highlight: 'none',
+                        options: [
+                            { text: '将/帅', icon: '👑', correct: false },
+                            { text: '士/仕', icon: '🛡️', correct: true },
+                            { text: '象/相', icon: '🐘', correct: false },
+                            { text: '马', icon: '🐴', correct: false }
+                        ],
+                        successText: '完美！士/仕只能在九宫内斜线走一格。第一章通关！'
+                    }
+                ];
+            }
+            
+            loadLevel(index) {
+                this.currentLevel = index;
+                const levels = this.getLevels();
+                const level = levels[index];
+                
+                // 更新UI
+                document.getElementById('levelTitle').textContent = level.title;
+                document.getElementById('masterText').textContent = level.masterText;
+                document.getElementById('progressBar').style.width = ((index / levels.length) * 100) + '%';
+                
+                // 生成选项
+                const container = document.getElementById('optionsContainer');
+                container.innerHTML = '';
+                
+                level.options.forEach((opt, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerHTML = `<span class="option-icon">${opt.icon}</span>${opt.text}`;
+                    btn.onclick = () => this.checkAnswer(i, opt.correct);
+                    container.appendChild(btn);
+                });
+                
+                // 绘制棋盘
+                this.drawBoard();
+                
+                // 隐藏下一关按钮
+                document.getElementById('nextBtn').style.display = 'none';
+            }
+            
+            drawBoard() {
+                const ctx = this.ctx;
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                const padding = 20;
+                const boardW = w - padding * 2;
+                const boardH = h - padding * 2;
+                const cellW = boardW / 8;
+                const cellH = boardH / 9;
+                
+                // 清空画布
+                ctx.fillStyle = '#f0d9b5';
+                ctx.fillRect(0, 0, w, h);
+                
+                // 绘制网格
+                ctx.strokeStyle = '#8b4513';
+                ctx.lineWidth = 2;
+                
+                // 横线
+                for (let i = 0; i <= 9; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(padding, padding + i * cellH);
+                    ctx.lineTo(padding + boardW, padding + i * cellH);
+                    ctx.stroke();
+                }
+                
+                // 竖线
+                for (let i = 0; i <= 8; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(padding + i * cellW, padding);
+                    ctx.lineTo(padding + i * cellW, padding + 4 * cellH);
+                    ctx.moveTo(padding + i * cellW, padding + 5 * cellH);
+                    ctx.lineTo(padding + i * cellW, padding + 9 * cellH);
+                    ctx.stroke();
+                }
+                
+                // 九宫斜线
+                ctx.beginPath();
+                ctx.moveTo(padding + 3 * cellW, padding);
+                ctx.lineTo(padding + 5 * cellW, padding + 2 * cellH);
+                ctx.moveTo(padding + 5 * cellW, padding);
+                ctx.lineTo(padding + 3 * cellW, padding + 2 * cellH);
+                ctx.moveTo(padding + 3 * cellW, padding + 7 * cellH);
+                ctx.lineTo(padding + 5 * cellW, padding + 9 * cellH);
+                ctx.moveTo(padding + 5 * cellW, padding + 7 * cellH);
+                ctx.lineTo(padding + 3 * cellW, padding + 9 * cellH);
+                ctx.stroke();
+                
+                // 楚河汉界
+                ctx.fillStyle = '#8b4513';
+                ctx.font = `${cellH * 0.4}px serif`;
+                ctx.textAlign = 'center';
+                ctx.fillText('楚 河', padding + boardW / 4, padding + 4.7 * cellH);
+                ctx.fillText('汉 界', padding + boardW * 3 / 4, padding + 4.7 * cellH);
+                
+                // 根据关卡高亮
+                const level = this.getLevels()[this.currentLevel];
+                if (level.highlight === 'palace') {
+                    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+                    ctx.fillRect(padding + 3 * cellW, padding, 2 * cellW, 2 * cellH);
+                    ctx.fillRect(padding + 3 * cellW, padding + 7 * cellH, 2 * cellW, 2 * cellH);
+                } else if (level.highlight === 'river') {
+                    ctx.fillStyle = 'rgba(135, 206, 235, 0.3)';
+                    ctx.fillRect(padding, padding + 4 * cellH, boardW, cellH);
+                }
+                
+                // 绘制棋子
+                if (level.pieces) {
+                    level.pieces.forEach(p => this.drawPiece(p, cellW, cellH, padding));
+                }
+            }
+            
+            drawPiece(piece, cellW, cellH, padding) {
+                const ctx = this.ctx;
+                const x = padding + piece.x * cellW;
+                const y = padding + piece.y * cellH;
+                const r = Math.min(cellW, cellH) * 0.4;
+                
+                // 棋子底色
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fillStyle = piece.color === 'red' ? '#ff4444' : '#333';
+                ctx.fill();
+                ctx.strokeStyle = piece.color === 'red' ? '#ff6666' : '#555';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // 棋子文字
+                ctx.fillStyle = piece.color === 'red' ? '#fff' : '#fff';
+                ctx.font = `bold ${r}px serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                const pieceNames = {
+                    king: piece.color === 'red' ? '帅' : '将',
+                    advisor: piece.color === 'red' ? '仕' : '士',
+                    elephant: piece.color === 'red' ? '相' : '象',
+                    horse: '马',
+                    chariot: '车',
+                    cannon: '炮',
+                    pawn: piece.color === 'red' ? '兵' : '卒'
+                };
+                
+                ctx.fillText(pieceNames[piece.type] || '?', x, y);
+            }
+            
+            checkAnswer(index, isCorrect) {
+                const buttons = document.querySelectorAll('.option-btn');
+                buttons[index].classList.add(isCorrect ? 'correct' : 'wrong');
+                
+                if (isCorrect) {
+                    this.streak++;
+                    this.gems += 10;
+                    this.completedLevels.push(this.currentLevel);
+                    
+                    document.getElementById('streak').textContent = this.streak;
+                    document.getElementById('gems').textContent = this.gems;
+                    
+                    const level = this.getLevels()[this.currentLevel];
+                    this.showFeedback(true, level.successText);
+                    
+                    document.getElementById('nextBtn').style.display = 'block';
+                } else {
+                    this.streak = 0;
+                    document.getElementById('streak').textContent = this.streak;
+                    this.showFeedback(false, '再想想，棋仙爷爷相信你！');
+                }
+            }
+            
+            showFeedback(isCorrect, text) {
+                const overlay = document.getElementById('feedbackOverlay');
+                const icon = document.getElementById('feedbackIcon');
+                const msg = document.getElementById('feedbackText');
+                
+                icon.textContent = isCorrect ? '🎉' : '💪';
+                msg.textContent = text;
+                
+                overlay.classList.add('show');
+            }
+            
+            closeFeedback() {
+                document.getElementById('feedbackOverlay').classList.remove('show');
+            }
+            
+            nextLevel() {
+                const levels = this.getLevels();
+                if (this.currentLevel < levels.length - 1) {
+                    this.loadLevel(this.currentLevel + 1);
+                } else {
+                    alert('🎉 恭喜通关第一章！你已获得"象棋小白"称号！');
+                }
+            }
+            
+            showHint() {
+                const level = this.getLevels()[this.currentLevel];
+                const correctIndex = level.options.findIndex(o => o.correct);
+                alert(`💡 提示：答案是第${correctIndex + 1}个选项`);
+                this.gems = Math.max(0, this.gems - 5);
+                document.getElementById('gems').textContent = this.gems;
+            }
+        }
+        
+        // 启动游戏
+        const game = new XiangqiMaster();
+    </script>
+</body>
+</html>
