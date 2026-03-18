@@ -103,6 +103,32 @@ cd /root/.openclaw/workspace
 ### 访问地址
 https://hiyascott.github.io/scott-portfolio/status-monitor/cognitive-status.html
 
+### v5.34.4 更新 (2026-03-18)
+- **目录清理**: 删除13个旧文件，创建规范备份结构
+- **备份分类**: api-experiments/ legacy-versions/ deprecated-systems/ whitepaper/ CHANGELOG/
+- **长期价值文档**: CHANGELOG-v5.32.md + 技术白皮书已归档至 backup-v5.34-20260318/
+
+### 历史文档长期价值记录
+
+**值得永久保存的技术资产**:
+
+| 文档 | 位置 | 价值 | 关键内容 |
+|------|------|------|----------|
+| **CHANGELOG-v5.32.md** | `backup-v5.34-*/CHANGELOG/` | ⭐⭐⭐⭐⭐ | v5.32功能迭代: 混合评分算法、24个智能标签、收音机仪表盘设计 |
+| **技术白皮书** (HTML+MD) | `backup-v5.34-*/whitepaper/` | ⭐⭐⭐⭐⭐ | 系统架构演进、算法原理、Redis→本地文件迁移决策、运维踩坑记录 |
+
+**为什么写入长线记忆**:
+1. **CHANGELOG** - 记录了从简单评分到混合算法的演进轨迹，未来重构时可参考决策路径
+2. **白皮书** - 包含架构设计的完整思考过程，特别是Redis弃用原因、CDN缓存问题、定时任务选型等工程决策
+
+**访问路径**:
+- 本地: `/portfolio-blog/status-monitor/backup-v5.34-20260318/`
+- GitHub: `hiyaScott/scott-portfolio/status-monitor/backup-v5.34-20260318/`
+
+### v5.34.3 更新 (2026-03-18)
+- **时间范围调整**: 改为 **5分/15分/1小时** 三档（移除1分钟视图）
+- **默认视图**: 5分钟
+
 ### v5.34.2 更新 (2026-03-18)
 - **修复1分钟视图**: 实际获取3分钟数据（保证3+数据点），解决数据点不足问题
 - **数据点不足提示**: 友好提示用户切换至5分钟视图
