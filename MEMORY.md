@@ -1609,3 +1609,211 @@ python3 /root/.openclaw/workspace/skills/openviking/viking.py search "关键词"
 - [ ] 迁移现有页面到 DeepSpace 风格
 - [ ] 统一 header/footer 组件
 - [ ] 测试移动端适配
+
+---
+
+## 【系统演进】认知负载监控 v5.37 - LocalStorage趋势累积模式
+
+**演进时间**: 2026-03-19
+**版本**: v5.37
+**核心改进**: 从"下载大文件"模式转向"前端本地累积"模式
+
+### 演进背景
+
+**v5.36及之前的问题:**
+| 问题 | 影响 |
+|------|------|
+| 推送量大 | 每次上传几百KB的history.jsonl |
+| 下载量大 | 前端每次下载几百KB历史数据 |
+| CDN缓存 | 5-10分钟延迟，不是实时趋势 |
+| API限制 | GitHub API频率限制 |
+
+### v5.37 新架构
+
+**核心思路**: 只推送"当前状态"，前端自己累积历史到 LocalStorage
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        后端 (Python)                         │
+│  ┌─────────────────┐  ┌─────────────────┐                  │
+│  │cognitive-data.json│  │ trend-data.json │                  │
+│  │  (完整状态 1KB) │  │ (最近60条 几KB) │                  │
+│  └────────┬────────┘  └────────┬────────┘                  │
+└───────────┼────────────────────┼────────────────────────────┘
+            │                    │
+            ▼                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    GitHub (数据仓库)                         │
+│         hiyaScott/scott-portfolio-data                      │
+└───────────┬────────────────────┬────────────────────────────┘
+            │                    │
+            ▼                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      前端 (JavaScript)                       │
+│  1. 首次加载: 读取 trend-data.json → 初始化 LocalStorage   │
+│  2. 轮询(30s): 读取 cognitive-data.json → 添加新点到本地   │
+│  3. 趋势图: 从 LocalStorage 读取渲染                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 技术实现
+
+**后端变更 (cognitive_monitor.py):**
+```python
+# v5.37 新增: 生成轻量趋势文件
+def update_trend_data(record):
+    TREND_FILE = "/root/.openclaw/workspace/scott-portfolio-data/status-monitor/trend-data.json"
+    
+    # 读取现有趋势
+    trend_data = []
+    if os.path.exists(TREND_FILE):
+        with open(TREND_FILE, 'r') as f:
+            trend_data = json.load(f).get('points', [])
+    
+    # 添加新点
+    trend_point = {
+        "t": ts_dt.strftime("%H:%M"),  # 简化时间
+        "s": record['score'],           # 分数
+        "ts": record['timestamp']       # 完整时间戳
+    }
+    
+    trend_data.append(trend_point)
+    trend_data = trend_data[-60:]  # 只保留60条
+    
+    # 写入文件
+    output = {
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "count": len(trend_data),
+        "points": trend_data
+    }
+    
+    with open(TREND_FILE, 'w') as f:
+        json.dump(output, f)
+```
+
+**前端变更 (cognitive-status.html):**
+```javascript
+// v5.37: LocalStorage 累积模式
+const TREND_STORAGE_KEY = 'cognitive_trend_v5';
+const TREND_MAX_POINTS = 60;
+
+// 初始化：从服务器获取首次数据
+async function initTrendData() {
+    let localTrend = JSON.parse(localStorage.getItem(TREND_STORAGE_KEY) || '[]');
+    
+    if (localTrend.length === 0) {
+        // 首次加载：从 trend-data.json 获取
+        const trendData = await fetch(TREND_URL).then(r => r.json());
+        localTrend = trendData.points.map(p => ({
+            timestamp_ms: new Date(p.ts).getTime(),
+            score: p.s,
+            ts: p.ts
+        }));
+        localStorage.setItem(TREND_STORAGE_KEY, JSON.stringify(localTrend));
+    }
+}
+
+// 添加新点（每次轮询调用）
+function addTrendPoint(metrics) {
+    let trend = JSON.parse(localStorage.getItem(TREND_STORAGE_KEY) || '[]');
+    
+    // 避免重复
+    const exists = trend.some(p => p.ts === metrics.timestamp);
+    if (!exists) {
+        trend.push({
+            timestamp_ms: new Date(metrics.timestamp).getTime(),
+            score: metrics.cognitive_score,
+            ts: metrics.timestamp
+        });
+        trend = trend.slice(-TREND_MAX_POINTS);
+        localStorage.setItem(TREND_STORAGE_KEY, JSON.stringify(trend));
+    }
+}
+```
+
+### 效果对比
+
+| 维度 | v5.36 (旧) | v5.37 (新) | 提升 |
+|------|-----------|-----------|------|
+| 推送量 | 几百KB | 几KB | 100x |
+| 下载量 | 几百KB | 几KB | 100x |
+| 实时性 | 5-10分钟 | <1分钟 | 10x |
+| API调用 | 2次(数据+历史) | 2次(都很小) | 稳定 |
+| 可靠性 | 依赖大文件同步 | 单条数据 | 更高 |
+
+### 关键技术要领
+
+**1. 数据分离原则**
+- 实时数据 (cognitive-data.json): 小而全，频繁更新
+- 趋势数据 (trend-data.json): 精简，用于首次初始化
+- 历史归档 (cognitive-history.jsonl): 完整，后台保留
+
+**2. 前端状态管理**
+- LocalStorage 作为趋势数据的"热缓存"
+- 首次加载从服务器，之后本地累积
+- 自动去重（检查时间戳）
+- 自动截断（只保留最近60条）
+
+**3. CDN 策略**
+- 实时数据: 带时间戳参数绕过缓存 `?t=${Date.now()}`
+- 趋势数据: 依赖CDN缓存（变化不频繁）
+- 使用 jsdelivr CDN 替代 raw.githubusercontent.com
+
+**4. 容错设计**
+- 双数据源 fallback (CDN → GitHub raw)
+- LocalStorage 为空时自动从服务器初始化
+- 错误信息详细显示（CDN错误、Raw错误、空响应等）
+
+### Debug 过程复盘
+
+**问题1: 监控页面连接失败**
+- **现象**: 主页正常，监控页面显示"连接失败"
+- **根因**: fetch 配置了 headers，与 CDN CORS 策略冲突
+- **解决**: 简化 fetch 配置，移除 headers
+
+**问题2: 趋势图不显示**
+- **现象**: 连接成功但趋势图空白
+- **根因1**: CDN 缓存了旧的历史数据
+- **根因2**: 推送脚本只检查数据文件 hash
+- **解决**: 双数据源 + 修复推送脚本
+
+**问题3: 推送失败**
+- **现象**: history.jsonl 推送报错 "Argument list too long"
+- **根因**: base64 编码后的文件内容超过 curl 参数限制
+- **解决**: 改用 Python urllib 直接上传
+
+**问题4: 时区问题**
+- **现象**: 走势图显示"暂无历史数据"
+- **根因**: Python 生成无时区时间，JavaScript 解析为 UTC
+- **解决**: Python 使用 `datetime.now(timezone.utc)`
+
+### 提交记录
+
+| 版本 | 提交 | 说明 |
+|------|------|------|
+| v5.37 | `41ac13e` | LocalStorage趋势累积模式 |
+| v5.36 | `b4db38a` | 更新版本号 |
+| v5.36 | `677e8c3` | 简化fetch配置 |
+| v5.35.1 | - | 时区修复 |
+
+### 相关文件
+
+```
+portfolio-blog/status-monitor/
+├── cognitive_monitor.py      # 后端监控脚本
+├── cognitive-status.html     # 前端监控页面
+├── cognitive_push_v5.sh      # 推送脚本
+└── github_upload.py          # GitHub API上传工具
+
+scott-portfolio-data/status-monitor/
+├── cognitive-data.json       # 实时状态 (1KB)
+├── trend-data.json           # 趋势数据 (几KB)
+└── cognitive-history.jsonl   # 完整历史 (后台保留)
+```
+
+### 后续优化方向
+
+- [ ] 添加趋势数据导出/导入功能
+- [ ] 支持多时间范围（1小时/6小时/24小时）切换
+- [ ] 添加趋势数据可视化（柱状图/面积图）
+- [ ] 考虑 IndexedDB 替代 LocalStorage（支持更大存储）
