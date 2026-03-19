@@ -2,6 +2,67 @@
 
 ---
 
+## 【系统故障】认知负载走势图无数据问题 (2026-03-19)
+
+**问题**: 认知负载监控界面的"认知负载走势"图表显示"暂无历史数据"
+**根本原因**: Python与JavaScript时区处理不一致
+**定性**: 跨时区数据序列化/反序列化经典陷阱
+
+### 问题链
+```
+Python生成无时区本地时间 → JavaScript解析为UTC时间 → 
+8小时时差 → 数据点timestamp_ms > cutoffTime为假 → 
+所有数据被过滤 → 走势图显示"暂无历史数据"
+```
+
+### 技术细节
+| 组件 | 行为 | 结果 |
+|------|------|------|
+| Python | `datetime.now().isoformat()` → `2026-03-19T08:10:02` | 北京时间，无时区 |
+| JavaScript | `new Date("2026-03-19T08:10:02")` | 解析为UTC 08:10 |
+| 实际时间 | 北京时间 08:10 = UTC 00:10 | 相差8小时 |
+| 过滤条件 | `timestamp_ms > cutoffTime` | 数据点被过滤 |
+
+### 修复方案 v5.35.1
+**Python端** (cognitive_monitor.py):
+```python
+# 修复前
+datetime.now().isoformat()  # 2026-03-19T08:10:02
+
+# 修复后
+datetime.now(timezone.utc).isoformat()  # 2026-03-19T00:10:02+00:00
+```
+
+**JavaScript端** (cognitive-status.html):
+```javascript
+// 修复前
+record.timestamp_ms = new Date(record.timestamp).getTime();
+
+// 修复后
+if (ts && !ts.match(/[Zz]|[+-]\d{2}:\d{2}/)) {
+    // 无时区信息，假设为北京时间，减去8小时转换为UTC
+    const localDate = new Date(ts.replace(' ', 'T'));
+    record.timestamp_ms = localDate.getTime() - (8 * 60 * 60 * 1000);
+} else {
+    record.timestamp_ms = new Date(ts).getTime();
+}
+```
+
+### 为什么反复出现
+- 时区问题具有**隐蔽性**: 数据看起来正常，只是"时间不对"
+- **环境依赖**: 只在跨时区场景（服务器CST + 用户浏览器本地时间）暴露
+- 每次修复可能只处理了部分场景，未根治
+
+### 预防措施
+1. **Always use UTC**: 后端生成时间戳必须带时区信息
+2. **ISO 8601严格模式**: 使用 `2026-03-19T00:10:02Z` 或 `+00:00` 格式
+3. **前后端约定**: 明确所有时间戳的时区约定，写入文档
+
+### 相关提交
+- `fe52be6` v5.35.1: 修复时区问题导致走势图无数据
+
+---
+
 ## 【系统故障】GitHub Pages 邮件轰炸事件 (2026-03-19)
 
 **问题**: 认知负载监控系统导致GitHub Pages构建失败，邮件轰炸1.5小时
