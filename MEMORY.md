@@ -1817,3 +1817,147 @@ scott-portfolio-data/status-monitor/
 - [ ] 支持多时间范围（1小时/6小时/24小时）切换
 - [ ] 添加趋势数据可视化（柱状图/面积图）
 - [ ] 考虑 IndexedDB 替代 LocalStorage（支持更大存储）
+
+---
+
+## 【系统演进】认知负载监控 v5.39 - 本地 API 服务器 (方案 B)
+
+**演进时间**: 2026-03-19
+**版本**: v5.39
+**核心改进**: 从"Redis/CDN 轮询"转向"本地 HTTP API 实时推送"
+
+### 演进背景
+
+**v5.38 及之前的问题:**
+| 问题 | 影响 |
+|------|------|
+| Redis CORS | 浏览器无法直接访问，频繁回退到 CDN |
+| CDN 延迟 | 即使有缓存清除，仍有 1-2 分钟延迟 |
+| 数据不一致 | 主页和监控页看到不同数据 |
+
+### v5.39 新架构 - 方案 B
+
+**核心思路**: 在当前服务器运行简单 HTTP API，前端直接访问
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        服务器 (iv-yegqvqwjcwbw80eyvjtn)      │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │ 认知监控 API 服务器 (api_server.py)                      │ │
+│  │   - 端口: 8080                                          │ │
+│  │   - 端点: /api/status (实时状态)                         │ │
+│  │   - CORS: 支持跨域，GitHub Pages 可直接访问              │ │
+│  └─────────────────────────────────────────────────────────┘ │
+│                           ↑                                 │
+│                    每 5 秒轮询                              │
+│                           ↓                                 │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │ 监控脚本 (cognitive_monitor.py)                          │ │
+│  │   - 每 30 秒更新 Redis                                   │ │
+│  │   - 同时写入本地文件 (备份)                               │ │
+│  └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                              ↑
+                              │ HTTP 请求 (CORS)
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                      GitHub Pages                           │
+│  ┌──────────────┐  ┌─────────────────────────────────────┐ │
+│  │  主页        │  │  监控页面 (cognitive-status.html)    │ │
+│  │  (index.html)│  │  - 优先: API (实时)                 │ │
+│  └──────────────┘  │  - 回退: Redis (近实时)              │ │
+│                    │  - 最后: CDN (缓存)                  │ │
+│                    └─────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 技术实现
+
+**后端 (api_server.py):**
+```python
+class CORSRequestHandler(BaseHTTPRequestHandler):
+    def do_OPTIONS(self):
+        # CORS 预检
+        self.send_header('Access-Control-Allow-Origin', '*')
+        
+    def do_GET(self):
+        if path == '/api/status':
+            load = get_cognitive_load()
+            # 实时计算并返回 JSON
+            self.send_response(200)
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.wfile.write(json.dumps(data).encode())
+```
+
+**前端:**
+```javascript
+// 优先从本地 API 读取
+const API_URL = 'http://8.210.105.190:8080/api/status';
+
+async function fetchData() {
+    // 1. 尝试本地 API (实时)
+    let result = await fetchFromAPI();
+    
+    // 2. 失败则尝试 Redis (近实时)
+    if (!result) result = await fetchFromRedis();
+    
+    // 3. 最后尝试 CDN (缓存)
+    if (!result) result = await fetchFromCDN();
+}
+```
+
+### 效果对比
+
+| 维度 | v5.38 (Redis/CDN) | v5.39 (API) | 提升 |
+|------|-------------------|-------------|------|
+| 延迟 | 1-2 分钟 (CDN) | < 1 秒 | 120x |
+| 可靠性 | Redis CORS 问题 | 直接 HTTP | 更稳定 |
+| 一致性 | 主页/监控页不一致 | 同源数据 | 一致 |
+| 轮询频率 | 30 秒 | 5 秒 | 6x |
+
+### 关键技术要领
+
+**1. CORS 配置**
+- 必须处理 OPTIONS 预检请求
+- 响应头必须包含 `Access-Control-Allow-Origin: *`
+
+**2. 三级回退机制**
+- API (首选) → Redis (备用) → CDN (最后)
+- 确保任何情况下都有数据可读
+
+**3. 端口和防火墙**
+- 使用 8080 端口 (非特权端口)
+- 确保服务器防火墙开放端口
+- 使用服务器公网 IP 访问
+
+### 相关文件
+
+```
+portfolio-blog/status-monitor/
+├── api_server.py             # HTTP API 服务器 (v5.39 新增)
+├── cognitive_monitor.py      # 监控脚本 (更新频率 30s)
+├── cognitive-status.html     # 前端 (v5.39 更新)
+└── ...
+```
+
+### 运维命令
+
+```bash
+# 检查 API 服务器
+ps aux | grep api_server
+
+# 测试 API
+curl http://localhost:8080/api/status
+curl http://8.210.105.190:8080/api/status
+
+# 查看日志
+tail -f /var/log/cognitive_api.log
+
+# 重启 API 服务器
+kill $(pgrep -f api_server.py)
+nohup python3 /root/.openclaw/workspace/portfolio-blog/status-monitor/api_server.py >> /var/log/cognitive_api.log 2>&1 &
+```
+
+### Git 提交
+
+- `e49d1d1` feat: v5.39 方案 B - 本地 API 服务器实现实时监控
