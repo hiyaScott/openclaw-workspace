@@ -69,6 +69,20 @@ if (ts && !ts.match(/[Zz]|[+-]\d{2}:\d{2}/)) {
 **修复**: 添加 `git add "$DATA_FILE" "$HISTORY_FILE"` 到提交前
 **状态**: 已修复，数据已同步到 GitHub Pages
 
+### 诊断方法总结 (2026-03-19)
+**问题**: 用户报告v5.35.1部署后走势图仍为空
+**诊断步骤**:
+1. 检查GitHub Pages线上数据 → 发现只有20条旧数据
+2. 检查本地数据 → 本地有920条数据，说明生成正常
+3. 检查git状态 → 发现修改的文件未被add
+4. 检查推送脚本 → 发现缺少`git add`命令
+5. 手动同步数据 → 问题解决
+
+**关键教训**:
+- 推送脚本必须显式执行`git add`，否则修改不会进入提交
+- GitHub Pages CDN缓存可能导致数据更新延迟1-2分钟
+- 需要同时检查本地和线上数据才能定位问题
+
 ---
 
 ## 【系统故障】GitHub Pages 邮件轰炸事件 (2026-03-19)
@@ -205,6 +219,167 @@ cd /root/.openclaw/workspace
 - 核心文件都在版本控制中
 - 恢复指南已编写
 - 可以随时重建
+
+---
+
+## 【系统总览】认知负载监控 - 问题历史与修复记录
+
+**系统名称**: Shrimp Jetton 认知负载监控  
+**创建时间**: 2026-03-14  
+**当前版本**: v5.35.1  
+**访问地址**: https://hiyascott.github.io/scott-portfolio/status-monitor/cognitive-status.html
+
+---
+
+### 架构演进
+
+| 版本 | 时间 | 架构变化 | 关键决策 |
+|------|------|----------|----------|
+| v1.0 | 03-14 | 简单状态显示 | Redis存储 |
+| v5.8 | 03-15 | 智能标签+负载可视化 | 扩展关键词映射 |
+| v5.14 | 03-15 | Mixed Score算法 | 混合评分机制 |
+| v5.32 | 03-16 | Redis→本地文件迁移 | 放弃Redis，使用JSON Lines |
+| v5.34 | 03-18 | 本地历史数据走势 | 纯定时任务架构 |
+| v5.35 | 03-19 | 时区修复+推送修复 | UTC时区+git add修复 |
+
+---
+
+### 问题清单（按时间倒序）
+
+#### 🚨 P0 - 严重故障
+
+**1. 走势图无数据 (2026-03-19)**
+- **现象**: 认知负载走势图表显示"暂无历史数据"
+- **根因**: Python生成无时区本地时间，JavaScript解析为UTC，8小时时差导致数据被过滤
+- **修复**: 
+  - Python: `datetime.now(timezone.utc).isoformat()`
+  - JavaScript: 兼容解析带/无时区的时间戳
+- **状态**: ✅ 已修复 (v5.35.1)
+
+**2. 推送脚本缺少git add (2026-03-19)**
+- **现象**: v5.35.1部署后走势图仍为空，本地有920条数据但GitHub Pages只有20条
+- **根因**: `cognitive_push_v4.sh` 只执行`git commit`，没有`git add`
+- **修复**: 添加 `git add "$DATA_FILE" "$HISTORY_FILE"`
+- **状态**: ✅ 已修复
+
+**3. GitHub Pages邮件轰炸 (2026-03-19 凌晨)**
+- **现象**: 1.5小时内收到约60封构建失败邮件
+- **根因**: 符号链接与GitHub Pages/Jekyll不兼容，每分钟推送持续导致队列积压
+- **修复**: 
+  - 移除符号链接
+  - 频率控制: 1分钟→5分钟
+  - 熔断机制: 连续5次失败自动停止30分钟
+- **状态**: ✅ 已修复，防护体系已实施
+
+#### ⚠️ P1 - 功能缺陷
+
+**4. 前后端数据不一致 (多次发生)**
+- **现象**: 监控页面显示的数据与实际状态不符
+- **根因**: 
+  - CDN缓存延迟
+  - 推送失败未处理
+  - 孤儿lock文件
+- **修复**:
+  - 添加缓存清除参数 `?t=${Date.now()}`
+  - 失败退避机制
+  - lock文件超时检测
+- **状态**: ✅ 已修复，持续监控
+
+**5. 监控脚本意外停止 (2026-03-15)**
+- **现象**: 状态监控停止更新
+- **根因**: 进程崩溃或系统重启后未自动恢复
+- **修复**: crontab定时任务确保自动重启
+- **状态**: ✅ 已修复
+
+#### 💡 P2 - 优化项
+
+**6. Redis双写问题 (v5.32前)**
+- **现象**: Upstash Redis连接不稳定，数据偶尔丢失
+- **决策**: 放弃Redis，迁移到本地JSON Lines存储
+- **结果**: ✅ 更稳定，零API依赖
+
+**7. 评分算法误报 (v5.14.2前)**
+- **现象**: 空闲状态显示90%高负载
+- **根因**: Token评分计算了所有会话而非仅处理中任务
+- **修复**: 只计算处理中任务的tokens
+- **状态**: ✅ 已修复
+
+---
+
+### 设计决策记录
+
+#### 为什么放弃Redis？
+| 维度 | Redis方案 | 本地文件方案 |
+|------|-----------|--------------|
+| 稳定性 | 依赖外部服务 | 本地可靠 |
+| 成本 | Upstash免费额度有限 | 零成本 |
+| 复杂度 | 需要REST API调用 | 简单的文件读写 |
+| 速度 | 网络延迟50-100ms | 本地磁盘 <1ms |
+| 数据量 | 适合高频小数据 | 适合批量历史数据 |
+
+**结论**: 本地JSON Lines更适合当前需求（历史数据存储+定时读取）
+
+#### 为什么选择GitHub Pages而非实时推送？
+| 维度 | GitHub Pages | 实时推送(WebSocket) |
+|------|--------------|---------------------|
+| 成本 | 免费 | 需要服务器 |
+| 复杂度 | 低（静态文件） | 高（需要WebSocket服务） |
+| 延迟 | 30-90秒 | <1秒 |
+| 可靠性 | CDN全球分发 | 依赖单一服务器 |
+| 维护 | 无需维护 | 需要监控服务状态 |
+
+**结论**: 监控场景容忍30-90秒延迟，GitHub Pages的零成本和零维护更有价值
+
+---
+
+### 运维手册速查
+
+```bash
+# 检查监控进程
+ps aux | grep cognitive_monitor
+
+# 查看最近日志
+tail -20 /var/log/cognitive_push.log
+
+# 健康检查
+./portfolio-blog/status-monitor/health-check.sh
+
+# 查看熔断器状态
+cat /tmp/cognitive_circuit_breaker
+
+# 手动同步数据
+cd /root/.openclaw/workspace/portfolio-blog
+git add status-monitor/cognitive-data.json status-monitor/cognitive-history.jsonl
+git commit -m "monitor: manual sync"
+git push
+
+# 检查GitHub Pages部署状态
+curl -s https://api.github.com/repos/hiyaScott/scott-portfolio/pages/deployments | head -5
+```
+
+---
+
+### 反复出现的问题模式
+
+| 模式 | 原因 | 预防措施 |
+|------|------|----------|
+| 时区问题 | Python/JavaScript时区处理不一致 | 始终使用UTC时间戳，带时区信息 |
+| 推送失败 | 网络波动/GitHub限流 | 熔断机制+退避策略 |
+| 数据不一致 | CDN缓存/推送失败 | 缓存清除参数+手动同步能力 |
+| 脚本停止 | 进程崩溃/系统重启 | crontab定时任务+健康检查 |
+
+---
+
+### 关键文件清单
+
+| 文件 | 作用 | 版本 |
+|------|------|------|
+| `cognitive_monitor.py` | 核心监控逻辑，生成数据 | v5.35.1 |
+| `cognitive_push_v4.sh` | Git推送脚本，带防护机制 | v4.0 |
+| `cognitive-status.html` | 前端展示页面 | v5.35.1 |
+| `cognitive-data.json` | 实时数据 | 动态生成 |
+| `cognitive-history.jsonl` | 历史数据(JSON Lines) | 动态生成 |
+| `health-check.sh` | 健康检查脚本 | v1.0 |
 
 ---
 
