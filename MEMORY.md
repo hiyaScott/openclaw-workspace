@@ -2,6 +2,124 @@
 
 ---
 
+## 【系统演进】认知负载监控 v6.0 简化架构 (2026-03-19)
+
+**演进时间**: 2026-03-19 19:00-20:30
+**版本**: v6.0
+**核心决策**: 基于"30-60秒延迟可接受"简化整个监控系统
+
+### 架构对比
+
+| 维度 | v5.41 | v6.0 |
+|------|-------|------|
+| **数据源** | Redis → CDN → GitHub Raw | 只用 GitHub Raw |
+| **轮询间隔** | 10秒 | 30秒 |
+| **评分算法** | 120行复杂计算 (8因素) | 30行简单映射 |
+| **预估时间** | ❌ | ✅ |
+| **代码行数** | ~370行 | ~120行 |
+| **依赖** | Redis API, CDN | 无 (纯 GitHub) |
+
+### 简化评分逻辑
+
+```python
+队列长度 = 处理中 + 等待中
+
+if 队列长度 == 0: 评分 = 0%   # 空闲
+if 队列长度 == 1: 评分 = 25%  # 轻载
+if 队列长度 == 2: 评分 = 50%  # 中等
+if 队列长度 >= 3: 评分 = 75%+ # 高载
+```
+
+### 预估回复时间
+
+| 队列长度 | 预估时间 |
+|----------|----------|
+| 0 | 立即 |
+| 1 | ~30秒 |
+| 2 | ~1分钟 |
+| 3+ | ~N分钟 |
+
+### 改动清单
+
+**前端 (cognitive-status.html)**:
+- 移除 Redis/CDN 回退逻辑
+- 轮询间隔改为 30 秒
+- 添加预估时间显示
+- 版本显示改为 "v6.0 · 简化方案 · 30秒延迟可接受"
+
+**后端 (cognitive_monitor.py)**:
+- 简化评分算法 (120行 → 30行)
+- 添加预估时间计算
+- 移除系统监控任务特殊处理
+
+### 访问地址
+https://hiyascott.github.io/scott-portfolio/status-monitor/cognitive-status.html
+
+### 相关提交
+- `f403db5` feat: v6.0 简化方案 - 单一数据源 + 简化评分 + 预估时间
+- `872f3ed` feat: v6.0 Python监控脚本简化评分算法
+
+---
+
+## 【网站优化】Hiyamax 网站全面清理 (2026-03-19)
+
+**执行时间**: 2026-03-19 16:30-18:45
+**目标**: P0/P1/P2 全面优化
+
+### P0 - 清理临时文件
+
+| 操作 | 文件/目录 |
+|------|-----------|
+| 删除 | `pages/tools/temp-pages.html` |
+| 删除 | `pages/tools/file-transfer.html` |
+| 删除 | `pages/about/examples/` (4个演示页面) |
+| 删除 | `docs/archive-templates/` (5个归档README) |
+
+### P1 - 统一游戏页面格式
+
+**标题格式统一** (32个游戏页面):
+- 格式: `游戏名 | 虾折腾` 或 `中文名 | 英文名 | 虾折腾`
+- 统一 favicon 位置 (title 前)
+
+**SEO 优化** (31个游戏页面):
+- 添加 meta description
+- 添加 Open Graph 标签
+
+### P1 - 完善 Sitemap
+
+从 3 个 URL 扩展到 **42 个**:
+- 主页 + 主要页面 (6个)
+- 游戏页面 (32个)
+- 工具页面 (1个)
+- 研究页面 (3个)
+
+### 网站结构
+
+```
+portfolio-blog/
+├── index.html (主页, 84KB)
+├── games/ (32个游戏)
+├── kimi-claw/ (16个技能)
+├── research/ (研究内容)
+├── pages/tools/ (工具)
+├── status-monitor/ (监控)
+├── private/ (私有)
+├── archive/ (140KB)
+├── backups/ (508KB)
+├── assets/ (资源)
+└── docs/ (文档)
+```
+
+**HTML 文件**: 94 个 (从 103 个减少)
+
+### 相关提交
+- `9f8fb64` cleanup: 删除临时文件和演示页面
+- `ab3d0ea` style: 统一游戏页面标题格式和 favicon 位置
+- `7499d55` seo: 为所有游戏页面添加 meta description 和 OG 标签
+- `661b7d9` cleanup: 删除空目录并完善 sitemap
+
+---
+
 ## 【系统故障】认知负载走势图无数据问题 (2026-03-19)
 
 **问题**: 认知负载监控界面的"认知负载走势"图表显示"暂无历史数据"
@@ -102,6 +220,64 @@ if (ts && !ts.match(/[Zz]|[+-]\d{2}:\d{2}/)) {
 3. 随着时间推移，旧数据自然过期，新UTC数据占主导
 
 **状态**: ✅ 已修复，监控进程正常运行
+
+---
+
+## 【项目整合】GitHub 仓库整合完成 (2026-03-18)
+
+**执行时间**: 2026-03-18
+**目标**: 整合分散的游戏仓库到 scott-portfolio
+
+### 已完成的归档（5个仓库）
+
+| 仓库 | 迁移位置 | 状态 |
+|------|----------|------|
+| mama-counter | games/mama-counter/ | ✅ 已归档 |
+| minesweeper-demo | games/minesweeper/ | ✅ 已归档 |
+| aircraft-war | games/aircraft-war/ | ✅ 已归档 |
+| snake-game | games/snake/ | ✅ 已归档 |
+| game-design-portfolio | research/game-design/ | ✅ 已归档 |
+
+### 待归档（1个仓库）
+
+| 仓库 | 状态 | 备注 |
+|------|------|------|
+| grid-dominion-demo | ⏳ 占位符已创建 | 原仓库需手动归档 Settings → Archive |
+
+### 最终 GitHub 仓库结构
+
+```
+hiyaScott/
+├── 🌟 scott-portfolio          # 主作品集（活跃）
+├── 🤖 openclaw-workspace       # Jetton记忆（活跃）
+├── 💻 jetton-monitor           # 桌面监控（活跃）
+│
+├── 📦 aircraft-war             # 已归档
+├── 📦 game-design-portfolio    # 已归档
+├── 📦 mama-counter             # 已归档
+├── 📦 minesweeper-demo         # 已归档
+├── 📦 snake-game               # 已归档
+└── 📦 grid-dominion-demo       # 待归档
+```
+
+---
+
+## 【技能成长】自定义技能清单 (2026-03-19)
+
+**当前技能数量**: 9个
+**位置**: `/root/.openclaw/workspace/skills/`
+
+| 技能名 | 用途 | 创建时间 |
+|--------|------|----------|
+| ascii-art | ASCII艺术生成 | 早期 |
+| bug-checker | 代码Bug检查 | 早期 |
+| cross-border-ecommerce | 跨境电商运营 | 2026-03-16 |
+| game-tester | 游戏测试 | 早期 |
+| math-olympiad | 小学奥数教学 | 2026-03-10 |
+| online-game-designer | 网络游戏设计 | 2026-03-12 |
+| openviking | OpenViking语义搜索 | 2026-03-10 |
+| srpg-designer | 战棋游戏设计 | 2026-03-12 |
+| wwise-audio-engine | Wwise音频引擎 | 2026-03-10 |
 
 ---
 
