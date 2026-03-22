@@ -413,6 +413,11 @@ skills/bambu-3dprint/
     └── troubleshooting.md            # 故障排除完整指南
 ```
 
+**展示页面**:
+- 专页链接: https://hiyascott.github.io/scott-portfolio/kimi-claw/bambu-3dprint/
+- 功能: 交互式对话界面、场景卡片、知识库演示
+- 部署时间: 2026-03-22
+
 **核心知识点**:
 - Bambu Studio切片软件操作
 - 耗材选择: PLA(易打印)、PETG(强度)、TPU(柔性)
