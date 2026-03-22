@@ -372,14 +372,16 @@ hiyaScott/
 
 ---
 
-## 【技能成长】自定义技能清单 (2026-03-19)
+## 【技能成长】自定义技能清单 (2026-03-22)
 
-**当前技能数量**: 9个
+**当前技能数量**: 10个
 **位置**: `/root/.openclaw/workspace/skills/`
 
 | 技能名 | 用途 | 创建时间 |
 |--------|------|----------|
+| arduino-hardware | Arduino硬件开发 | 2026-03-21 |
 | ascii-art | ASCII艺术生成 | 早期 |
+| bambu-3dprint | 拓竹3D打印设计 | 2026-03-22 |
 | bug-checker | 代码Bug检查 | 早期 |
 | cross-border-ecommerce | 跨境电商运营 | 2026-03-16 |
 | game-tester | 游戏测试 | 早期 |
@@ -388,6 +390,34 @@ hiyaScott/
 | openviking | OpenViking语义搜索 | 2026-03-10 |
 | srpg-designer | 战棋游戏设计 | 2026-03-12 |
 | wwise-audio-engine | Wwise音频引擎 | 2026-03-10 |
+
+---
+
+## 【技能详解】bambu-3dprint - 拓竹3D打印 (2026-03-22)
+
+**创建背景**: Scott拥有一台拓竹3D打印机，希望我能协助打印模型、设计Arduino结构件、使用建模工具创建新模型。
+
+**技能范围**:
+1. 在线模型库获取与打印 (MakerWorld, Thingiverse, Printables)
+2. Arduino项目结构件设计 (外壳、支架、连接件)
+3. 建模工具推荐与使用 (Fusion 360, FreeCAD, OpenSCAD, Tinkercad, Blender)
+4. 切片参数优化与故障排除
+
+**技能结构**:
+```
+skills/bambu-3dprint/
+├── SKILL.md                          # 核心指南
+└── references/
+    ├── modeling-guide.md             # 建模工具深度对比
+    ├── arduino-designs.md            # Arduino结构件设计案例
+    └── troubleshooting.md            # 故障排除完整指南
+```
+
+**核心知识点**:
+- Bambu Studio切片软件操作
+- 耗材选择: PLA(易打印)、PETG(强度)、TPU(柔性)
+- 设计公差: 活动件预留0.2-0.3mm间隙
+- Arduino外壳标准尺寸: UNO 68.6×53.4mm，螺丝孔M3@2.8mm
 
 ---
 
