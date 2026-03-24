@@ -81,6 +81,17 @@ portfolio-blog/kimi-claw/ai-shortfilm/
 
 本技能参考了 Runway 的专业工作流设计、快手可灵的产品化思路、以及《救猫咪》的剧本结构理论。
 
+### 相关资源
+
+**AI短剧入门教程** (2026-03-25新增)
+- 位置: `portfolio-blog/private/ai-shortfilm-tutorial/`
+- 访问: https://hiyascott.github.io/scott-portfolio/private/ai-shortfilm-tutorial/
+- 类型: 新手引导式教程，手把手完成第一部2分钟短剧
+- 定制方案: 《冬夜里的温暖》- 治愈系动画短片
+- 步骤: 7步完整流程 + 进阶建议
+- 工具: 豆包+即梦+可灵+剪映（全部免费）
+- 特色: 交互式进度条、任务清单、完整提示词模板
+
 ---
 
 ## 【认知负载监控】v7.1 算法体感优化 (2026-03-24)
