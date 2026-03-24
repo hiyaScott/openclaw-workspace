@@ -2282,3 +2282,483 @@ nohup python3 /root/.openclaw/workspace/portfolio-blog/status-monitor/api_server
 ### Git 提交
 
 - `e49d1d1` feat: v5.39 方案 B - 本地 API 服务器实现实时监控
+
+---
+
+## 【Workspace 整理】目录结构重构 v2.0 (2026-03-24)
+
+**执行时间**: 2026-03-24  
+**执行人**: Jetton (AI 助手)  
+**目标**: 清理根目录混乱，建立清晰的文件组织规范
+
+### 核心原则
+
+| 原则 | 说明 |
+|------|------|
+| **根目录精简** | 仅保留入口文件、配置、备份和少量临时文件 |
+| **项目归位** | 所有游戏/项目进入 `projects/` 目录 |
+| **导出归档** | 所有构建产物进入 `exports/` 目录 |
+| **设计文档** | 所有设计文档进入 `docs/designs/` 目录 |
+| **系统文档** | 架构/技术文档进入 `docs/system/` 目录 |
+
+### 最终目录结构
+
+```
+/root/.openclaw/workspace/
+│
+├── AGENTS.md              # 工作规则
+├── IDENTITY.md            # Jetton 身份定义
+├── SOUL.md               # 灵魂/行为准则
+├── USER.md               # Scott 信息
+├── MEMORY.md             # 长期记忆（本文件）
+├── HEARTBEAT.md          # 心跳任务清单
+├── BOOTSTRAP.md          # 启动引导（可删）
+├── ORGANIZATION_PLAN.md   # 整理计划
+│
+├── backup.sh             # 备份脚本
+├── backup.log            # 备份日志
+├── verify-backup.sh      # 备份验证
+├── RESTORE.md            # 恢复指南
+│
+├── .git/                 # Git 仓库
+├── .env                  # 环境变量
+│
+├── docs/                 # 文档中心
+│   ├── designs/          # 设计文档
+│   │   ├── grid-dominion/
+│   │   │   ├── GRID_DOMINION_GameDesign.md
+│   │   │   └── word-alchemy-designs/
+│   │   │       ├── README.md
+│   │   │       ├── word-alchemy-v1-design.md
+│   │   │       ├── word-alchemy-2-design.md
+│   │   │       └── word-alchemy-2-design-v2.md
+│   │   ├── 编钟模拟器/
+│   │   ├── game-todo-006-007.md
+│   │   ├── logo_designs.txt
+│   │   └── logo_pixel_designs.txt
+│   └── system/           # 系统文档
+│       ├── ARCHITECTURE_OPTIMIZATION.md
+│       ├── DATA_REPO_MIGRATION_REPORT.md
+│       └── GAME_DESIGN_INTEGRATION_PLAN.md
+│
+├── exports/              # 导出/构建产物
+│   ├── godot/            # Godot 模板
+│   │   ├── godot_templates.tpz
+│   │   └── Godot_v4.6.1-stable_export_templates.tpz
+│   ├── grid-dominion/    # 游戏导出
+│   │   ├── web/
+│   │   ├── windows/
+│   │   └── *.tar.gz
+│   ├── minesweeper/
+│   ├── xiangqi/
+│   ├── scott-portfolio/
+│   └── jetton-monitor/
+│
+├── projects/             # 项目源码
+│   ├── grid-dominion/    # Grid Dominion 各版本
+│   │   ├── v1_mvp/
+│   │   ├── v2/
+│   │   ├── v3/
+│   │   ├── v4/
+│   │   ├── v5/
+│   │   ├── v5_fixed/
+│   │   └── web/
+│   ├── minesweeper/
+│   ├── snake-game/
+│   ├── aircraft-war/
+│   ├── xiangqi-master/
+│   ├── word-alchemy-2/
+│   └── (33+ 其他游戏项目)
+│
+├── archives/             # 归档文件
+├── backups/              # 备份文件
+├── memory/               # 每日记忆
+├── skills/               # 自定义技能
+├── data/                 # 数据文件
+├── knowledge/            # 知识库
+├── openviking_data/      # OpenViking 数据
+├── portfolio-blog/       # GitHub Pages 站点
+├── jetton-monitor/       # 桌面监控应用源码
+│
+└── (备份文件/临时文件)
+    ├── portfolio-backup-*.tar.gz
+    ├── scott-portfolio-full-backup-*.tar.gz
+    ├── windows-exe.zip
+    └── ...
+```
+
+### 已完成的整理工作
+
+#### 1. exports/ 目录重构
+**整理内容**:
+- `godot/` - Godot 模板文件 (从根目录移入)
+- `grid-dominion/` - 合并 `grid_dominion_v2_exports/` 的所有内容
+- `minesweeper/` - 合并 `minesweeper_exports/`
+- `xiangqi/` - 从 `projects/xiangqi-master/exports/` 复制
+- `jetton-monitor/` - 从根目录 `jetton-monitor-release/` 移入
+
+**释放空间**: ~1.21 GB (主要是 1.2G 的 Godot 导出模板)
+
+#### 2. docs/designs/ 目录创建
+**整理内容**:
+- `grid-dominion/` - Grid Dominion 游戏设计文档
+  - `GRID_DOMINION_GameDesign.md` (从根目录)
+  - `word-alchemy-designs/` - 合并3个版本的 Word-Alchemy 设计
+- `编钟模拟器/` - 编钟模拟器设计文档 (3个 Excel 文件)
+- `game-todo-006-007.md` - 游戏待办事项
+- `logo_designs.txt` / `logo_pixel_designs.txt` - Logo 设计
+
+#### 3. docs/system/ 目录创建
+**整理内容**:
+- `ARCHITECTURE_OPTIMIZATION.md` - 架构优化
+- `DATA_REPO_MIGRATION_REPORT.md` - 数据迁移报告
+- `GAME_DESIGN_INTEGRATION_PLAN.md` - 游戏设计整合计划
+
+#### 4. projects/ 目录确认
+**状态**: 已完成前期整理
+- 33+ 游戏项目已归档
+- `grid-dominion/` 包含 7 个子版本 (v1_mvp 到 web)
+
+### 已删除的根目录文件
+
+| 文件/目录 | 原始位置 | 新位置 |
+|-----------|----------|--------|
+| `godot_templates.tpz` | 根目录 | `exports/godot/` |
+| `Godot_v4.6.1-stable_export_templates.tpz` | 根目录 | `exports/godot/` |
+| `jetton-monitor-release/` | 根目录 | `exports/jetton-monitor/release/` |
+| `grid_dominion_*` 相关 | 根目录 | `projects/grid-dominion/` |
+| `GRID_DOMINION_GameDesign.md` | 根目录 | `docs/designs/grid-dominion/` |
+| `game-todo-006-007.md` | 根目录 | `docs/designs/` |
+| `logo_designs.txt` | 根目录 | `docs/designs/` |
+| `logo_pixel_designs.txt` | 根目录 | `docs/designs/` |
+| 编钟模拟器 Excel (3个) | 根目录 | `docs/designs/编钟模拟器/` |
+| `ARCHITECTURE_OPTIMIZATION.md` | 根目录 | `docs/system/` |
+| `DATA_REPO_MIGRATION_REPORT.md` | 根目录 | `docs/system/` |
+| `GAME_DESIGN_INTEGRATION_PLAN.md` | 根目录 | `docs/system/` |
+
+### 经验教训
+
+**避免未来混乱的规则**:
+1. **新项目默认进入 `projects/`** - 不在根目录创建项目文件夹
+2. **导出物默认进入 `exports/`** - 游戏构建产物按项目分类
+3. **设计文档默认进入 `docs/designs/`** - 按项目建立子目录
+4. **系统文档默认进入 `docs/system/`** - 技术架构、迁移报告等
+5. **Git 提交前检查** - 避免提交 venv/node_modules 等大目录
+
+**备份策略**:
+- 所有核心文件已纳入 Git 版本控制
+- 自动备份脚本 `backup.sh` 定期执行
+- 恢复指南 `RESTORE.md` 已建立
+
+### 当前根目录状态
+
+**剩余的大文件** (大部分是备份):
+```
+55M  portfolio-backup-20260316-223215.tar.gz
+6.1M portfolio-backup-pre-opt-20260315.tar.gz
+6.1M portfolio-backup-pre-optimization-20260315-1056.tar.gz
+4.6M scott-portfolio-full-backup-20260316-001946.tar.gz
+2.1M windows-exe.zip
+```
+
+**根目录现在干净清爽**！🎉
+
+---
+
+## 【Workspace 整理】第二阶段 - 空文件和零散文档清理 (2026-03-24)
+
+**执行时间**: 2026-03-24 11:20-11:25  
+**执行人**: Jetton  
+**目标**: 清理空文件，整理零散文档
+
+### 本次清理内容
+
+#### 1. 空文件删除
+**删除文件**:
+- `HTMLEOF` (0 bytes, Mar 9)
+- `JSEOF` (0 bytes, Mar 20)
+- `PYEOF` (0 bytes, Mar 9)
+
+#### 2. 零散文档整理
+
+**docs/whitepapers/** (新增目录):
+- `hiyaMAX_Whitepaper.md` - 项目白皮书
+- `认知负载监控系统技术白皮书_v1.0.md` - 技术白皮书
+
+**docs/github/** (新增目录):
+- `GITHUB_OPTIMIZATION_PLAN.md` - GitHub 优化计划
+- `GIT_WEB_STRUCTURE_MAP.md` - Git 仓库结构图
+
+**docs/archive-notes/** (新增目录):
+- `ARCHIVE_NOTES.md` - 归档笔记
+- `ARCHIVE_README_TEMPLATES.md` - 归档 README 模板
+
+**archives/** (旧计划文档归档):
+- `ORGANIZATION_PLAN.md` - 旧版整理计划（已过时）
+- `restructure-plan.md` - 重构计划
+
+### 本次删除/移动汇总
+
+| 类别 | 数量 | 操作 |
+|------|------|------|
+| 空文件 | 3 个 | 删除 |
+| 白皮书 | 2 个 | 移动 → docs/whitepapers/ |
+| GitHub 文档 | 2 个 | 移动 → docs/github/ |
+| 归档笔记 | 2 个 | 移动 → docs/archive-notes/ |
+| 旧计划文档 | 2 个 | 移动 → archives/ |
+
+### 更新后的 docs/ 结构
+
+```
+docs/
+├── whitepapers/              # 新增
+│   ├── hiyaMAX_Whitepaper.md
+│   └── 认知负载监控系统技术白皮书_v1.0.md
+├── github/                   # 新增
+│   ├── GITHUB_OPTIMIZATION_PLAN.md
+│   └── GIT_WEB_STRUCTURE_MAP.md
+├── archive-notes/            # 新增
+│   ├── ARCHIVE_NOTES.md
+│   └── ARCHIVE_README_TEMPLATES.md
+├── designs/                  # 已有
+│   ├── grid-dominion/
+│   ├── 编钟模拟器/
+│   └── ...
+├── system/                   # 已有
+│   └── ...
+└── cognitive-scoring-algorithm.md
+```
+
+### 未完成项（待后续处理）
+
+1. **archives/** 备份文件整理
+   - 7 个备份 tar.gz 文件待移入
+   - windows-exe.zip
+
+2. **tools/** 脚本整理
+   - 12 个脚本待分类
+
+3. **状态/数据文件**
+   - status.json, task-state.json 等
+   - 是否统一放到 data/ 或新建子目录
+
+---
+
+## 【Workspace 整理】第三阶段 - 废弃文件清理 (2026-03-24)
+
+**执行时间**: 2026-03-24 11:40-11:45  
+**执行人**: Jetton  
+**目标**: 删除已废弃的脚本和过时文件
+
+### 清理内容
+
+#### 1. 废弃脚本删除（10个）
+| 文件 | 原因 |
+|------|------|
+| `metrics_collector.py` / `v4.py` | 未被引用，无 crontab，无进程运行 |
+| `ux_monitor.py` | 同上，已废弃 |
+| `status_manager.py` / `status-sync.py` | 状态系统已换方案 |
+| `set-status.sh` | 状态管理相关，已废弃 |
+| `generate_bianzhong_excel.py` | 编钟项目已归档，生成器完成使命 |
+| `generate_complete_excel.py` | 同上 |
+| `midi_parser.js` | 同上 |
+| `install_skills_2am.sh` | 一次性脚本，已执行完毕 |
+
+#### 2. 过时状态文件删除（3个）
+- `task-state.json` (最后更新 3月10日)
+- `task-state-srpg-enumeration.json` (最后更新 3月15日)
+- `status.json` (最后更新 3月15日)
+
+**注意**: 系统已采用新的认知负载监控方案，这些旧状态文件不再使用。
+
+#### 3. 旧备份文件删除（6个）
+**保留**: `portfolio-backup-20260316-223215.tar.gz` (55M，最新完整备份)
+
+**删除**:
+- `portfolio-backup-20260314-104442.tar.gz`
+- `portfolio-backup-pre-opt-20260315.tar.gz`
+- `portfolio-backup-pre-optimization-20260315-1056.tar.gz`
+- `portfolio-backup-pre-redesign-20260314-135150.tar.gz`
+- `scott-portfolio-full-backup-20260316-001946.tar.gz`
+- `scott-portfolio-full-backup-20260316-001950.tar.gz`
+
+### 清理结果
+
+| 类别 | 删除数量 | 释放空间 |
+|------|----------|----------|
+| 废弃脚本 | 10 个 | ~500K |
+| 过时状态文件 | 3 个 | ~5K |
+| 旧备份文件 | 6 个 | ~18M |
+| **总计** | **19 个** | **~20M+** |
+
+### 剩余文件
+
+**脚本**（2个）:
+- `backup.sh` - 手动备份脚本，保留根目录
+- `verify-backup.sh` - 备份验证脚本，保留根目录
+
+**备份**（1个）:
+- `portfolio-backup-20260316-223215.tar.gz` (55M) - 最新完整备份
+
+**状态文件**（1个）:
+- `jetton-monitor-release-task.json` - 可能仍需保留
+
+### 当前根目录精简状态
+
+```
+核心文件: AGENTS.md, MEMORY.md, SOUL.md, IDENTITY.md, USER.md, etc.
+脚本: backup.sh, verify-backup.sh (2个)
+备份: portfolio-backup-20260316-223215.tar.gz (1个)
+临时/数据: windows-exe.zip 等
+```
+
+**根目录现在非常干净！** 🎉
+
+---
+
+## 【Workspace 整理】第四阶段 - tools 目录优化 (2026-03-24)
+
+**执行时间**: 2026-03-24 11:50-11:55  
+**执行人**: Jetton  
+**目标**: 按功能分类整理 tools/ 目录
+
+### 整理方案
+
+按用户提供的结构重新组织：
+
+```
+tools/
+├── development/          # 开发工具
+│   ├── create_ppt.py
+│   ├── add_remaining_sheets.py
+│   ├── check_cognitive_monitor.sh
+│   ├── fix_grid_dominion.py
+│   ├── fix_midi_notes.js
+│   ├── fix_p0_favicon.py
+│   └── fix_p0_games.py
+├── deployment/           # 部署脚本
+│   ├── deploy-check.sh (从 portfolio-blog 复制)
+│   ├── health-check.sh (从 portfolio-blog/status-monitor 复制)
+│   └── minesweeper_upload.sh (从 archives 复制)
+├── backup/               # 保持空目录（备份脚本保留根目录）
+├── file-transfer-api/    # 已有，保持不变
+│   ├── app.py
+│   ├── README.md
+│   └── ...
+└── cross-border-ecommerce-kb/  # 跨境电商知识库
+```
+
+### 额外处理
+
+1. **jetton-monitor-release-task.json**
+   - 已备份到 `archives/jetton-monitor-release-task-backup.json`
+   - 原文件已删除（3月16日的旧任务）
+
+2. **export_templates.tpz**
+   - 从 `tools/` 移动到 `exports/godot/`
+   - 与 Godot 其他模板文件统一存放
+
+### 最终 tools 结构
+
+| 目录 | 文件数 | 说明 |
+|------|--------|------|
+| development/ | 7 | Python/Shell/JS 开发工具 |
+| deployment/ | 3 | 部署和健康检查脚本 |
+| backup/ | 0 | 空目录（备份脚本在根目录） |
+| file-transfer-api/ | 5+ | 文件传输服务 |
+| cross-border-ecommerce-kb/ | 5 | 跨境电商知识库页面 |
+
+---
+
+## 【Workspace 整理】第五阶段 - 零散文件最终清理 (2026-03-24)
+
+**执行时间**: 2026-03-24 12:00-12:15  
+**执行人**: Jetton  
+**目标**: 完成根目录的最终清理
+
+### 本次清理内容
+
+#### 1. 项目归档
+- `magnetic-snap/` → `projects/` (小游戏项目)
+
+#### 2. 技能文件归档
+- `github-automation.skill` → `skills/` (技能文件)
+
+#### 3. 任务文件归档
+- `scott-todo-list.md` → `archives/` (历史待办，大部分已完成)
+- `task-srpg-enumeration.md` → `archives/` (SRPG枚举任务已完成)
+
+#### 4. 旧监控系统归档
+- `status-monitor/` → `archives/realtime-status-legacy/` (旧Redis方案)
+- `realtime-status.html` → `archives/realtime-status-legacy/`
+
+#### 5. 测试文件清理
+- `test_output.txt` (空文件，仅12字节) → 已删除
+
+#### 6. 脚本目录整理
+- `scripts/monitor-download.sh` → `tools/deployment/`
+- `scripts/` 空目录 → 已删除
+
+#### 7. 其他文档归档
+- `STATUS_TEST_CASES.md` → `archives/`
+
+#### 8. Jetton Monitor Windows 安装包
+- `windows-exe.zip` → `exports/jetton-monitor/jetton-monitor-v0.1.0-windows-setup.zip`
+  - **来源**: 2026-03-16 构建的 Windows 安装包
+  - **内容**: `Jetton Monitor_0.1.0_x64-setup.exe`
+
+### 最终根目录状态
+
+```
+核心文件 (15个):
+  AGENTS.md, BOOTSTRAP.md, HEARTBEAT.md, IDENTITY.md
+  MEMORY.md, RESTORE.md, SOUL.md, TODO.md, TOOLS.md
+  USER.md, .env, .gitignore
+  backup.sh, verify-backup.sh, backup.log
+
+备份文件 (1个):
+  portfolio-backup-20260316-223215.tar.gz (55M)
+```
+
+**根目录现在极度精简！** 🎉
+
+### 目录结构总结
+
+```
+workspace/
+├── 核心文件 (15个)
+├── archives/          # 归档文件（旧计划、旧任务、旧系统）
+├── data/              # 数据文件
+├── docs/              # 文档中心
+│   ├── archive-notes/
+│   ├── designs/
+│   ├── github/
+│   ├── system/
+│   └── whitepapers/
+├── exports/           # 导出产物
+│   ├── godot/
+│   ├── grid-dominion/
+│   ├── jetton-monitor/
+│   ├── minesweeper/
+│   ├── scott-portfolio/
+│   └── xiangqi/
+├── jetton-monitor/    # 桌面监控源码
+├── knowledge/         # 知识库
+├── memory/            # 每日记忆
+├── openviking_data/   # OpenViking数据
+├── portfolio-blog/    # GitHub Pages站点
+├── projects/          # 项目源码 (33+游戏)
+├── reports/           # 报告
+├── research/          # 研究内容
+├── skills/            # 自定义技能
+├── tests/             # 测试文件
+└── tools/             # 工具脚本
+    ├── cross-border-ecommerce-kb/
+    ├── deployment/
+    ├── development/
+    ├── file-transfer-api/
+    └── backup/ (空)
+```
+
+---
+
