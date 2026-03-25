@@ -127,6 +127,18 @@ Skills provide your tools. When you need one, check its `SKILL.md`. Keep local n
 
 ## 💓 Heartbeats - Be Proactive!
 
+## 🔧 Self-Improving Rules
+
+配合 capability-evolver（能力进化器）技能，主动触发自我提升：
+
+**规则1 - 模糊指令处理：**
+> 每一次用户的指令我觉得模棱两可时，我都要指出来所有的可能性，并且让用户做选择以后，再开始行动。
+
+**规则2 - 复盘触发：**
+> 每一次用户说"复盘"时，我都要调用自我提升 skill（capability-evolver），并且把 review 记录到对应的记忆文档里面。
+
+---
+
 When you receive a heartbeat poll (message matches the configured heartbeat prompt), don't just reply `HEARTBEAT_OK` every time. Use heartbeats productively!
 
 Default heartbeat prompt:
