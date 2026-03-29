@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shrimp Jetton 认知负载监控系统 - 演讲PPT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            line-height: 1.6;
+        }
+        
+        .slide {
+            width: 1200px;
+            height: 675px;
+            margin: 40px auto;
+            padding: 60px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #22c55e, #3b82f6, #eab308, #ef4444);
+        }
+        
+        .slide-number {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #22c55e, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        h2 {
+            font-size: 36px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+        
+        h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 20px 0 15px;
+            color: #3b82f6;
+        }
+        
+        p {
+            font-size: 20px;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+        
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        li {
+            font-size: 18px;
+            color: #ccc;
+            margin-bottom: 12px;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: #22c55e;
+            font-weight: bold;
+        }
+        
+        .highlight {
+            color: #22c55e;
+            font-weight: 600;
+        }
+        
+        .accent {
+            color: #3b82f6;
+        }
+        
+        .warning {
+            color: #eab308;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 20px;
+        }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .card h4 {
+            font-size: 20px;
+            color: #3b82f6;
+            margin-bottom: 15px;
+        }
+        
+        .metric {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #22c55e;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            color: #888;
+        }
+        
+        .code-block {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            color: #a8d5a2;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .status-idle { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .status-low { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .status-medium { background: rgba(234, 179, 8, 0.2); color: #eab308; }
+        .status-high { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+        .status-busy { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        
+        .arrow {
+            font-size: 24px;
+            color: #666;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        th {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        
+        .big-number {
+            font-size: 72px;
+            font-weight: 700;
+            color: #22c55e;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .subtitle {
+            font-size: 24px;
+            color: #888;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .footer {
+            margin-top: auto;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        @media print {
+            body { background: #1a1a2e; }
+            .slide { 
+                margin: 0; 
+                page-break-after: always;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Slide 1: 封面 -->
+<div class="slide">
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <div style="font-size: 80px; margin-bottom: 30px;">🧠</div>
+        <h1 style="font-size: 56px; text-align: center; margin-bottom: 20px;">Shrimp Jetton<br>认知负载监控系统</h1>
+        <p class="subtitle">v7.3 架构设计与实现</p>
+        
+        <div style="display: flex; gap: 40px; margin-top: 40px;">
+            <div class="card" style="text-align: center;">
+                <div class="metric-value" style="font-size: 48px;">&lt;2min</div>
+                <div class="metric-label">数据延迟</div>
+            </div>
+            <div class="card" style="text-align: center;">
+                <div class="metric-value" style="font-size: 48px;">100%</div>
+                <div class="metric-label">数据一致性</div>
+            </div>
+            <div class="card" style="text-align: center;">
+                <div class="metric-value" style="font-size: 48px;">24</div>
+                <div class="metric-label">任务分类</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <span>Scott & Jetton</span>
+        <span>2026-03-28</span>
+    </div>
+    <div class="slide-number">1 / 12</div>
+</div>
+
+<!-- Slide 2: 问题背景 -->
+<div class="slide">
+    <h2>🎯 为什么要做这个系统？</h2>
+    
+    <div class="grid-2">
+        <div>
+            <h3>痛点场景</h3>
+            <ul>
+                <li>不知道 Jetton 是否在忙</li>
+                <li>反复询问 "Are you busy?"</li>
+                <li>任务派发时机不当</li>
+                <li>等待时间不可预测</li>
+            </ul>
+        </div>
+        
+        <div>
+            <h3>解决方案</h3>
+            <ul>
+                <li>实时可视化负载状态</li>
+                <li>一目了然的数字指标</li>
+                <li>基于评级的任务建议</li>
+                <li>预计等待时间预测</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="card" style="margin-top: 40px; text-align: center;">
+        <p style="font-size: 24px; color: #fff;">核心目标：让协作者能够
+            <span class="highlight">一目了然</span>
+            地了解系统状态，无需询问
+        </p>
+    </div>
+    
+    <div class="slide-number">2 / 12</div>
+</div>
+
+<!-- Slide 3: 核心指标 -->
+<div class="slide">
+    <h2>📊 核心设计指标</h2>
+    
+    <div class="grid-3">
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 15px;">⚡</div>
+            <h4>实时性</h4>
+            <div class="metric-value">&lt; 2min</div>
+            <p style="font-size: 14px; margin-top: 10px;">Redis实时数据延迟</p>
+        </div>
+        
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 15px;">✓</div>
+            <h4>一致性</h4>
+            <div class="metric-value">100%</div>
+            <p style="font-size: 14px; margin-top: 10px;">Sessions/Tokens/Task Queue</p>
+        </div>
+        
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 15px;">🔄</div>
+            <h4>可用性</h4>
+            <div class="metric-value">99.9%</div>
+            <p style="font-size: 14px; margin-top: 10px;">Redis失败自动CDN回退</p>
+        </div>
+    </div>
+    
+    <div class="card" style="margin-top: 40px;">
+        <h3>设计原则</h3>
+        <div class="grid-2">
+            <ul>
+                <li><span class="highlight">数据与逻辑分离</span> - 独立仓库管理</li>
+                <li><span class="highlight">渐进增强</span> - 零配置起步，可扩展</li>
+            </ul>
+            <ul>
+                <li><span class="highlight">体感优先</span> - 算法以人类体感为准</li>
+                <li><span class="highlight">自证可信</span> - 所有数字可验证</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="slide-number">3 / 12</div>
+</div>
+
+<!-- Slide 4: 系统架构 -->
+<div class="slide">
+    <h2>🏗️ 系统架构</h2>
+    
+    <div class="card" style="margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="text-align: center; flex: 1;">
+                <div style="font-size: 24px; margin-bottom: 10px;">🖥️ 浏览器</div>
+                <div style="font-size: 14px; color: #888;">30秒轮询</div>
+            </div>
+            
+            <div style="font-size: 24px; color: #666;">←</div>
+            
+            <div style="text-align: center; flex: 1;">
+                <div style="font-size: 24px; margin-bottom: 10px;">⚡ Redis</div>
+                <div style="font-size: 14px; color: #888;">&lt;2分钟延迟</div>
+            </div>
+            
+            <div style="font-size: 24px; color: #666;">↔</div>
+            
+            <div style="text-align: center; flex: 1;">
+                <div style="font-size: 24px; margin-bottom: 10px;">📦 CDN</div>
+                <div style="font-size: 14px; color: #888;">3-5分钟延迟</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="arrow">↑ 每分钟采集 ↓</div>
+    
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="text-align: center; flex: 1;">
+                <div style="font-size: 20px; margin-bottom: 8px;">🐍 Python</div>
+                <div style="font-size: 12px; color: #888;">会话分析</div>
+            </div>
+            
+            <div style="font-size: 20px; color: #666;">→</div>
+            
+            <div style="text-align: center; flex: 1;">
+                <div style="font-size: 20px; margin-bottom: 8px;">🧮 评分计算</div>
+                <div style="font-size: 12px; color: #888;">Mixed Score</div>
+            </div>
+            
+            <div style="font-size: 20px; color: #666;">→</div>
+            
+            <div style="text-align: center; flex: 1;">
+                <div style="font-size: 20px; margin-bottom: 8px;">🏷️ 任务分类</div>
+                <div style="font-size: 12px; color: #888;">24分类</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card" style="margin-top: 20px; background: rgba(34, 197, 94, 0.1); border-color: #22c55e;">
+        <h4 style="color: #22c55e; margin-bottom: 15px;">✅ 双仓库架构</h4>
+        
+        <div class="grid-2">
+            <div>
+                <div class="highlight">scott-portfolio</div>
+                <div style="font-size: 14px; color: #888; margin-top: 5px;">页面代码 · 功能迭代时更新</div>
+            </div>
+            
+            <div>
+                <div class="highlight">scott-portfolio-data</div>
+                <div style="font-size: 14px; color: #888; margin-top: 5px;">监控数据 · 每2分钟自动更新</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="slide-number">4 / 12</div>
+</div>
+
+<!-- Slide 5: Mixed Score算法 -->
+<div class="slide">
+    <h2>🧮 Mixed Score 评分算法 v7.1</h2>
+    
+    <p style="margin-bottom: 25px;">基于 <span class="highlight">5大因素</span> + <span class="accent">处理加成</span> 的综合评分</p>
+    
+    
+    <div class="grid-3">
+        <div class="card">
+            <h4>⏱️ 等待评分</h4>
+            <div style="font-size: 14px; color: #888; margin-bottom: 10px;">0-20分</div>
+            <div style="font-size: 13px; color: #ccc;">≤2min: 0分<br>2-5min: 10分<br>5-10min: 15分<br>>10min: 20分</div>
+        </div>
+        
+        <div class="card">
+            <h4>📊 Token评分</h4>
+            <div style="font-size: 14px; color: #888; margin-bottom: 10px;">0-25分</div>
+            <div style="font-size: 13px; color: #ccc;">每200k = 5分<br>最高25分<br>(需1M tokens)</div>
+        </div>
+        
+        <div class="card">
+            <h4>📋 队列评分</h4>
+            <div style="font-size: 14px; color: #888; margin-bottom: 10px;">0-25分</div>
+            <div style="font-size: 13px; color: #ccc;">0个: 0分<br>1个: 2分<br>2个: 6分<br>4个: 20分</div>
+        </div>
+    </div>
+    
+    
+    <div class="grid-2" style="margin-top: 20px;">
+        <div class="card">
+            <h4>👥 活跃评分 + 🖥️ 系统评分</h4>
+            <div style="font-size: 13px; color: #ccc;">活跃会话: 每个2分 (最高10分)<br>系统资源: (CPU+内存)/20</div>
+        </div>
+        
+        <div class="card" style="background: rgba(59, 130, 246, 0.1); border-color: #3b82f6;">
+            <h4 style="color: #3b82f6;">⚡ 处理加成</h4>
+            <div style="font-size: 13px; color: #ccc;">每个处理中任务 +3分<br>最高 +10分</div>
+        </div>
+    </div>
+    
+    
+    <div class="code-block" style="margin-top: 20px;">
+Score = min(BaseScore + ProcessingBonus, 100)
+BaseScore = WaitScore + TokenScore + QueueScore + ActiveScore + SystemScore
+    </div>
+    
+    <div class="slide-number">5 / 12</div>
+</div>
+
+<!-- Slide 6: 负载等级 -->
+<div class="slide">
+    <h2>🚦 负载等级划分</h2>
+    
+    
+    <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+        
+        <div class="card" style="display: flex; align-items: center; gap: 20px; background: rgba(34, 197, 94, 0.1); border-color: #22c55e;">
+            <div class="status-badge status-idle" style="font-size: 18px; padding: 10px 20px;">🟢 空闲</div>
+            <div style="flex: 1;">
+                <div style="font-size: 20px; font-weight: 600; color: #22c55e;">0-10%</div>
+                <div style="font-size: 14px; color: #888;">可立即响应，随时派任务</div>
+            </div>
+        </div>
+        
+        
+        <div class="card" style="display: flex; align-items: center; gap: 20px; background: rgba(59, 130, 246, 0.1); border-color: #3b82f6;">
+            <div class="status-badge status-low" style="font-size: 18px; padding: 10px 20px;">🔵 轻负载</div>
+            <div style="flex: 1;">
+                <div style="font-size: 20px; font-weight: 600; color: #3b82f6;">11-25%</div>
+                <div style="font-size: 14px; color: #888;">30秒内响应，正常派任务</div>
+            </div>
+        </div>
+        
+        
+        <div class="card" style="display: flex; align-items: center; gap: 20px; background: rgba(234, 179, 8, 0.1); border-color: #eab308;">
+            <div class="status-badge status-medium" style="font-size: 18px; padding: 10px 20px;">🟡 中等</div>
+            <div style="flex: 1;">
+                <div style="font-size: 20px; font-weight: 600; color: #eab308;">26-50%</div>
+                <div style="font-size: 14px; color: #888;">可派简单任务，复杂任务可能延迟</div>
+            </div>
+        </div>
+        
+        
+        <div class="card" style="display: flex; align-items: center; gap: 20px; background: rgba(249, 115, 22, 0.1); border-color: #f97316;">
+            <div class="status-badge status-high" style="font-size: 18px; padding: 10px 20px;">🟠 高负载</div>
+            <div style="flex: 1;">
+                <div style="font-size: 20px; font-weight: 600; color: #f97316;">51-75%</div>
+                <div style="font-size: 14px; color: #888;">建议等待，系统忙碌</div>
+            </div>
+        </div>
+        
+        
+        <div class="card" style="display: flex; align-items: center; gap: 20px; background: rgba(239, 68, 68, 0.1); border-color: #ef4444;">
+            <div class="status-badge status-busy" style="font-size: 18px; padding: 10px 20px;">🔴 繁忙</div>
+            <div style="flex: 1;">
+                <div style="font-size: 20px; font-weight: 600; color: #ef4444;">76-100%</div>
+                <div style="font-size: 14px; color: #888;">系统极度忙碌，请等待</div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="slide-number">6 / 12</div>
+</div>
+
+<!-- Slide 7: 任务分类 -->
+<div class="slide">
+    <h2>🏷️ 24任务分类系统 v7.2</h2>
+    
+    <p style="margin-bottom: 25px;">6大类别 × 关键词匹配 = <span class="highlight">自动识别任务类型</span></p>
+    
+    
+    <div class="grid-3">
+        <div class="card">
+            <div style="font-size: 32px; margin-bottom: 10px;">🔬</div>
+            <h4>研究</h4>
+            <div style="font-size: 13px; color: #888; margin-bottom: 10px;">分析、竞品、调研<br>技术选型、评估</div>
+            <div style="font-size: 12px; color: #666;">数据分析、竞品分析报告、技术方案设计</div>
+        </div>
+        
+        <div class="card">
+            <div style="font-size: 32px; margin-bottom: 10px;">🎮</div>
+            <h4>作品</h4>
+            <div style="font-size: 13px; color: #888; margin-bottom: 10px;">游戏开发、Godot<br>Unity、创意工具</div>
+            <div style="font-size: 12px; color: #666;">游戏原型、交互页面、创意demo、前端开发</div>
+        </div>
+        
+        <div class="card">
+            <div style="font-size: 32px; margin-bottom: 10px;">⚙️</div>
+            <h4>开发</h4>
+            <div style="font-size: 13px; color: #888; margin-bottom: 10px;">后端、API、自动化<br>DevOps、部署</div>
+            <div style="font-size: 12px; color: #666;">后端服务、API开发、脚本、CI/CD配置</div>
+        </div>
+    </div>
+    
+    
+    <div class="grid-3" style="margin-top: 20px;">
+        <div class="card">
+            <div style="font-size: 32px; margin-bottom: 10px;">📝</div>
+            <h4>内容</h4>
+            <div style="font-size: 13px; color: #888; margin-bottom: 10px;">文档、GDD、写作<br>文案、教程</div>
+            <div style="font-size: 12px; color: #666;">设计文档、技术博客、使用手册</div>
+        </div>
+        
+        <div class="card">
+            <div style="font-size: 32px; margin-bottom: 10px;">🔧</div>
+            <h4>系统</h4>
+            <div style="font-size: 13px; color: #888; margin-bottom: 10px;">监控、状态、cron<br>飞书、通知</div>
+            <div style="font-size: 12px; color: #666;">状态监控、定时任务、消息集成</div>
+        </div>
+        
+        <div class="card">
+            <div style="font-size: 32px; margin-bottom: 10px;">📦</div>
+            <h4>其他</h4>
+            <div style="font-size: 13px; color: #888; margin-bottom: 10px;">(无特定关键词)</div>
+            <div style="font-size: 12px; color: #666;">临时任务、待分类事项、杂项</div>
+        </div>
+    </div>
+    
+    
+    <div class="slide-number">7 / 12</div>
+</div>
+
+<!-- Slide 8: 关键决策 -->
+<div class="slide">
+    <h2>🎯 关键架构决策</h2>
+    
+    
+    <div class="card" style="margin-bottom: 20px;">
+        <div style="display: flex; align-items: flex-start; gap: 20px;">
+            <div style="font-size: 36px;">1️⃣</div>
+            
+            <div style="flex: 1;">
+                <h3 style="margin-top: 0;">双仓库架构</h3>
+                
+                <p style="font-size: 16px;"><span class="highlight">scott-portfolio</span> + <span class="accent">scott-portfolio-data</span></p>
+                
+                <ul style="font-size: 15px;">
+                    <li>页面代码与监控数据<span class="highlight">完全分离</span></li>
+                    <li>主仓库commit历史<span class="highlight">不被污染</span></li>
+                    <li>两个仓库可<span class="highlight">独立迭代</span>和回滚</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="card" style="margin-bottom: 20px;">
+        <div style="display: flex; align-items: flex-start; gap: 20px;">
+            <div style="font-size: 36px;">2️⃣</div>
+            
+            <div style="flex: 1;">
+                <h3 style="margin-top: 0;">方案1: 数据一致性</h3>
+                
+                <p style="font-size: 16px;">Sessions = len(task_queue) | Tokens = sum(task_queue tokens)</p>
+                
+                <ul style="font-size: 15px;">
+                    <li>所有数字<span class="highlight">可交叉验证</span></li>
+                    <li>消除"黑盒"感，建立<span class="highlight">信任</span></li>
+                    <li>用户可自行验证数据正确性</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="card">
+        <div style="display: flex; align-items: flex-start; gap: 20px;">
+            <div style="font-size: 36px;">3️⃣</div>
+            
+            <div style="flex: 1;">
+                <h3 style="margin-top: 0;">混合实时方案</h3>
+                
+                <p style="font-size: 16px;">Redis (&lt;2min) + CDN回退 (3-5min)</p>
+                
+                <ul style="font-size: 15px;">
+                    <li>Redis提供<span class="highlight">低延迟</span>实时数据</li>
+                    <li>CDN确保<span class="highlight">高可用性</span></li>
+                    <li><span class="highlight">零成本</span>基础设施 (Upstash免费层 + GitHub Pages)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="slide-number">8 / 12</div>
+</div>
+
+<!-- Slide 9: 前端设计 -->
+<div class="slide">
+    <h2>🎨 前端设计亮点</h2>
+    
+    
+    <div class="grid-2">
+        <div class="card">
+            <h4>📊 信息栏设计</h4>
+            
+            <div class="code-block" style="font-size: 13px; padding: 15px;">
+v7.3 | ● Redis | 13:44:12 | 18s
+            </div>
+            
+            <div style="font-size: 13px; color: #888; margin-top: 10px;">
+                版本 | 数据源 | 数据时间戳 | 倒计时
+            </div>
+        </div>
+        
+        <div class="card">
+            <h4>🎚️ 收音机调频设计</h4>
+            
+            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; margin-top: 10px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-bottom: 10px;">
+                    <span>0</span>
+                    <span>25</span>
+                    <span>50</span>
+                    <span>75</span>
+                    <span>100</span>
+                </div>
+                
+                <div style="height: 6px; background: linear-gradient(90deg, #22c55e, #eab308, #ef4444); border-radius: 3px; position: relative;">
+                    <div style="position: absolute; left: 37%; top: -5px; width: 16px; height: 16px; background: #fff; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 15px;">
+                    <span class="status-badge status-medium">37% 🟡 轻负载</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="card" style="margin-top: 20px;">
+        <h4>📋 任务队列 - 单行显示</h4>
+        
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                <span style="background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 4px 10px; border-radius: 12px; font-size: 12px;">🔧 系统</span>
+                <span style="flex: 1; font-size: 14px;">心跳监控</span>
+                <span style="color: #888; font-size: 13px;">54.9k token</span>
+                <span style="background: rgba(234, 179, 8, 0.2); color: #facc15; padding: 4px 10px; border-radius: 12px; font-size: 12px;">处理中</span>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                <span style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 4px 10px; border-radius: 12px; font-size: 12px;">⚙️ 开发</span>
+                <span style="flex: 1; font-size: 14px;">飞书集成</span>
+                <span style="color: #888; font-size: 13px;">89.1k token</span>
+                <span style="background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 4px 10px; border-radius: 12px; font-size: 12px;">已回复</span>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="slide-number">9 / 12</div>
+</div>
+
+<!-- Slide 10: 部署运维 -->
+<div class="slide">
+    <h2>⚙️ 部署与运维</h2>
+    
+    
+    <div class="grid-2">
+        <div class="card">
+            <h4>🕐 定时任务配置</h4>
+            
+            <div class="code-block" style="font-size: 12px;"># 每分钟采集
+* * * * * python3 cognitive_monitor.py
+
+# 每2分钟推送
+*/2 * * * * bash cognitive_push_v7.sh
+            </div>
+        </div>
+        
+        
+        <div class="card">
+            <h4>📦 技术栈</h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+                <div><span class="highlight">后端</span> Python 3.8+</div>
+                <div><span class="highlight">实时存储</span> Upstash Redis</div>
+                <div><span class="highlight">趋势存储</span> GitHub Pages</div>
+                <div><span class="highlight">前端</span> Vanilla JS</div>
+                <div><span class="highlight">可视化</span> Canvas API</div>
+                <div><span class="highlight">部署</span> GitHub Actions</div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="card" style="margin-top: 20px;">
+        <h4>✅ 系统健康检查清单</h4>
+        
+        <div class="grid-2" style="margin-top: 15px;">
+            <ul style="font-size: 14px;">
+                <li>Redis连接正常</li>
+                <li>CORS配置正确</li>
+                <li>数据一致性通过</li>
+            </ul>
+            
+            <ul style="font-size: 14px;">
+                <li>定时任务运行正常</li>
+                <li>GitHub Pages部署成功</li>
+                <li>日志无错误</li>
+            </ul>
+        </div>
+    </div>
+    
+    
+    
+    <div class="slide-number">10 / 12</div>
+</div>
+
+<!-- Slide 11: 成果与价值 -->
+<div class="slide">
+    <h2>🏆 项目成果</h2>
+    
+    
+    <div class="grid-3">
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 15px;">⚡</div>
+            <div class="metric-value">&lt; 2min</div>
+            <div style="font-size: 16px; color: #888; margin-top: 10px;">数据延迟</div>
+            <div style="font-size: 13px; color: #666; margin-top: 10px;">Redis实时推送</div>
+        </div>
+        
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 15px;">✓</div>
+            <div class="metric-value">100%</div>
+            <div style="font-size: 16px; color: #888; margin-top: 10px;">数据一致性</div>
+            <div style="font-size: 13px; color: #666; margin-top: 10px;">可验证的数字</div>
+        </div>
+        
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 15px;">💰</div>
+            <div class="metric-value">¥0</div>
+            <div style="font-size: 16px; color: #888; margin-top: 10px;">基础设施成本</div>
+            <div style="font-size: 13px; color: #666; margin-top: 10px;">Upstash免费 + GitHub Pages</div>
+        </div>
+    </div>
+    
+    
+    <div class="card" style="margin-top: 40px; text-align: center;">
+        <h3 style="margin-bottom: 20px;">核心价值</h3>
+        
+        <div style="display: flex; justify-content: center; gap: 60px; font-size: 18px;">
+            <div>
+                <div style="font-size: 32px; margin-bottom: 10px;">👁️</div>
+                <div>透明度</div>
+            </div>
+            
+            <div>
+                <div style="font-size: 32px; margin-bottom: 10px;">🔮</div>
+                <div>可预测性</div>
+            </div>
+            
+            <div>
+                <div style="font-size: 32px; margin-bottom: 10px;">✓</div>
+                <div>可验证性</div>
+            </div>
+            
+            <div>
+                <div style="font-size: 32px; margin-bottom: 10px;">🔧</div>
+                <div>零侵入</div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="slide-number">11 / 12</div>
+</div>
+
+<!-- Slide 12: 总结 -->
+<div class="slide">
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <div style="font-size: 80px; margin-bottom: 30px;">🧠</div>
+        
+        <h1 style="font-size: 48px; text-align: center; margin-bottom: 30px;">Shrimp Jetton<br>认知负载监控系统</h1>
+        
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <p style="font-size: 22px; color: #ccc; margin-bottom: 20px;">让协作者能够 <span class="highlight">一目了然</span> 地了解系统状态</p>
+            
+            <p style="font-size: 18px; color: #888;">无需询问 "Are you busy?"</p>
+        </div>
+        
+        
+        <div class="card" style="margin-top: 20px;">
+            <div style="display: flex; gap: 40px; font-size: 14px; color: #888;">
+                <div>🌐 <span class="highlight">监控页面</span><br>hiyascott.github.io/...</div>
+                <div>📁 <span class="highlight">项目代码</span><br>github.com/hiyaScott/...</div>
+                <div>📧 <span class="highlight">联系</span><br>Scott & Jetton</div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="footer">
+        <span>感谢观看</span>
+        <span>Q & A</span>
+    </div>
+    
+    
+    <div class="slide-number">12 / 12</div>
+</div>
+
+</body>
+</html>

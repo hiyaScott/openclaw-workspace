@@ -53,8 +53,36 @@ description: 战棋游戏（SRPG/Tactical RPG）设计师专业能力，涵盖�
 - [level-design.md](references/level-design.md) - 关卡设计方法论
 - [combat-design.md](references/combat-design.md) - 战斗系统设计
 - [progression-systems.md](references/progression-systems.md) - 养成系统设计
+- [numerical-balance.md](references/numerical-balance.md) - **战棋数值设计与平衡** ⭐
+  - 伤害计算公式详解（减法/百分比/混合）
+  - 命中率/回避率/暴击率公式
+  - 移动力与地图尺寸关系
+  - 职业克制三角与属性成长
+  - 技能冷却与威力平衡
+- [resources.md](references/resources.md) - 工具与资源推荐
 - [game-analysis.md](references/game-analysis.md) - 重点产品分析
-- [numerical-balance.md](references/numerical-balance.md) - 战棋数值平衡
+
+### 数值设计工具
+
+- **Excel/Google Sheets 模板**: [assets/numerical-templates.md](assets/numerical-templates.md)
+  - 职业基础属性表
+  - 伤害公式验证表
+  - 职业克制矩阵
+  - TTK计算表
+  - 技能平衡表
+  - 关卡难度曲线
+
+- **Python 平衡测试脚本**: [scripts/balance_test.py](scripts/balance_test.py)
+  ```bash
+  # 快速测试
+  python scripts/balance_test.py --mode quick --battles 500
+  
+  # 完整测试
+  python scripts/balance_test.py --mode full --battles 1000
+  
+  # 敏感性分析
+  python scripts/balance_test.py --mode sensitivity --profession 战士 --attribute attack
+  ```
 
 ## 实战数据参考（621位英雄全量数据库）
 
@@ -174,20 +202,60 @@ description: 战棋游戏（SRPG/Tactical RPG）设计师专业能力，涵盖�
 
 ### 经典战棋公式
 
+详细公式说明见 [numerical-balance.md](references/numerical-balance.md)
+
 #### 伤害公式
 ```
-伤害 = (攻击力 - 防御力) × 克制系数 × 地形系数 × 随机波动
+减法公式 (推荐):
+伤害 = max(1, 攻击力 - 防御力) × 克制系数 × 随机波动
 
-或百分比减伤:
-伤害 = 攻击力 × (1 - 防御力/(防御力+常数))
+百分比减伤:
+伤害 = 攻击力 × (1 - 防御力/(防御力+100))
+
+混合公式:
+基础伤害 = max(1, 攻击力 - 防御力×0.5)
+减伤率 = 防御力 / (防御力 + 100)
+最终伤害 = 基础伤害 × (1 - 减伤率×0.5) × 克制系数
 ```
 
 #### 命中率公式
 ```
-命中率 = 基础命中 + 技巧差值 - 地形闪避 - 距离惩罚
+命中率 = min(95%, max(5%, 85 + (技巧 - 速度)/2 - 地形闪避))
 
-通常上限: 90-95%
-通常下限: 5-10%
+要素:
+├─ 基础命中: 85%
+├─ 技巧修正: 每点差值提供0.5%命中
+├─ 速度修正: 每点差值提供0.5%回避
+└─ 距离惩罚: 远程每格-5%至-10%
+```
+
+#### 暴击公式
+```
+暴击率 = max(0, min(30%, 5 + (技巧 - 幸运)/5 + 武器暴击))
+暴击伤害 = 基础伤害 × 1.5 (标准)
+
+设计考虑:
+- 基础暴击率: 3-10%
+- 暴击是惊喜而非期望
+- 暴击抗性作为坦克属性
+```
+
+#### 移动力与地图尺寸
+```
+移动力参考:
+├─ 步兵: 4-5格
+├─ 骑兵: 6-8格 (通常只能直线移动)
+├─ 飞行: 5-6格 (无视地形)
+└─ 重甲: 3-4格
+
+地图尺寸公式:
+直径 = 平均移动力 × 接触回合数 × 2
+
+推荐接触回合: 2-3回合
+推荐地图尺寸:
+├─ 小型: 10×10 ~ 15×15 (5-10分钟)
+├─ 中型: 15×15 ~ 20×20 (15-20分钟)
+└─ 大型: 20×20 ~ 30×30 (30-45分钟)
 ```
 
 ### 职业克制三角
@@ -265,23 +333,37 @@ description: 战棋游戏（SRPG/Tactical RPG）设计师专业能力，涵盖�
 使用 assets/ 目录下的模板：
 
 - `level-design-template.md` - 关卡设计文档模板
-- `class-balance-sheet.xlsx` - 职业平衡数值表
+- `numerical-templates.md` - 数值表Excel模板说明
+  - 职业基础属性表
+  - 伤害公式验证表
+  - 职业克制矩阵
+  - TTK计算表
+  - 技能平衡表
+  - 关卡难度曲线表
 - `combat-formula.md` - 战斗公式设计文档
 
 ## 工具推荐
+
+### 数值设计与验证
+- **Machinations** - 经济系统与战斗数值模拟: https://machinations.io/
+- **Excel/Google Sheets** - 数值表设计与公式验证
+  - 模板: [assets/numerical-templates.md](assets/numerical-templates.md)
+- **Python + Pandas** - 批量战斗模拟与数据分析
+  - 脚本: [scripts/balance_test.py](scripts/balance_test.py)
+  - 功能: 1000+场战斗模拟、胜率统计、敏感性分析、异常检测
+- **Desmos** - 伤害公式曲线可视化: https://www.desmos.com/calculator
 
 ### 原型工具
 - Godot (GDQuest战术RPG教程)
 - Unity (Grid-based框架)
 - Tiled (地图编辑器)
 
-### 数值工具
-- Excel/Google Sheets
-- Machinations (战斗模拟)
-
 ### 设计工具
 - Figma (UI/UX)
 - draw.io (流程图)
+- Tableau Public (数据可视化)
+
+更多工具见 [references/resources.md](references/resources.md)
 
 ## 最佳实践
 

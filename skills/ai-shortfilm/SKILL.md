@@ -82,10 +82,78 @@ AI短剧制作是利用人工智能技术完成从创意构思到最终成片的
 |-----|---------|------|------|------|
 | **Runway Gen-4** | 专业工作流 | 16秒 | $12-76/月 | 角色一致性、相机控制 |
 | **Sora (OpenAI)** | 电影级质量 | 20秒 | $20-200/月 | 最高视觉质量 |
-| **可灵 (Kling)** | 性价比之选 | 10秒 | 免费/$6-66/月 | 物理模拟好 |
+| **可灵 v2.6** | 性价比之选 | 5/10秒 | ¥0.15-0.24/秒 | 物理模拟好、API完善 |
 | **Pika 2.0** | 社交内容 | 10秒 | 免费/$8-58/月 | 特效丰富、速度快 |
 | **Veo 3.1 (Google)** | 综合质量 | 30秒+ | 受限访问 | 音频生成、叙事控制 |
 | **HeyGen** | 数字人 | 无限制 | $24-120/月 | 虚拟主播、口型同步 |
+
+#### 可灵 v2.6 图生视频 - 技术接入指南
+
+**API服务商**：DMXAPI (dmxapi.cn)
+- 模型名：`kling-v2-6-image2video`
+- 价格：约¥1.6/5秒视频（pro模式）
+- 支持：标准模式(std) / 高品质模式(pro)
+
+**两步调用流程**：
+
+**Step 1 - 提交任务**：
+```python
+import requests
+
+url = "https://www.dmxapi.cn/v1/responses"
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": "sk-your-api-key"
+}
+
+payload = {
+    "model": "kling-v2-6-image2video",
+    "input": "视频描述提示词",  # 如：机器人缓缓转头，眼中闪烁温暖光芒
+    "image": "https://your-image-url.jpg",  # 参考图URL
+    "duration": 5,  # 5或10秒
+    "mode": "pro"   # std或pro
+}
+
+response = requests.post(url, headers=headers, json=payload)
+data = response.json()
+task_id = data["data"]["task_id"]  # 保存这个ID
+```
+
+**Step 2 - 流式查询结果**：
+```python
+# 必须启用流式输出获取结果
+payload = {
+    "model": "kling-text2video-get",
+    "input": task_id,  # 使用Step 1返回的task_id
+    "stream": True     # 必须True
+}
+
+response = requests.post(url, headers=headers, json=payload, stream=True)
+
+for line in response.iter_lines():
+    if line:
+        line_text = line.decode('utf-8')
+        if line_text.startswith('data: '):
+            data = line_text[6:]
+            if data != '[DONE]':
+                json_data = json.loads(data)
+                # 视频URL在 response.output[0].content[0].text 中
+```
+
+**返回格式示例**：
+```
+✅ 视频生成完成！
+任务ID: 867147274790014976
+--- 视频 1 ---
+视频URL: https://v1-fdl.kechuangai.com/xxx.mp4?...
+时长: 5.0秒
+```
+
+**关键注意事项**：
+- duration只能是5或10，其他值会报错
+- 查询时必须用 `stream: True`，否则无法获取结果
+- 查询模型名是 `kling-text2video-get`（不是image2video-get）
+- 视频生成时间约2-5分钟
 
 **图生视频提示词技巧**：
 ```
@@ -294,10 +362,170 @@ A: 各平台政策不同。Runway、Sora等通常授予用户生成内容的使�
 ## 版本信息
 
 - 创建时间：2026-03-25
-- 最后更新：2026-03-25
+- 最后更新：2026-03-29
 - 适用版本：AI视频生成工具 2025-2026版本
 - 维护者：Shrimp Jetton
 
+### 更新日志
+
+**2026-03-29**
+- ✅ 新增：可灵 v2.6 图生视频完整API接入指南
+- ✅ 新增：生产级Python脚本 `kling_video_generator.py`
+- ✅ 更新：视频生成工具对比表，添加可灵详细参数
+
 ---
 
-> **参考对象**：本技能参考了 Runway 的专业工作流设计、快手可灵的产品化思路、以及《救猫咪》的剧本结构理论。
+## 工具脚本
+
+### kling_video_generator.py
+
+**位置**：`skills/ai-shortfilm/kling_video_generator.py`
+
+**功能**：完整的可灵视频生成命令行工具
+
+**快速开始**：
+```bash
+# 设置API Key
+export DMXAPI_KEY="sk-your-key"
+
+# 基础用法
+python kling_video_generator.py \
+    --image "https://example.com/character.jpg" \
+    --prompt "机器人缓缓转头，眼中闪烁温暖光芒"
+
+# 完整参数
+python kling_video_generator.py \
+    --image "https://example.com/robot.jpg" \
+    --prompt "夕阳下的机器人守护蓝色小花，微风轻拂" \
+    --duration 5 \
+    --mode pro \
+    --output ./videos/ \
+    --filename shot_01.mp4
+```
+
+**Python API 调用**：
+```python
+from kling_video_generator import KlingVideoGenerator
+
+generator = KlingVideoGenerator("sk-your-api-key")
+
+# 提交任务
+task = generator.submit_task(
+    image_url="https://example.com/robot.jpg",
+    prompt="机器人转头，眼神温柔",
+    duration=5,
+    mode="pro"
+)
+
+# 查询结果（自动流式等待）
+result = generator.query_result(task["task_id"])
+print(f"视频URL: {result['video_url']}")
+
+# 下载视频
+generator.download_video(result["video_url"], "./output.mp4")
+```
+
+---
+
+> **参考对象**：本技能参考了 Runway 的专业工作流设计、快手可灵的产品化思路、DMXAPI的接口规范，以及《救猫咪》的剧本结构理论。
+
+
+---
+
+### hailuo_video_generator.py
+
+**位置**：`skills/ai-shortfilm/hailuo_video_generator.py`
+
+**功能**：海螺AI (MiniMax-Hailuo) 图生视频命令行工具
+
+**海螺API关键发现** (2026-03-29)：
+
+#### 1. 参数区别对比
+
+| 参数名 | 是否标准 | 输出尺寸 | 说明 |
+|--------|----------|----------|------|
+| `first_frame_image` | ✅ 标准 | 768x768 (标准) | 推荐用法，输出尺寸固定 |
+| `image` | ⚠️ 兼容 | 跟随原图尺寸 | 非标准，输出尺寸不确定 |
+
+**测试案例** (相同参考图，不同参数)：
+```
+参考图尺寸: 1366x768
+- 使用 image 参数 → 输出 1366x768
+- 使用 first_frame_image 参数 → 输出 768x768
+```
+
+#### 2. 回调机制说明
+
+海螺API**不支持Webhook回调**，只能通过以下方式获取结果：
+
+**方式一：轮询查询** (推荐用于自动化)
+```python
+import time
+
+def query_with_polling(task_id, max_attempts=30):
+    for i in range(max_attempts):
+        response = requests.get(
+            f"https://www.dmxapi.cn/v1/query/video_generation?task_id={task_id}",
+            headers={"Authorization": f"Bearer {API_KEY}"}
+        )
+        data = response.json()
+        
+        if data.get("status") == "Success":
+            return data["file_id"]
+        elif data.get("status") == "Failed":
+            raise Exception("生成失败")
+        
+        time.sleep(10)  # 每10秒查询一次
+```
+
+**方式二：后台手动获取** (适合人工确认)
+1. 登录 DMXAPI 控制台
+2. 查看视频生成任务列表
+3. 复制 `download_url` 发送给助手下载
+
+#### 3. 角色一致性最佳实践
+
+```python
+# 标准 img2video 调用（保障角色一致性）
+payload = {
+    "model": "MiniMax-Hailuo-2.3",  # 或 2.3-Fast
+    "prompt": "机器人缓缓转头，眼中闪烁温暖光芒 [推进]",
+    "first_frame_image": "https://example.com/character.jpg",
+    # "last_frame_image": "可选：指定结束帧，进一步约束生成",
+    "duration": 10,      # 768P支持6或10秒
+    "resolution": "768P" # 或 1080P（仅6秒）
+}
+```
+
+**首尾帧模式** (最高一致性保障)：
+```python
+# 同时提供首帧和尾帧，AI在中间生成过渡
+payload = {
+    "model": "MiniMax-Hailuo-02",  # 首尾帧模式仅支持此模型
+    "prompt": "机器人从注视花朵到轻轻触摸花瓣",
+    "first_frame_image": "https://example.com/start.jpg",
+    "last_frame_image": "https://example.com/end.jpg",  # 尾帧约束
+    "duration": 6,
+    "resolution": "768P"  # 首尾帧仅支持768P/1080P，不支持512P
+}
+```
+
+#### 4. 快速开始
+
+```bash
+# 设置API Key
+export DMXAPI_KEY="sk-your-key"
+
+# 基础用法（标准img2video）
+python hailuo_video_generator.py \
+    --image "https://example.com/character.jpg" \
+    --prompt "机器人守护花朵，夕阳下的温暖场景" \
+    --duration 10
+
+# 首尾帧模式（最高一致性）
+python hailuo_video_generator.py \
+    --first-image "https://example.com/start.jpg" \
+    --last-image "https://example.com/end.jpg" \
+    --prompt "机器人从站立到蹲下守护花朵" \
+    --model MiniMax-Hailuo-02
+```

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实验短片 004 - 声音的形状 (The Shape of Sound) v3</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .ascii-container {
+            white-space: pre;
+            font-size: 10px;
+            line-height: 1.05;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        @media (min-width: 1400px) {
+            .ascii-container {
+                font-size: 12px;
+                line-height: 1.1;
+            }
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.1),
+                rgba(0, 0, 0, 0.1) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, transparent 10%, rgba(0,0,0,0.6) 100%);
+            pointer-events: none;
+            z-index: 101;
+        }
+
+        .phase {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .phase.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #0a0a0a 0%, #000 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            cursor: pointer;
+        }
+
+        .start-text {
+            font-size: 18px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .timer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 12px;
+            color: #333;
+            z-index: 102;
+        }
+
+        .timer.active {
+            color: #888;
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #fff, #0ff, #ff0, #f0f);
+            width: 0%;
+            transition: width 0.1s linear;
+            z-index: 103;
+        }
+
+        .audio-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            font-size: 10px;
+            color: #333;
+            z-index: 102;
+        }
+
+        .audio-indicator.active {
+            color: #0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <div id="startOverlay" class="start-overlay">
+        <div class="ascii-container" style="margin-bottom: 30px;">
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║              实  验  短  片  0 0 4  v3                           ║
+║                                                                  ║
+║                 声  音  的  形  状                               ║
+║                                                                  ║
+║          T H E   S H A P E   O F   S O U N D                     ║
+║                                                                  ║
+║                 片长: 120秒                                      ║
+║                                                                  ║
+║         [ 建议佩戴耳机 / 全屏观看 ]                              ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+        </div>
+        <div class="start-text" id="startText" style="color: #fff;">▶ 点击开始 / CLICK TO START</div>
+    </div>
+
+    <div id="canvas">
+        <div id="phase-1" class="phase"><div id="scene1" class="ascii-container"></div></div>
+        <div id="phase-2" class="phase"><div id="scene2" class="ascii-container"></div></div>
+        <div id="phase-3" class="phase"><div id="scene3" class="ascii-container"></div></div>
+        <div id="phase-4" class="phase"><div id="scene4" class="ascii-container"></div></div>
+    </div>
+
+    <div id="timer" class="timer">00:00 / 02:00</div>
+    <div id="audioIndicator" class="audio-indicator">♪ BGM</div>
+
+    <script>
+        // ==================== 优化音频系统 v3 ====================
+        // 改进点:
+        // 1. 使用压缩器防止削波
+        // 2. 分离音乐和音效通道
+        // 3. 限制同时播放的声音数量
+        // 4. 降低整体音量,优化频率分布
+        // 5. 使用更柔和的波形
+        
+        let audioCtx;
+        let isPlaying = false;
+        let currentPhase = 0;
+        let startTime;
+        let phaseInterval;
+        
+        // 主输出节点(压缩器)
+        let masterCompressor;
+        let masterGain;
+        
+        // 分离的增益节点
+        let bgmGain;      // 背景音乐通道
+        let sfxGain;      // 音效通道
+        
+        // 音频节点管理
+        let activeNodes = [];
+        const MAX_CONCURRENT_SOUNDS = 6; // 限制同时播放的声音数
+        
+        // 音符定义(移调,避免过低频率)
+        const NOTES = {
+            C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
+            C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
+            C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00
+        };
+
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // 创建主压缩器 - 防止削波/破音
+            masterCompressor = audioCtx.createDynamicsCompressor();
+            masterCompressor.threshold.value = -12;      // 阈值 -12dB
+            masterCompressor.knee.value = 6;             // 软拐点
+            masterCompressor.ratio.value = 4;            // 压缩比 4:1
+            masterCompressor.attack.value = 0.01;        // 快速攻击
+            masterCompressor.release.value = 0.1;        // 快速释放
+            
+            // 主音量控制 - 降低整体音量
+            masterGain = audioCtx.createGain();
+            masterGain.gain.value = 0.5;
+            
+            // BGM通道
+            bgmGain = audioCtx.createGain();
+            bgmGain.gain.value = 0.6;
+            
+            // 音效通道
+            sfxGain = audioCtx.createGain();
+            sfxGain.gain.value = 0.4;
+            
+            // 连接: BGM/SFX -> 压缩器 -> 主增益 -> 输出
+            bgmGain.connect(masterCompressor);
+            sfxGain.connect(masterCompressor);
+            masterCompressor.connect(masterGain);
+            masterGain.connect(audioCtx.destination);
+        }
+
+        // 清理过多的活跃节点
+        function cleanupNodes() {
+            if (activeNodes.length > MAX_CONCURRENT_SOUNDS) {
+                const oldest = activeNodes.shift();
+                try {
+                    oldest.stop();
+                    oldest.disconnect();
+                } catch(e) {}
+            }
+        }
+
+        // 创建持续音(BGM) - 使用sine波形,更柔和
+        function createBGMNote(freq, volume) {
+            if (!audioCtx) return null;
+            cleanupNodes();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';  // 最柔和的波形
+            osc.frequency.value = freq;
+            
+            // 非常低的音量开始,避免爆音
+            gain.gain.value = 0;
+            gain.gain.linearRampToValueAtTime(volume * 0.5, audioCtx.currentTime + 0.5);
+            
+            osc.connect(gain);
+            gain.connect(bgmGain);
+            osc.start();
+            
+            activeNodes.push(osc);
+            return { osc, gain };
+        }
+
+        // 播放旋律音符(BGM)
+        function playMelodyNote(freq, duration, volume = 0.3) {
+            if (!audioCtx) return;
+            cleanupNodes();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'triangle';  // 柔和的旋律
+            osc.frequency.value = freq;
+            
+            const now = audioCtx.currentTime;
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(volume * 0.4, now + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            
+            osc.connect(gain);
+            gain.connect(bgmGain);
+            osc.start(now);
+            osc.stop(now + duration);
+            
+            activeNodes.push(osc);
+        }
+
+        // 播放音效(SFX) - 与BGM完全分离
+        function playSFX(freq, duration, type = 'sine', volume = 0.2) {
+            if (!audioCtx) return;
+            cleanupNodes();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = type;
+            osc.frequency.value = freq;
+            
+            const now = audioCtx.currentTime;
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(volume * 0.3, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            
+            osc.connect(gain);
+            gain.connect(sfxGain);
+            osc.start(now);
+            osc.stop(now + duration);
+            
+            activeNodes.push(osc);
+        }
+
+        // 播放和弦(BGM)
+        function playChord(freqs, duration, volume = 0.25) {
+            freqs.forEach((freq, i) => {
+                setTimeout(() => {
+                    playMelodyNote(freq, duration, volume);
+                }, i * 30);
+            });
+        }
+
+        // 停止所有声音
+        function stopAllAudio() {
+            activeNodes.forEach(node => {
+                try {
+                    node.stop();
+                    node.disconnect();
+                } catch(e) {}
+            });
+            activeNodes = [];
+        }
+
+        // ==================== BGM场景定义 ====================
+        let bgmNodes = [];
+        let bgmInterval = null;
+
+        function clearBGM() {
+            bgmNodes.forEach(n => {
+                try {
+                    n.osc.stop();
+                    n.gain.disconnect();
+                } catch(e) {}
+            });
+            bgmNodes = [];
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+
+        // 场景1 BGM: 极简铺垫
+        function startScene1BGM() {
+            clearBGM();
+            
+            // 单音铺垫 - C3
+            const drone = createBGMNote(NOTES.C3, 0.15);
+            if (drone) bgmNodes.push(drone);
+            
+            // 极慢的琶音 - 每4秒一个音
+            const arpNotes = [NOTES.C4, NOTES.E4, NOTES.G4];
+            let arpIndex = 0;
+            bgmInterval = setInterval(() => {
+                playMelodyNote(arpNotes[arpIndex % arpNotes.length], 3, 0.2);
+                arpIndex++;
+            }, 4000);
+            
+            // 音效: 启动声
+            playSFX(NOTES.C5, 0.5, 'sine', 0.15);
+        }
+
+        // 场景2 BGM: 上升感
+        function startScene2BGM() {
+            clearBGM();
+            
+            // 双音铺垫
+            const drone1 = createBGMNote(NOTES.E3, 0.12);
+            const drone2 = createBGMNote(NOTES.B3, 0.08);
+            if (drone1) bgmNodes.push(drone1);
+            if (drone2) bgmNodes.push(drone2);
+            
+            // 上升音阶
+            const scale = [NOTES.C4, NOTES.D4, NOTES.E4, NOTES.F4, NOTES.G4];
+            let index = 0;
+            bgmInterval = setInterval(() => {
+                playMelodyNote(scale[index % scale.length], 2, 0.25);
+                index++;
+            }, 2500);
+            
+            // 音效: 发现声
+            playSFX(NOTES.G4, 0.8, 'triangle', 0.2);
+            setTimeout(() => playSFX(NOTES.C5, 0.6, 'triangle', 0.2), 200);
+        }
+
+        // 场景3 BGM: 对话/张力
+        function startScene3BGM() {
+            clearBGM();
+            
+            // 两个系统的铺垫音 - 纯五度关系
+            const drone1 = createBGMNote(NOTES.C3, 0.1);
+            const drone2 = createBGMNote(NOTES.G3, 0.1);
+            if (drone1) bgmNodes.push(drone1);
+            if (drone2) bgmNodes.push(drone2);
+            
+            // 交替和弦 - 3秒切换
+            const chords = [
+                [NOTES.C4, NOTES.E4, NOTES.G4],
+                [NOTES.G3, NOTES.B3, NOTES.D4]
+            ];
+            let chordIndex = 0;
+            bgmInterval = setInterval(() => {
+                playChord(chords[chordIndex % chords.length], 2.5, 0.2);
+                chordIndex++;
+            }, 3000);
+            
+            // 音效: 连接声
+            playChord([NOTES.C4, NOTES.G4], 1, 0.2);
+        }
+
+        // 场景4 BGM: 升华
+        function startScene4BGM() {
+            clearBGM();
+            
+            // 三音铺垫 - 开放和弦
+            const drone1 = createBGMNote(NOTES.C3, 0.1);
+            const drone2 = createBGMNote(NOTES.G3, 0.08);
+            const drone3 = createBGMNote(NOTES.E4, 0.06);
+            if (drone1) bgmNodes.push(drone1);
+            if (drone2) bgmNodes.push(drone2);
+            if (drone3) bgmNodes.push(drone3);
+            
+            // 升华和弦进行
+            const progression = [
+                [NOTES.C4, NOTES.E4, NOTES.G4],
+                [NOTES.F4, NOTES.A4, NOTES.C5],
+                [NOTES.G4, NOTES.B4, NOTES.D5],
+                [NOTES.C4, NOTES.E4, NOTES.G4, NOTES.C5]
+            ];
+            let progIndex = 0;
+            bgmInterval = setInterval(() => {
+                progression[progIndex % progression.length].forEach((freq, i) => {
+                    setTimeout(() => playMelodyNote(freq, 4, 0.25), i * 50);
+                });
+                progIndex++;
+            }, 5000);
+            
+            // 音效: 高潮声
+            playChord([NOTES.C4, NOTES.E4, NOTES.G4, NOTES.C5], 3, 0.25);
+        }
+
+        // ==================== 粒子系统 ====================
+        class Particle {
+            constructor(x, y, char, color, life) {
+                this.x = x;
+                this.y = y;
+                this.char = char;
+                this.color = color;
+                this.life = life;
+                this.maxLife = life;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+                return this.life > 0;
+            }
+            getOpacity() {
+                return this.life / this.maxLife;
+            }
+        }
+
+        let particles = [];
+        const width = 80;
+        const height = 40;
+        const lowChars = ['█', '▓', '▒', '■', '●'];
+        const midChars = ['○', '◎', '◐', '◑', '◒'];
+        const highChars = ['·', '∴', '∵', ':', '.'];
+        const specialChars = ['∫', '∑', '∆', '√', '∞', '≈', '≠', '≡'];
+
+        function getWaveChar(amplitude) {
+            if (amplitude > 0.7) return lowChars[Math.floor(Math.random() * lowChars.length)];
+            if (amplitude > 0.4) return midChars[Math.floor(Math.random() * midChars.length)];
+            return highChars[Math.floor(Math.random() * highChars.length)];
+        }
+
+        function getColor(phase, progress, intensity) {
+            if (phase === 1) {
+                const r = Math.floor(255 * (1 - progress));
+                const g = Math.floor(255 * (1 - progress * 0.5));
+                const b = 255;
+                return `rgb(${r},${g},${b})`;
+            }
+            if (phase === 2) {
+                if (progress < 0.5) {
+                    const p = progress * 2;
+                    return `rgb(0,${Math.floor(128 + p * 127)},${Math.floor(255 - p * 128)})`;
+                } else {
+                    const p = (progress - 0.5) * 2;
+                    return `rgb(0,255,${Math.floor(127 - p * 127)})`;
+                }
+            }
+            if (phase === 3) {
+                const r = Math.floor(255 * progress);
+                const g = Math.floor(255 * (1 - progress * 0.5));
+                const b = Math.floor(50 * (1 - progress));
+                return `rgb(${r},${g},${b})`;
+            }
+            if (phase === 4) {
+                const v = Math.floor(200 + 55 * progress);
+                return `rgb(${v},${Math.floor(v * 0.8)},${Math.floor(v * 0.3)})`;
+            }
+            return '#fff';
+        }
+
+        // ==================== 场景渲染 ====================
+        function renderScene1(elapsed) {
+            const container = document.getElementById('scene1');
+            const progress = Math.min(elapsed / 25, 1);
+            let output = '';
+            const centerY = height / 2;
+            
+            for (let y = 0; y < height; y++) {
+                let line = '';
+                for (let x = 0; x < width; x++) {
+                    const normalizedX = (x / width) * Math.PI * 4;
+                    const wave1 = Math.sin(normalizedX + elapsed * 2) * (5 + progress * 5);
+                    const wave2 = Math.sin(normalizedX * 2 + elapsed * 3) * (2 + progress * 3);
+                    const waveY = centerY + wave1 + wave2;
+                    const dist = Math.abs(y - waveY);
+                    
+                    if (dist < 1.5) {
+                        const amp = 1 - dist / 1.5;
+                        const char = getWaveChar(amp);
+                        const color = getColor(1, progress, amp);
+                        line += `<span style="color:${color}">${char}</span>`;
+                    } else {
+                        line += ' ';
+                    }
+                }
+                output += line + '\n';
+            }
+            
+            if (progress < 0.3) {
+                output += '\n<div style="color:#fff;text-align:center;margin-top:20px;">[ AWAKENING ] 觉醒</div>';
+            }
+            container.innerHTML = output;
+        }
+
+        function renderScene2(elapsed) {
+            const container = document.getElementById('scene2');
+            const progress = Math.min(elapsed / 30, 1);
+            let output = '';
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            for (let y = 0; y < height; y++) {
+                let line = '';
+                for (let x = 0; x < width; x++) {
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx);
+                    
+                    const spiral = Math.sin(dist * 0.3 - angle * 3 + elapsed * 2) > 0.3;
+                    const waveX = (x / width) * Math.PI * 6;
+                    const wave = Math.sin(waveX + elapsed * 3 + dist * 0.1) * 8;
+                    const waveY = centerY + wave;
+                    const onWave = Math.abs(y - waveY) < 2;
+                    
+                    if (spiral || onWave) {
+                        const intensity = spiral ? 0.8 : 0.6;
+                        const char = spiral ? specialChars[Math.floor(Math.random() * specialChars.length)] : getWaveChar(intensity);
+                        const color = getColor(2, progress, intensity);
+                        line += `<span style="color:${color}">${char}</span>`;
+                    } else {
+                        line += ' ';
+                    }
+                }
+                output += line + '\n';
+            }
+            
+            if (Math.random() > 0.7) {
+                particles.push(new Particle(
+                    Math.random() * width,
+                    Math.random() * height,
+                    highChars[Math.floor(Math.random() * highChars.length)],
+                    getColor(2, progress, 1),
+                    20 + Math.random() * 30
+                ));
+            }
+            
+            particles = particles.filter(p => p.update());
+            let particleOverlay = '\n<div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">';
+            particles.forEach(p => {
+                const opacity = p.getOpacity();
+                particleOverlay += `<span style="position:absolute;left:${(p.x/width)*100}%;top:${(p.y/height)*100}%;color:${p.color};opacity:${opacity}">${p.char}</span>`;
+            });
+            particleOverlay += '</div>';
+            
+            container.innerHTML = output + particleOverlay;
+            
+            if (progress > 0.5) {
+                container.innerHTML += '\n<div style="color:#0ff;text-align:center;margin-top:10px;">[ DISCOVERING UNKNOWN SIGNAL ] 发现未知信号</div>';
+            }
+        }
+
+        function renderScene3(elapsed) {
+            const container = document.getElementById('scene3');
+            const progress = Math.min(elapsed / 35, 1);
+            let output = '';
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const noisePhase = progress > 0.4 && progress < 0.7;
+            
+            for (let y = 0; y < height; y++) {
+                let line = '';
+                for (let x = 0; x < width; x++) {
+                    if (noisePhase && Math.random() > 0.85) {
+                        line += `<span style="color:#f00">※</span>`;
+                        continue;
+                    }
+                    
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx);
+                    
+                    const sys1 = Math.sin(angle * 3 + elapsed * 2) * Math.exp(-Math.pow(x - width * 0.3, 2) / 200);
+                    const sys2 = Math.cos(angle * 4 - elapsed * 2.5) * Math.exp(-Math.pow(x - width * 0.7, 2) / 200);
+                    const combined = sys1 + sys2;
+                    
+                    if (Math.abs(combined) > 0.3 || dist < 5 + progress * 10) {
+                        let char, color;
+                        if (sys1 > sys2) {
+                            char = lowChars[Math.floor(Math.random() * lowChars.length)];
+                            color = `rgb(255,${Math.floor(150 + sys1 * 100)},0)`;
+                        } else {
+                            char = midChars[Math.floor(Math.random() * midChars.length)];
+                            color = `rgb(0,${Math.floor(200 + sys2 * 55)},255)`;
+                        }
+                        if (Math.abs(sys1 - sys2) < 0.2 && dist < 8) {
+                            char = specialChars[Math.floor(Math.random() * specialChars.length)];
+                            color = '#fff';
+                        }
+                        line += `<span style="color:${color}">${char}</span>`;
+                    } else {
+                        line += ' ';
+                    }
+                }
+                output += line + '\n';
+            }
+            
+            let statusText = '';
+            if (progress < 0.3) statusText = '[ COMMUNICATION ESTABLISHED ] 建立连接';
+            else if (progress < 0.5) statusText = '[ HARMONY ACHIEVED ] 达成和谐';
+            else if (progress < 0.7) statusText = '[ WARNING: INTERFERENCE DETECTED ] 检测到干扰';
+            else statusText = '[ RECONNECTING... ] 重新连接';
+            
+            container.innerHTML = output + `\n<div style="color:${noisePhase ? '#f00' : '#ff0'};text-align:center;margin-top:10px;">${statusText}</div>`;
+        }
+
+        function renderScene4(elapsed) {
+            const container = document.getElementById('scene4');
+            const progress = Math.min(elapsed / 30, 1);
+            let output = '';
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            for (let y = 0; y < height; y++) {
+                let line = '';
+                for (let x = 0; x < width; x++) {
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx);
+                    
+                    const petals = 8;
+                    const mandala = Math.sin(angle * petals + dist * 0.2 - elapsed) * Math.exp(-dist * 0.05);
+                    const circle = Math.abs(dist - (5 + progress * 15)) < 2;
+                    const center = dist < 3;
+                    
+                    if (center) {
+                        line += `<span style="color:#fff;font-weight:bold;">◆</span>`;
+                    } else if (circle || Math.abs(mandala) > 0.5) {
+                        const intensity = Math.abs(mandala);
+                        const char = intensity > 0.8 ? '●' : intensity > 0.5 ? '○' : '·';
+                        const gold = Math.floor(200 + 55 * intensity);
+                        line += `<span style="color:rgb(${gold},${Math.floor(gold*0.8)},${Math.floor(gold*0.3)})">${char}</span>`;
+                    } else {
+                        line += ' ';
+                    }
+                }
+                output += line + '\n';
+            }
+            
+            if (progress > 0.7) {
+                output += `
+
+<div style="color:#ffd700;text-align:center;margin-top:30px;line-height:2;">
+╔══════════════════════════════════════════════════════════╗
+║                                                          ║
+║           声 音 从 不 消 失                              ║
+║           它 只 是 换 了 形 状                           ║
+║                                                          ║
+║        SOUND NEVER DIES                                  ║
+║        IT JUST CHANGES SHAPE                             ║
+║                                                          ║
+║                    — 完 —                                ║
+║                                                          ║
+║     实验短片 004 | The Shape of Sound                    ║
+║                                                          ║
+╚══════════════════════════════════════════════════════════╝
+</div>`;
+            }
+            container.innerHTML = output;
+        }
+
+        // ==================== 播放控制 ====================
+        function showPhase(phaseNum) {
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            currentPhase = phaseNum;
+            document.getElementById(`phase-${phaseNum}`).classList.add('active');
+            
+            // 更新音频指示器
+            document.getElementById('audioIndicator').textContent = `♪ Scene ${phaseNum}`;
+            document.getElementById('audioIndicator').classList.add('active');
+            
+            switch(phaseNum) {
+                case 1: startScene1BGM(); break;
+                case 2: startScene2BGM(); break;
+                case 3: startScene3BGM(); break;
+                case 4: startScene4BGM(); break;
+            }
+        }
+
+        function updateProgress() {
+            if (!startTime) return;
+            const elapsed = (Date.now() - startTime) / 1000;
+            const progress = Math.min((elapsed / 120) * 100, 100);
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = Math.floor(elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${minutes}:${seconds} / 02:00`;
+            document.getElementById('timer').classList.add('active');
+            
+            if (elapsed >= 0 && currentPhase === 0) showPhase(1);
+            else if (elapsed >= 25 && currentPhase === 1) showPhase(2);
+            else if (elapsed >= 55 && currentPhase === 2) showPhase(3);
+            else if (elapsed >= 90 && currentPhase === 3) showPhase(4);
+            
+            const phaseElapsed = elapsed - (currentPhase === 1 ? 0 : currentPhase === 2 ? 25 : currentPhase === 3 ? 55 : 90);
+            switch(currentPhase) {
+                case 1: renderScene1(phaseElapsed); break;
+                case 2: renderScene2(phaseElapsed); break;
+                case 3: renderScene3(phaseElapsed); break;
+                case 4: renderScene4(phaseElapsed); break;
+            }
+        }
+
+        function start() {
+            document.getElementById('startOverlay').style.display = 'none';
+            initAudio();
+            startTime = Date.now();
+            isPlaying = true;
+            showPhase(1);
+            phaseInterval = setInterval(updateProgress, 50);
+        }
+
+        document.getElementById('startOverlay').addEventListener('click', start);
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!isPlaying) start();
+            }
+        });
+    </script>
+</body>
+</html>

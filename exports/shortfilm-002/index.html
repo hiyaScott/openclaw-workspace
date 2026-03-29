@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实验短片 002 - ASCII ROBOT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #050505;
+            color: #00ffff;
+            font-family: 'Courier New', 'Consolas', monospace;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .ascii-container {
+            white-space: pre;
+            font-size: 12px;
+            line-height: 1.15;
+            text-align: center;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        @media (min-width: 768px) {
+            .ascii-container {
+                font-size: 16px;
+                line-height: 1.2;
+            }
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.7) 100%);
+            pointer-events: none;
+            z-index: 101;
+        }
+
+        .phase {
+            display: none;
+        }
+
+        .phase.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .title-card {
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff; }
+            50% { text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff, 0 0 60px #0088ff; }
+        }
+
+        .subtitle-glow {
+            animation: subtitlePulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes subtitlePulse {
+            0%, 100% { opacity: 1; color: #ff00ff; text-shadow: 0 0 10px #ff00ff; }
+            50% { opacity: 0.8; color: #ff0088; text-shadow: 0 0 20px #ff0088; }
+        }
+
+        .end-glitch {
+            animation: endGlitch 0.15s infinite;
+        }
+
+        @keyframes endGlitch {
+            0% { transform: translate(0); text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; }
+            25% { transform: translate(-1px, 1px); }
+            50% { transform: translate(1px, -1px); text-shadow: -2px 0 #ff00ff, 2px 0 #00ffff; }
+            75% { transform: translate(-1px, -1px); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(-10px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        .scan-bar {
+            position: fixed;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(0,255,255,0.6), rgba(255,0,255,0.4), transparent);
+            animation: scan 4s linear infinite;
+            z-index: 50;
+        }
+
+        .start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #0a0a0a 0%, #000000 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            cursor: pointer;
+        }
+
+        .start-text {
+            font-size: 24px;
+            color: #00ffff;
+            animation: blink 1s infinite;
+            text-shadow: 0 0 20px #00ffff;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .timer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 14px;
+            color: #333;
+            z-index: 102;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer.active {
+            color: #00ffff;
+            text-shadow: 0 0 5px #00ffff;
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            width: 0%;
+            transition: width 0.1s linear;
+            z-index: 103;
+        }
+
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 99;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+    <div class="noise"></div>
+    <div class="scan-bar"></div>
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <div id="startOverlay" class="start-overlay">
+        <div class="ascii-container" style="margin-bottom: 40px;">
+╔════════════════════════════════════════╗
+║                                        ║
+║     实  验  短  片                     ║
+║                                        ║
+║        0  0  2                         ║
+║                                        ║
+║     A S C I I   R O B O T              ║
+║                                        ║
+║     时长: 60秒                         ║
+║                                        ║
+╚════════════════════════════════════════╝
+        </div>
+        <div class="start-text">▶ 点击任意处开始 / CLICK TO START</div>
+        <div style="margin-top: 30px; font-size: 12px; color: #444;">建议佩戴耳机以获得最佳体验</div>
+    </div>
+
+    <div id="canvas">
+        <!-- 片头 0-5秒 -->
+        <div id="phase-intro" class="phase">
+            <div class="ascii-container title-card">
+╔══════════════════════════════════════════════════════════╗
+║                                                          ║
+║                                                          ║
+║              实    验    短    片                          ║
+║                                                          ║
+║                    0    0    2                             ║
+║                                                          ║
+║                                                          ║
+╠══════════════════════════════════════════════════════════╣
+║                                                          ║
+║                                                          ║
+║           A  S  C  I  I     R  O  B  O  T                ║
+║                                                          ║
+║                                                          ║
+╚══════════════════════════════════════════════════════════╝
+            </div>
+        </div>
+
+        <!-- 主体 5-50秒 -->
+        <div id="phase-main" class="phase">
+            <div id="robot-container" class="ascii-container"></div>
+        </div>
+
+        <!-- 片尾 50-60秒 -->
+        <div id="phase-end" class="phase">
+            <div class="ascii-container">
+                <div class="end-glitch" style="font-size: 18px; line-height: 1.4;">
+╔════════════════════════════════════════════════════════════╗
+║                                                            ║
+║                                                            ║
+║                                                            ║
+║              T   H   E        E   N   D                    ║
+║                                                            ║
+║                        完                                  ║
+║                                                            ║
+║                                                            ║
+╠════════════════════════════════════════════════════════════╣
+║                                                            ║
+║              实验短片 002 | ASCII ROBOT                    ║
+║                                                            ║
+║              感谢观看 / THANKS FOR WATCHING                ║
+║                                                            ║
+║                                                            ║
+╚════════════════════════════════════════════════════════════╝
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="timer" class="timer">00:00 / 01:00</div>
+
+    <script>
+        // ==================== 音频系统 ====================
+        let audioCtx;
+        let bgmOscillators = [];
+        let bgmGainNodes = [];
+        let isPlaying = false;
+
+        // 初始化音频上下文
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        // 播放单个音符
+        function playNote(freq, duration, type = 'sine', volume = 0.1, delay = 0) {
+            if (!audioCtx) return;
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+            
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+            
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(2000, audioCtx.currentTime + delay);
+            
+            gain.gain.setValueAtTime(0, audioCtx.currentTime + delay);
+            gain.gain.linearRampToValueAtTime(volume, audioCtx.currentTime + delay + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + delay + duration);
+            
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start(audioCtx.currentTime + delay);
+            osc.stop(audioCtx.currentTime + delay + duration);
+            
+            return { osc, gain };
+        }
+
+        // 播放和弦
+        function playChord(freqs, duration, volume = 0.08) {
+            freqs.forEach((freq, i) => {
+                playNote(freq, duration, 'triangle', volume, i * 0.02);
+            });
+        }
+
+        // 机械音效
+        function playMechSound() {
+            if (!audioCtx) return;
+            const freq = 80 + Math.random() * 150;
+            const duration = 0.08 + Math.random() * 0.05;
+            playNote(freq, duration, 'square', 0.05);
+        }
+
+        // 扫描音效
+        function playScanSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // BGM序列
+        const bgmSequence = [
+            { notes: [65.41, 98.00, 130.81], duration: 0.4 }, // C2, G2, C3
+            { notes: [73.42, 110.00, 146.83], duration: 0.4 }, // D2, A2, D3
+            { notes: [82.41, 123.47, 164.81], duration: 0.4 }, // E2, B2, E3
+            { notes: [65.41, 98.00, 130.81], duration: 0.4 },
+            { notes: [98.00, 123.47, 146.83], duration: 0.4 }, // G2, B2, D3
+            { notes: [87.31, 110.00, 130.81], duration: 0.4 }, // F2, A2, C3
+            { notes: [73.42, 98.00, 123.47], duration: 0.4 },  // D2, G2, B2
+            { notes: [65.41, 82.41, 98.00], duration: 0.4 },   // C2, E2, G2
+        ];
+
+        let bgmIndex = 0;
+        let bgmInterval;
+
+        function startBGM() {
+            if (!audioCtx) return;
+            
+            bgmInterval = setInterval(() => {
+                if (!isPlaying) return;
+                
+                const chord = bgmSequence[bgmIndex % bgmSequence.length];
+                playChord(chord.notes, chord.duration, 0.06);
+                
+                bgmIndex++;
+            }, 400);
+        }
+
+        function stopBGM() {
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+
+        // ==================== 机器人动画 ====================
+        const robotFrames = [
+            // 帧1: 标准站立
+            `
+           ▄████████▄          
+         ▄█░░░░░░░░░░█▄        
+        █░░░████████░░░█       
+       █░░░█◠░░░░◠█░░░█      
+      █░░░░█░░░░░░█░░░░█     
+      █░░░░████████░░░░█     
+       █░░░░░░░░░░░░░░█      
+        █░░████████░░█       
+         █░░░░░░░░░░█        
+          ██████████         
+         ██░░░░░░░░██        
+        █░░█░░░░░░█░░█       
+       █░░░█░░░░░░█░░░█      
+      █░░░░██░░░░██░░░░█     
+       █░░░░████░░░░█       
+        █░░░░░░░░░░█        
+         ██████████         
+        ██        ██        
+       █            █       `,
+            // 帧2: 轻微左倾
+            `
+            ▄████████▄         
+          ▄█░░░░░░░░░░█▄       
+         █░░░████████░░░█      
+        █░░░█◠░░░░◠█░░░█     
+       █░░░░█░░░░░░█░░░░█    
+       █░░░░████████░░░░█    
+        █░░░░░░░░░░░░░░█     
+         █░░████████░░█      
+          █░░░░░░░░░░█       
+           ██████████        
+          █░░░░░░░░░░█       
+         █░░█░░░░░░█░░█      
+        █░░░█░░░░░░█░░░█     
+       █░░░░██░░░░██░░░░█    
+        █░░░░████░░░░█      
+         █░░░░░░░░░░█       
+          ██████████        
+         ██        ██       
+        █            █      `,
+            // 帧3: 左手抬起
+            `
+   ▄▄       ▄████████▄         
+  █░░█    ▄█░░░░░░░░░░█▄       
+  █░░█   █░░░████████░░░█      
+   █░█  █░░░█◠░░░░◠█░░░█     
+   █░█ █░░░░█░░░░░░█░░░░█    
+    █░ █░░░░████████░░░░█    
+    █░  █░░░░░░░░░░░░░░█     
+   █░    █░░████████░░█      
+  █░      █░░░░░░░░░░█       
+  █░       ██████████        
+   █      ██░░░░░░░░██       
+        █░░░█░░░░░░█░░░█     
+       █░░░░█░░░░░░█░░░░█    
+      █░░░░░██░░░░██░░░░░█   
+       █░░░░░████░░░░░█     
+        █░░░░░░░░░░░░█      
+         ████████████       
+        ██          ██      
+       █              █     `,
+            // 帧4: 标准站立
+            `
+           ▄████████▄          
+         ▄█░░░░░░░░░░█▄        
+        █░░░████████░░░█       
+       █░░░█◠░░░░◠█░░░█      
+      █░░░░█░░░░░░█░░░░█     
+      █░░░░████████░░░░█     
+       █░░░░░░░░░░░░░░█      
+        █░░████████░░█       
+         █░░░░░░░░░░█        
+          ██████████         
+         ██░░░░░░░░██        
+        █░░█░░░░░░█░░█       
+       █░░░█░░░░░░█░░░█      
+      █░░░░██░░░░██░░░░█     
+       █░░░░████░░░░█       
+        █░░░░░░░░░░█        
+         ██████████         
+        ██        ██        
+       █            █       `,
+            // 帧5: 右手抬起
+            `
+           ▄████████▄        ▄▄ 
+         ▄█░░░░░░░░░░█▄    █░░█
+        █░░░████████░░░█   █░░█
+       █░░░█◠░░░░◠█░░░█    █░█
+      █░░░░█░░░░░░█░░░░█   █░█
+      █░░░░████████░░░░█    █░
+       █░░░░░░░░░░░░░░█     █░
+        █░░████████░░█      ░█
+         █░░░░░░░░░░█      ░█
+          ██████████       █░
+         ██░░░░░░░░██      █ 
+        █░░█░░░░░░█░░█       
+       █░░░█░░░░░░█░░░█      
+      █░░░░██░░░░██░░░░█     
+       █░░░░████░░░░█       
+        █░░░░░░░░░░█        
+         ██████████         
+        ██        ██        
+       █            █       `,
+            // 帧6: 双臂展开
+            `
+  ▄▄▄     ▄████████▄     ▄▄▄ 
+ █░░░█  ▄█░░░░░░░░░░█▄  █░░░█
+ █░░░█ █░░░████████░░░█ █░░░█
+  █░░██░░░█◠░░░░◠█░░░██░░█  
+   █░█░░░░█░░░░░░█░░░░█░█   
+    █░░░░░████████░░░░░█    
+   █░░░░░░░░░░░░░░░░░░░░█   
+  █░░░░░░░████████░░░░░░░░█ 
+ █░░░░░░░░░░░░░░░░░░░░░░░░█
+ █░░░░░░░░████████░░░░░░░░█
+  █░░░░░░██░░░░░░░░██░░░░█  
+   █░░░░█░░█░░░░░░█░░█░░█   
+    █░░█░░░█░░░░░░█░░░█░█   
+     █░░░░░██░░░░██░░░░█    
+      █░░░░░████░░░░░█     
+       █░░░░░░░░░░░░█       
+        ████████████        
+       ██          ██       
+      █              █      `,
+            // 帧7: 变形中
+            `
+           ▄████████▄          
+         ▄█░░░░░░░░░░█▄        
+        █░░░████████░░░█       
+       █░░░█◠◠░░◠◠█░░░█      
+      █░░░░█░░░░░░█░░░░█     
+      █░░░░████████░░░░█     
+       █░░░░░░░░░░░░░░█      
+        █░░████████░░█       
+         █░░░░░░░░░░█        
+          ██████████         
+         ██░░████░░██        
+        █░░██░░░░██░░█       
+       █░░░█░░░░░░█░░░█      
+      █░░░░██░░░░██░░░░█     
+       █░░░░████░░░░█       
+        █░░░░░░░░░░█        
+         ██████████         
+        ██        ██        
+       █            █       `,
+            // 帧8: 下蹲准备
+            `
+           ▄████████▄          
+         ▄█░░░░░░░░░░█▄        
+        █░░░████████░░░█       
+       █░░░█◠░░░░◠█░░░█      
+      █░░░░█░░░░░░█░░░░█     
+      █░░░░████████░░░░█     
+       █░░░░░░░░░░░░░░█      
+        █░░████████░░█       
+         █░░░░░░░░░░█        
+          ██████████         
+         ██░░░░░░░░██        
+        █░░█░░░░░░█░░█       
+       █░░░█░░░░░░█░░░█      
+      █░░░░██░░░░██░░░░█     
+       █░░░░████░░░░█       
+        █░░░░░░░░░░█        
+         ██████████         
+        ██        ██        
+       █            █       `
+        ];
+
+        const robotColors = [
+            ['#00ffff', '#0088ff'], // 青色
+            ['#ff00ff', '#ff0088'], // 洋红
+            ['#ffff00', '#ff8800'], // 黄色
+            ['#00ff88', '#0088ff'], // 绿蓝
+            ['#ff0088', '#ff4400'], // 红橙
+            ['#8800ff', '#ff00ff'], // 紫粉
+        ];
+
+        let frameIndex = 0;
+        let colorIndex = 0;
+        let robotInterval;
+
+        function renderRobot() {
+            const container = document.getElementById('robot-container');
+            const frame = robotFrames[frameIndex % robotFrames.length];
+            const [color1, color2] = robotColors[colorIndex % robotColors.length];
+            
+            // 添加颜色渐变
+            const lines = frame.split('\n');
+            const html = lines.map((line, i) => {
+                const progress = i / lines.length;
+                const color = progress > 0.6 ? color2 : color1;
+                const glow = progress > 0.4 ? '0 0 15px' : '0 0 8px';
+                return `<div style="color: ${color}; text-shadow: ${glow} ${color};">${line || '&nbsp;'}</div>`;
+            }).join('');
+            
+            container.innerHTML = html;
+            
+            frameIndex++;
+            
+            // 机械音效
+            if (frameIndex % 2 === 0 && Math.random() > 0.3) {
+                playMechSound();
+            }
+            
+            // 切换颜色主题
+            if (frameIndex % 12 === 0) {
+                colorIndex++;
+                playScanSound();
+            }
+        }
+
+        function startRobotAnimation() {
+            renderRobot();
+            robotInterval = setInterval(() => {
+                if (!isPlaying || currentPhase !== 1) {
+                    clearInterval(robotInterval);
+                    return;
+                }
+                renderRobot();
+            }, 300);
+        }
+
+        // ==================== 播放控制 ====================
+        let currentPhase = 0;
+        let startTime;
+        let phaseInterval;
+
+        function showPhase(phaseNum) {
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            currentPhase = phaseNum;
+            
+            if (phaseNum === 0) {
+                document.getElementById('phase-intro').classList.add('active');
+                // 片头音效 - 上升音阶
+                playNote(329.63, 0.2, 'sine', 0.1); // E4
+                setTimeout(() => playNote(392.00, 0.2, 'sine', 0.1), 100); // G4
+                setTimeout(() => playNote(493.88, 0.2, 'sine', 0.1), 200); // B4
+                setTimeout(() => playNote(659.25, 0.6, 'sine', 0.15), 300); // E5
+            } else if (phaseNum === 1) {
+                document.getElementById('phase-main').classList.add('active');
+                startBGM();
+                startRobotAnimation();
+                // 过渡音效
+                playChord([130.81, 164.81, 196.00], 0.5, 0.1);
+            } else if (phaseNum === 2) {
+                document.getElementById('phase-end').classList.add('active');
+                stopBGM();
+                // 片尾音效 - 下降音阶
+                playNote(659.25, 0.2, 'sine', 0.1);
+                setTimeout(() => playNote(523.25, 0.2, 'sine', 0.1), 100);
+                setTimeout(() => playNote(392.00, 0.2, 'sine', 0.1), 200);
+                setTimeout(() => playNote(261.63, 0.8, 'sine', 0.15), 300);
+            }
+        }
+
+        function updateProgress() {
+            if (!startTime) return;
+            const elapsed = (Date.now() - startTime) / 1000;
+            const progress = Math.min((elapsed / 60) * 100, 100);
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = Math.floor(elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${minutes}:${seconds} / 01:00`;
+            document.getElementById('timer').classList.add('active');
+            
+            // 阶段切换
+            if (elapsed >= 5 && currentPhase === 0) {
+                showPhase(1);
+            } else if (elapsed >= 50 && currentPhase === 1) {
+                showPhase(2);
+            } else if (elapsed >= 60) {
+                stopBGM();
+                if (robotInterval) clearInterval(robotInterval);
+            }
+        }
+
+        function start() {
+            document.getElementById('startOverlay').style.display = 'none';
+            initAudio();
+            startTime = Date.now();
+            isPlaying = true;
+            showPhase(0);
+            
+            phaseInterval = setInterval(updateProgress, 50);
+        }
+
+        document.getElementById('startOverlay').addEventListener('click', start);
+
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!isPlaying) {
+                    start();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -20,11 +20,20 @@
 - [关卡空间通信视角下的环境叙事](https://zhuanlan.zhihu.com/p/1985797539224646130)
 - [25年经验关卡设计师：开放世界游戏如何设计？](http://www.gamelook.com.cn/2021/04/437052/)
 
-### 工具与资源
+### AI剧本创作工具
+- **Laper**: https://www.laper.ai - AI节拍生成、角色弧线追踪、pacing分析
+- **Final Draft 13**: https://www.finaldraft.com - 行业标准剧本软件，内置AI写作助手
+- **Arc Studio Pro**: https://www.arcstudiopro.com - 结构分析、多线叙事管理
+- **ChatGPT/Claude**: 通用AI助手，适合提示词工程练习
+- **Sudowrite**: https://www.sudowrite.com - 创意写作AI，擅长场景扩展
+- **Dramatica Pro**: https://dramatica.com - 故事结构理论工具
+
+### 传统工具与资源
 - **Ink**: https://www.inklestudios.com/ink/
 - **Articy: Draft**: https://www.articy.com/
 - **Twine**: https://twinery.org/
 - **Arrow Narrative Tool**: https://github.com/mhgolkar/Arrow
+- **Celtx**: https://www.celtx.com - 免费剧本写作软件
 
 ## 关键概念速查
 
@@ -35,6 +44,41 @@
 - p75: 一无所有/灵魂黑夜
 - p85-90: 转折点2 (进入第三幕)
 - p110-112: 高潮
+
+### AI协作工作流关键点
+1. **创意核心**：人类把控概念和情感
+2. **结构扩展**：AI生成节拍表和场景选项
+3. **规则三**：每个任务要求3个选项
+4. **迭代验证**：AI检查一致性和逻辑
+5. **人工决策**：最终选择权和修改权在人类
+
+### 提示词工程模板
+
+#### 场景生成模板
+```
+[场景类型：INT./EXT. 地点 - 时间]
+[情绪基调：紧张/温馨/悬疑/悲伤...]
+[核心冲突：角色A想要X，但角色B阻碍]
+[特殊要求：避免心理描写/使用特定道具/包含潜台词]
+```
+
+#### 角色一致性检查模板
+```
+角色：[姓名]
+性格：[关键词]
+动机：[核心驱动力]
+缺陷：[主要弱点]
+
+请检查以下场景中的行为一致性...
+```
+
+#### "规则三"模板
+```
+请为[任务]生成3个选项：
+选项1：传统/经典处理方式
+选项2：反套路/意外处理方式  
+选项3：介于两者之间的折中方案
+```
 
 ### 魂类箱庭核心
 1. 立体结构 - 垂直空间利用

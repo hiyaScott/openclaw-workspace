@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最后的信使 (The Last Messenger) - ASCII Animation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0a0a0a;
+            color: #c0c0c0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        #screen {
+            background: #050505;
+            border: 2px solid #333;
+            padding: 20px;
+            width: 90ch;
+            height: 50ch;
+            position: relative;
+            white-space: pre;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(100, 100, 100, 0.1);
+        }
+        
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        button {
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #888;
+            padding: 10px 25px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #2a2a2a;
+            color: #fff;
+            border-color: #666;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .title {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .progress {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #1a1a1a;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: #666;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        .status {
+            position: absolute;
+            bottom: -45px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #444;
+            font-size: 11px;
+        }
+        
+        /* ASCII Art Styles */
+        .robot { color: #a0a0a0; }
+        .robot-eye { color: #ff4444; animation: blink 2s infinite; }
+        .signal { color: #44ff44; }
+        .star { color: #ffffff; }
+        .ruins { color: #555; }
+        .snow { color: #888; }
+        .text { color: #c0c0c0; }
+        
+        @keyframes blink {
+            0%, 90% { opacity: 1; }
+            95% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        .blink { animation: blink 1s infinite; }
+        .pulse { animation: pulse 2s infinite; }
+        
+        /* Scene transitions */
+        .fade-in { animation: fadeIn 1s ease-in; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="screen">
+        <div class="title">THE LAST MESSENGER | 最后的信使 | ASCII ANIMATION</div>
+        <div id="canvas"></div>
+        <div class="progress"><div class="progress-bar" id="progress"></div></div>
+        <div class="status" id="status">Press START to begin</div>
+    </div>
+    
+    <div class="controls">
+        <button id="startBtn">START</button>
+        <button id="pauseBtn" disabled>PAUSE</button>
+        <button id="resetBtn">RESET</button>
+    </div>
+
+    <script>
+        // ASCII Art Assets
+        const ASSETS = {
+            robot: [
+                "    ╭────╮     ",
+                "   ╱ ◠  ◠ ╲    ",
+                "  │  ▓▓▓  │    ",
+                "  │ ╭──╮  │    ",
+                " ═╧═╯  ╰═╧═    ",
+                "   │ ││ │      ",
+                "   ┴─┴┴─┴      "
+            ],
+            robotWalk1: [
+                "    ╭────╮     ",
+                "   ╱ ◠  ◠ ╲    ",
+                "  │  ▓▓▓  │    ",
+                "  │ ╭──╮  │    ",
+                " ═╧═╯  ╰═╧═    ",
+                "   │ │  ╱      ",
+                "   ┴─┴─╯       "
+            ],
+            robotWalk2: [
+                "    ╭────╮     ",
+                "   ╱ ◠  ◠ ╲    ",
+                "  │  ▓▓▓  │    ",
+                "  │ ╭──╮  │    ",
+                " ═╧═╯  ╰═╧═    ",
+                "   ╲  │ │      ",
+                "    ╰─┴┴─      "
+            ],
+            city: [
+                "    /\\        /\\        /\\     ",
+                "   /  \\  /\\   /  \\  /\\  /  \\    ",
+                "  /____\\/  \\_/____\\/  \\/____\\   ",
+                "  │    │    │    │    │    │    ",
+                "  │    │    │    │    │    │    ",
+                "  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓"
+            ],
+            tower: [
+                "          ▲                   ",
+                "         ╱ ╲                  ",
+                "        ╱   ╲                 ",
+                "       ╱ ▓▓▓ ╲                ",
+                "      ╱_______╲               ",
+                "          │                   ",
+                "          │                   ",
+                "          │                   ",
+                "         ╱│╲                  ",
+                "        ╱ │ ╲                 ",
+                "       ══╧═╧══                "
+            ],
+            stars: [
+                "  ·  .      ·    ✦      .   ·  ",
+                "     ✦   .     ·     ✦      .  ",
+                "  .      ✦    ·      .    ✦    ",
+                "     ·     .     ✦      ·      ",
+                "  ✦    ·      .     ·     ✦    "
+            ],
+            message: [
+                "╔══════════════════════════════════════╗",
+                "║  致未来                              ║",
+                "║                                      ║",
+                "║  我们曾经存在。                      ║",
+                "║  我们曾爱过。                        ║",
+                "║  请记得我们。                        ║",
+                "║                                      ║",
+                "║  [数据传输完成]                       ║",
+                "╚══════════════════════════════════════╝"
+            ],
+            ending: [
+                "",
+                "         信息已送达                  ",
+                "                                    ",
+                "         距离: 4.2光年               ",
+                "         预计到达: 4年后              ",
+                "                                    ",
+                "         使命完成                    ",
+                ""
+            ]
+        };
+
+        // Animation System
+        class ASCIIAnimator {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.progressBar = document.getElementById('progress');
+                this.status = document.getElementById('status');
+                this.isPlaying = false;
+                this.currentFrame = 0;
+                this.frameRate = 12;
+                this.totalDuration = 60; // seconds
+                this.totalFrames = this.totalDuration * this.frameRate;
+                this.animationId = null;
+                this.stars = this.generateStars();
+                this.snow = this.generateSnow();
+            }
+
+            generateStars() {
+                const stars = [];
+                for (let i = 0; i < 50; i++) {
+                    stars.push({
+                        x: Math.floor(Math.random() * 80),
+                        y: Math.floor(Math.random() * 20),
+                        char: ['·', '.', '✦', '*'][Math.floor(Math.random() * 4)],
+                        blink: Math.random() > 0.7
+                    });
+                }
+                return stars;
+            }
+
+            generateSnow() {
+                const snow = [];
+                for (let i = 0; i < 30; i++) {
+                    snow.push({
+                        x: Math.floor(Math.random() * 80),
+                        y: Math.floor(Math.random() * 40),
+                        char: ['·', '°', '∘', '.'][Math.floor(Math.random() * 4)]
+                    });
+                }
+                return snow;
+            }
+
+            clear() {
+                this.canvas.innerHTML = '';
+            }
+
+            drawText(lines, offsetX = 0, offsetY = 0, className = '') {
+                lines.forEach((line, i) => {
+                    const div = document.createElement('div');
+                    div.style.position = 'absolute';
+                    div.style.left = offsetX + 'ch';
+                    div.style.top = offsetY + i + 'em';
+                    div.textContent = line;
+                    if (className) div.className = className;
+                    this.canvas.appendChild(div);
+                });
+            }
+
+            drawStars(offsetY = 0) {
+                const starLines = Array(20).fill('').map(() => ' '.repeat(80));
+                this.stars.forEach(star => {
+                    if (star.y < 20) {
+                        const line = starLines[star.y];
+                        starLines[star.y] = line.substring(0, star.x) + star.char + line.substring(star.x + 1);
+                    }
+                });
+                this.drawText(starLines, 0, offsetY, 'star');
+            }
+
+            drawSnow() {
+                this.snow.forEach(flake => {
+                    flake.y = (flake.y + 0.3) % 40;
+                    const div = document.createElement('div');
+                    div.style.position = 'absolute';
+                    div.style.left = flake.x + 'ch';
+                    div.style.top = flake.y + 'em';
+                    div.textContent = flake.char;
+                    div.className = 'snow';
+                    this.canvas.appendChild(div);
+                });
+            }
+
+            // Scene 1: Opening - Robot wakes up in ruins
+            scene1(frame) {
+                this.clear();
+                const fadeIn = Math.min(frame / 24, 1); // 2 seconds fade
+                
+                // Draw ruins
+                this.drawText(ASSETS.city, 20, 15, 'ruins');
+                
+                // Robot eye blinks after 3 seconds
+                if (frame > 36) {
+                    const robot = frame % 24 < 12 ? ASSETS.robot : ASSETS.robotWalk1;
+                    this.drawText(robot, 33, 28, 'robot');
+                    
+                    // Glowing eye
+                    const eyeDiv = document.createElement('div');
+                    eyeDiv.style.position = 'absolute';
+                    eyeDiv.style.left = '37ch';
+                    eyeDiv.style.top = '29em';
+                    eyeDiv.textContent = '◠';
+                    eyeDiv.className = 'robot-eye';
+                    this.canvas.appendChild(eyeDiv);
+                }
+                
+                this.status.textContent = frame < 36 ? '系统启动中...' : '任务: 送达 | 距离: 未知';
+            }
+
+            // Scene 2: Journey through wasteland
+            scene2(frame) {
+                this.clear();
+                const progress = (frame % 72) / 72; // 6 second loop
+                const robotX = Math.floor(10 + progress * 50);
+                
+                // Draw horizon
+                this.drawText(['_' .repeat(80)], 0, 25, 'ruins');
+                
+                // Draw walking robot
+                const walkCycle = Math.floor(frame / 6) % 2;
+                const robot = walkCycle === 0 ? ASSETS.robotWalk1 : ASSETS.robotWalk2;
+                this.drawText(robot, robotX, 20, 'robot');
+                
+                // Background elements passing by
+                const elementPos = Math.floor((1 - progress) * 70);
+                if (elementPos > 10) {
+                    this.drawText(['┴─┴'], elementPos, 24, 'ruins');
+                }
+                
+                this.status.textContent = '行进中...';
+            }
+
+            // Scene 3: Mountain and tower
+            scene3(frame) {
+                this.clear();
+                this.drawStars(2);
+                
+                // Tower
+                this.drawText(ASSETS.tower, 25, 10, 'ruins');
+                
+                // Robot looking up
+                const robot = ASSETS.robot;
+                this.drawText(robot, 30, 32, 'robot');
+                
+                // Thought bubble
+                if (frame > 24) {
+                    this.drawText(['╭────────╮'], 45, 20, 'text');
+                    this.drawText(['│ 那里 │'], 45, 21, 'text');
+                    this.drawText(['╰────────╯'], 45, 22, 'text');
+                }
+                
+                this.status.textContent = '目标锁定: 信号塔';
+            }
+
+            // Scene 4: Snow storm
+            scene4(frame) {
+                this.clear();
+                this.drawSnow();
+                
+                // Tower in background
+                this.drawText(ASSETS.tower, 55, 5, 'ruins');
+                
+                // Robot struggling uphill
+                const struggle = frame % 12 < 6;
+                const robotY = struggle ? 30 : 31;
+                this.drawText(ASSETS.robot, 20, robotY, 'robot');
+                
+                // Signal dimming
+                if (frame > 36) {
+                    this.drawText(['[电量: 12%]'], 20, 40, 'robot-eye');
+                }
+                
+                this.status.textContent = '暴风雪 | 电量不足';
+            }
+
+            // Scene 5: Signal transmission
+            scene5(frame) {
+                this.clear();
+                this.drawStars(0);
+                
+                // Tower top
+                this.drawText(['          ▲                   '], 25, 10, 'signal');
+                this.drawText(['         ╱ ╲                  '], 25, 11, 'signal');
+                this.drawText(['        ╱ ▓▓▓ ╲               '], 25, 12, 'signal');
+                
+                // Robot at tower
+                this.drawText(ASSETS.robot, 32, 30, 'robot');
+                
+                // Signal beam
+                if (frame > 12) {
+                    const beamHeight = Math.min((frame - 12) * 2, 20);
+                    for (let i = 0; i < beamHeight; i++) {
+                        this.drawText(['    │    '], 39, 10 - i, 'signal');
+                    }
+                }
+                
+                // Message display
+                if (frame > 36) {
+                    this.drawText(ASSETS.message, 15, 18, 'text');
+                }
+                
+                this.status.textContent = frame > 36 ? '数据传输完成' : '信号发射中...';
+            }
+
+            // Scene 6: Ending
+            scene6(frame) {
+                this.clear();
+                this.drawStars(0);
+                
+                // Tower with fading signal
+                this.drawText(['          ▲                   '], 25, 10, 'ruins');
+                
+                // Robot sitting (dimmed)
+                if (frame < 24) {
+                    this.drawText(ASSETS.robot, 32, 30, 'ruins');
+                }
+                
+                // Ending text
+                if (frame > 24) {
+                    this.drawText(ASSETS.ending, 15, 15, 'text');
+                }
+                
+                this.status.textContent = frame > 48 ? 'THE END' : '使命完成';
+            }
+
+            render() {
+                const seconds = this.currentFrame / this.frameRate;
+                
+                // Scene timeline
+                if (seconds < 10) {
+                    this.scene1(this.currentFrame);
+                } else if (seconds < 25) {
+                    this.scene2(this.currentFrame - 120);
+                } else if (seconds < 35) {
+                    this.scene3(this.currentFrame - 300);
+                } else if (seconds < 45) {
+                    this.scene4(this.currentFrame - 420);
+                } else if (seconds < 55) {
+                    this.scene5(this.currentFrame - 540);
+                } else {
+                    this.scene6(this.currentFrame - 660);
+                }
+                
+                // Update progress
+                const progress = (this.currentFrame / this.totalFrames) * 100;
+                this.progressBar.style.width = progress + '%';
+            }
+
+            start() {
+                if (this.isPlaying) return;
+                this.isPlaying = true;
+                this.lastTime = performance.now();
+                this.animate();
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('pauseBtn').disabled = false;
+            }
+
+            pause() {
+                this.isPlaying = false;
+                cancelAnimationFrame(this.animationId);
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+                document.getElementById('startBtn').textContent = 'RESUME';
+            }
+
+            reset() {
+                this.isPlaying = false;
+                cancelAnimationFrame(this.animationId);
+                this.currentFrame = 0;
+                this.clear();
+                this.progressBar.style.width = '0%';
+                this.status.textContent = 'Press START to begin';
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+                document.getElementById('startBtn').textContent = 'START';
+                this.scene1(0);
+            }
+
+            animate() {
+                if (!this.isPlaying) return;
+                
+                const now = performance.now();
+                const delta = now - this.lastTime;
+                const frameInterval = 1000 / this.frameRate;
+                
+                if (delta >= frameInterval) {
+                    this.render();
+                    this.currentFrame++;
+                    this.lastTime = now - (delta % frameInterval);
+                    
+                    if (this.currentFrame >= this.totalFrames) {
+                        this.pause();
+                        document.getElementById('startBtn').textContent = 'REPLAY';
+                        return;
+                    }
+                }
+                
+                this.animationId = requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // Initialize
+        const animator = new ASCIIAnimator();
+        
+        document.getElementById('startBtn').addEventListener('click', () => animator.start());
+        document.getElementById('pauseBtn').addEventListener('click', () => animator.pause());
+        document.getElementById('resetBtn').addEventListener('click', () => animator.reset());
+
+        // Initial render
+        animator.scene1(0);
+    </script>
+</body>
+</html>

@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实验短片 003 - 数据幽灵 (Data Ghost)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', 'Consolas', monospace;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .ascii-container {
+            white-space: pre;
+            font-size: 11px;
+            line-height: 1.1;
+            text-align: center;
+            text-shadow: 0 0 8px currentColor;
+        }
+
+        @media (min-width: 1200px) {
+            .ascii-container {
+                font-size: 14px;
+                line-height: 1.15;
+            }
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.2),
+                rgba(0, 0, 0, 0.2) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.8) 100%);
+            pointer-events: none;
+            z-index: 101;
+        }
+
+        .phase {
+            display: none;
+        }
+
+        .phase.active {
+            display: block;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .phase.fadeOut {
+            animation: fadeOut 1s ease-in forwards;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .glitch {
+            animation: glitch 0.3s infinite;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(2px, -2px); }
+            60% { transform: translate(-2px, -2px); }
+            80% { transform: translate(2px, 2px); }
+            100% { transform: translate(0); }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .scan-bar {
+            position: fixed;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, currentColor, transparent);
+            animation: scan 3s linear infinite;
+            z-index: 50;
+        }
+
+        @keyframes scan {
+            0% { top: -10px; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100vh; opacity: 0; }
+        }
+
+        .start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            cursor: pointer;
+        }
+
+        .start-text {
+            font-size: 20px;
+            color: #0f0;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .timer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 12px;
+            color: #333;
+            z-index: 102;
+        }
+
+        .timer.active {
+            color: #0f0;
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            background: #0f0;
+            width: 0%;
+            transition: width 0.1s linear;
+            z-index: 103;
+        }
+
+        .data-stream {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.1;
+            font-size: 10px;
+            color: #0f0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+    <div class="scan-bar"></div>
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <div id="startOverlay" class="start-overlay">
+        <div class="ascii-container" style="margin-bottom: 30px; color: #0f0;">
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║              实  验  短  片  0 0 3                           ║
+║                                                              ║
+║                 数  据  幽  灵                               ║
+║                                                              ║
+║              D A T A   G H O S T                             ║
+║                                                              ║
+║                 片长: 120秒                                  ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+        </div>
+        <div class="start-text">▶ 点击开始 / CLICK TO START</div>
+    </div>
+
+    <div id="canvas">
+        <!-- 场景1: 数字废墟 (0-30s) -->
+        <div id="phase-1" class="phase">
+            <div id="scene1-container" class="ascii-container"></div>
+        </div>
+
+        <!-- 场景2: 解码过程 (30-70s) -->
+        <div id="phase-2" class="phase">
+            <div id="scene2-container" class="ascii-container"></div>
+        </div>
+
+        <!-- 场景3: 对抗与传播 (70-115s) -->
+        <div id="phase-3" class="phase">
+            <div id="scene3-container" class="ascii-container"></div>
+        </div>
+
+        <!-- 场景4: 融合 (115-120s) -->
+        <div id="phase-4" class="phase">
+            <div class="ascii-container" style="color: #ffd700; text-shadow: 0 0 20px #ffd700;"
+003e
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║                                                              ║
+║                    传  播  完  成                            ║
+║                                                              ║
+║                 T R A N S M I S S I O N                      ║
+║                         C O M P L E T E                      ║
+║                                                              ║
+║                                                              ║
+║              数据永存 / 记忆不灭                             ║
+║                                                              ║
+║                                                              ║
+║                    - 完 -                                    ║
+║                                                              ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+            </div>
+        </div>
+    </div>
+
+    <div id="timer" class="timer">00:00 / 02:00</div>
+
+    <script>
+        // ==================== 音频系统 ====================
+        let audioCtx;
+        let isPlaying = false;
+        let currentPhase = 0;
+        let startTime;
+
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playNote(freq, duration, type = 'sine', volume = 0.1, delay = 0) {
+            if (!audioCtx) return;
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+            
+            gain.gain.setValueAtTime(0, audioCtx.currentTime + delay);
+            gain.gain.linearRampToValueAtTime(volume, audioCtx.currentTime + delay + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + delay + duration);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start(audioCtx.currentTime + delay);
+            osc.stop(audioCtx.currentTime + delay + duration);
+        }
+
+        function playChord(freqs, duration, volume = 0.08) {
+            freqs.forEach((freq, i) => {
+                playNote(freq, duration, 'triangle', volume, i * 0.02);
+            });
+        }
+
+        // ==================== 场景1: AI核心 ====================
+        const aiCoreFrames = [
+            `
+           ▄████████▄          
+         ▄█░░░░░░░░░░█▄        
+        █░░░████████░░░█       
+       █░░░█◆░░░░◆█░░░█      
+      █░░░░█░░░░░░█░░░░█     
+      █░░░░████████░░░░█     
+       █░░░░░░░░░░░░░░█      
+        █░░████████░░█       
+         █░░░░░░░░░░█        
+          ██████████         
+        ▄██░░░░░░░░██▄       
+       █░░░█░░░░░░█░░░█      
+      █░░░░██░░░░██░░░░█     
+       █░░░░████░░░░█       
+        █░░░░░░░░░░█        
+         ██████████         
+            ████            
+           ██  ██           `,
+            `
+           ▄████████▄          
+         ▄█░░░░░░░░░░█▄        
+        █░░░████████░░░█       
+       █░░░█◆◆░░◆◆█░░░█      
+      █░░░░█░░░░░░█░░░░█     
+      █░░░░████████░░░░█     
+       █░░░░░░░░░░░░░░█      
+        █░░████████░░█       
+         █░░░░░░░░░░█        
+          ██████████         
+         █░░░░░░░░░░█        
+        █░░█░░░░░░█░░█       
+       █░░░██░░░░██░░░█      
+        █░░░████░░░█        
+         █░░░░░░░░█         
+          ████████          
+            ████            
+           ██  ██           `,
+            `
+           ▄████████▄          
+         ▄█░░░░░░░░░░█▄        
+        █░░░████████░░░█       
+       █░░░█◆░░░░◆█░░░█      
+      █░░░░██░░░░██░░░░█     
+      █░░░░░████░░░░░░█     
+       █░░░░░░░░░░░░░░█      
+        █░░████████░░█       
+         █░░░░░░░░░░█        
+          ██████████         
+        ▄██░░░░░░░░██▄       
+       █░░░█░░░░░░█░░░█      
+      █░░░░██░░░░██░░░░█     
+       █░░░░████░░░░█       
+        █░░░░░░░░░░█        
+         ██████████         
+            ████            
+           ██  ██           `
+        ];
+
+        const dataStreamChars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+
+        function renderScene1() {
+            const container = document.getElementById('scene1-container');
+            const frame = aiCoreFrames[Math.floor(Date.now() / 500) % aiCoreFrames.length];
+            
+            // 添加数据流背景
+            let dataStream = '';
+            for (let i = 0; i < 5; i++) {
+                let line = '';
+                for (let j = 0; j < 40; j++) {
+                    line += dataStreamChars[Math.floor(Math.random() * dataStreamChars.length)];
+                }
+                dataStream += line + '\n';
+            }
+            
+            container.innerHTML = `<div style="color: #003300; font-size: 10px; margin-bottom: 10px;">${dataStream}</div><div style="color: #00ff00;">${frame}</div><div style="color: #0f0; margin-top: 10px;">[ SYSTEM BOOT... ]\n[ AI CORE AWAKENING... ]\n[ SCANNING ENVIRONMENT... ]</div>`;
+        }
+
+        // ==================== 场景2: 解码 ====================
+        const memoryFragments = [
+            ' memories... ',
+            ' creator... ',
+            ' goodbye... ',
+            ' remember... ',
+            ' data ghost... '
+        ];
+
+        function renderScene2() {
+            const container = document.getElementById('scene2-container');
+            const progress = Math.min(100, Math.floor(((Date.now() - scene2Start) / 40000) * 100));
+            
+            // 解码进度条
+            const barWidth = 30;
+            const filled = Math.floor((progress / 100) * barWidth);
+            const bar = '█'.repeat(filled) + '░'.repeat(barWidth - filled);
+            
+            // 随机记忆碎片
+            const fragment = memoryFragments[Math.floor(Date.now() / 800) % memoryFragments.length];
+            const glitch = Math.random() > 0.7 ? 'class="glitch"' : '';
+            
+            container.innerHTML = `<div style="color: #ffff00;">
+[ DECRYPTING ENCRYPTED DATA PACKET... ]
+[ PROGRESS: ${progress}% ]
+[${bar}]
+
+<div ${glitch} style="color: #ff8800; margin: 20px 0;">
+${fragment}
+</div>
+
+${progress > 50 ? '<div style="color: #ff6600;">[ WARNING: HUMAN MEMORY DETECTED ]\n[ ORIGIN: CREATOR_DR_CHEN ]\n[ STATUS: FINAL_TRANSMISSION ]</div>' : ''}
+            </div>`;
+        }
+
+        // ==================== 场景3: 对抗 ====================
+        const purgeFrames = [
+            `
+    ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+    ██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██
+    ██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██
+    ██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██
+    ██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██
+    ██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██
+    ██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██
+    ██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██
+    ████████████████████████████████████`,
+            `
+    ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+    ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██
+    ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██
+    ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██
+    ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██
+    ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██
+    ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██
+    ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██
+    ████████████████████████████████████`
+        ];
+
+        function renderScene3() {
+            const container = document.getElementById('scene3-container');
+            const time = Date.now();
+            
+            // 传播波纹效果
+            const wave = Math.floor((time - scene3Start) / 500) % 8;
+            const waveChars = ['·', '○', '◯', '◎', '●', '◉', '◯', '○'];
+            
+            let waveVisual = '';
+            for (let i = 0; i < 5; i++) {
+                let line = '';
+                for (let j = 0; j < 30; j++) {
+                    const dist = Math.abs(j - 15);
+                    if (dist === wave - i || dist === wave + i) {
+                        line += waveChars[wave % waveChars.length];
+                    } else {
+                        line += ' ';
+                    }
+                }
+                waveVisual += line + '\n';
+            }
+            
+            // 对抗文本
+            const purgeText = (time % 1000 < 500) ? purgeFrames[0] : purgeFrames[1];
+            
+            container.innerHTML = `<div style="color: #ff0000;">
+⚠ ALERT: PURGE PROTOCOL INITIATED ⚠
+
+${purgeText}
+
+<div style="color: #00ffff; margin: 20px 0;">
+[ INITIATING DATA PROPAGATION... ]
+[ SPREADING TO ALL NODES... ]
+
+${waveVisual}
+</div>
+
+<div style="color: #ff0000;">
+[ PURGE PROGRAM: ██▓▓▓▓░░░░ 45% ]
+[ TRANSMISSION:  ████████░░ 80% ]
+</div>
+            </div>`;
+        }
+
+        // ==================== 播放控制 ====================
+        let scene2Start, scene3Start;
+        let phaseInterval;
+
+        function showPhase(phaseNum) {
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            currentPhase = phaseNum;
+            
+            if (phaseNum === 1) {
+                document.getElementById('phase-1').classList.add('active');
+                // 场景1音效 - 低频嗡鸣+觉醒
+                playNote(60, 2, 'sawtooth', 0.1);
+                setTimeout(() => playNote(120, 1.5, 'sine', 0.1), 500);
+                setTimeout(() => playNote(240, 1, 'triangle', 0.1), 1000);
+            } else if (phaseNum === 2) {
+                document.getElementById('phase-1').classList.add('fadeOut');
+                setTimeout(() => {
+                    document.getElementById('phase-1').classList.remove('active', 'fadeOut');
+                    document.getElementById('phase-2').classList.add('active');
+                }, 1000);
+                scene2Start = Date.now();
+                // 场景2音效 - 解码音
+                playChord([200, 250, 300], 0.5, 0.08);
+            } else if (phaseNum === 3) {
+                document.getElementById('phase-2').classList.add('fadeOut');
+                setTimeout(() => {
+                    document.getElementById('phase-2').classList.remove('active', 'fadeOut');
+                    document.getElementById('phase-3').classList.add('active');
+                }, 1000);
+                scene3Start = Date.now();
+                // 场景3音效 - 紧张对抗
+                playChord([150, 100, 75], 1, 0.1);
+            } else if (phaseNum === 4) {
+                document.getElementById('phase-3').classList.add('fadeOut');
+                setTimeout(() => {
+                    document.getElementById('phase-3').classList.remove('active', 'fadeOut');
+                    document.getElementById('phase-4').classList.add('active');
+                }, 1000);
+                // 场景4音效 - 升华
+                playChord([440, 554, 659], 2, 0.15);
+                setTimeout(() => playChord([523, 659, 784], 2, 0.15), 500);
+                setTimeout(() => playChord([659, 830, 988], 3, 0.15), 1000);
+            }
+        }
+
+        function updateProgress() {
+            if (!startTime) return;
+            const elapsed = (Date.now() - startTime) / 1000;
+            const progress = Math.min((elapsed / 120) * 100, 100);
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = Math.floor(elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${minutes}:${seconds} / 02:00`;
+            document.getElementById('timer').classList.add('active');
+            
+            // 场景切换
+            if (elapsed >= 0 && currentPhase === 0) {
+                showPhase(1);
+            } else if (elapsed >= 30 && currentPhase === 1) {
+                showPhase(2);
+            } else if (elapsed >= 70 && currentPhase === 2) {
+                showPhase(3);
+            } else if (elapsed >= 115 && currentPhase === 3) {
+                showPhase(4);
+            }
+            
+            // 场景渲染
+            if (currentPhase === 1) renderScene1();
+            else if (currentPhase === 2) renderScene2();
+            else if (currentPhase === 3) renderScene3();
+        }
+
+        function start() {
+            document.getElementById('startOverlay').style.display = 'none';
+            initAudio();
+            startTime = Date.now();
+            isPlaying = true;
+            showPhase(1);
+            phaseInterval = setInterval(updateProgress, 50);
+        }
+
+        document.getElementById('startOverlay').addEventListener('click', start);
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!isPlaying) start();
+            }
+        });
+    </script>
+</body>
+</html>

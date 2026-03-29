@@ -1,0 +1,2 @@
+* * * * * cd /root/.openclaw/workspace/portfolio-blog/status-monitor && /usr/bin/python3 cognitive_monitor.py >> /var/log/cognitive_monitor.log 2>&1
+*/2 * * * * cd /root/.openclaw/workspace/portfolio-blog && bash status-monitor/cognitive_push_v6.sh >> /var/log/cognitive_health.log 2>&1
