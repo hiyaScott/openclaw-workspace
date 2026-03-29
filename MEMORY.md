@@ -57,6 +57,57 @@ requests.post("https://www.dmxapi.cn/v1/video_generation", ...)
 3. **不要擅自决定"现在该做什么"**
 4. **把"做对"放在"做完"之前**
 
+---
+
+## 【严重教训】AI短片部署位置混淆 (2026-03-29)
+
+**事故时间**: 2026-03-29 16:50
+**问题类型**: 部署到错误的GitHub仓库
+**责任人**: Jetton (AI助手)
+
+### 错误经过
+
+用户要求将可灵v2.6生成的测试视频更新到AI短片Pipeline页面。
+
+**错误行为**:
+1. 未确认目标仓库，直接部署到 `scott-portfolio`
+2. 实际上应该部署到 `hiyamax-blog`
+3. 导致Pipeline页面无法显示最新内容
+
+### 根本原因
+
+**两个仓库的区别**:
+| 仓库 | 域名 | 用途 | 正确内容 |
+|------|------|------|----------|
+| **hiyamax-blog** | hiyascott.github.io/hiyamax-blog | AI短片Pipeline系统 | Pipeline页面、项目数据、视频素材 |
+| **scott-portfolio** | hiyascott.github.io/scott-portfolio | 个人作品集网站 | 能力图谱、项目展示、监控系统 |
+
+**混淆原因**:
+- 两个仓库都在 `portfolio-blog/` 目录下工作
+- 没有先确认目标仓库再执行部署
+- 缺乏"部署前检查清单"
+
+### 预防措施
+
+**部署AI短片相关内容前必须确认**:
+1. 目标仓库是 `hiyamax-blog` (AI短片Pipeline)
+2. 不是 `scott-portfolio` (个人作品集)
+3. 视频文件放到 `assets/the_147th_day/`
+4. 数据更新到 `pipeline/data/*.json`
+5. 页面访问地址是 `hiyamax-blog` 域名
+
+**快速判断方法**:
+- AI短片项目 → hiyamax-blog
+- 个人作品展示 → scott-portfolio
+- Pipeline系统 → hiyamax-blog
+- 认知负载监控 → scott-portfolio
+
+### 修复结果
+
+- ✅ 已删除 scott-portfolio 下的错误部署
+- ✅ 已重新部署到 hiyamax-blog 正确位置
+- ✅ Pipeline页面现在显示 V1/V2/V3 三个版本
+
 ### 即梦AI图生图API (已验证)
 
 **Endpoint**: `https://visual.volcengineapi.com/?Action=CVSync2AsyncSubmitTask&Version=2022-08-31`
