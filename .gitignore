@@ -4,3 +4,8 @@ snake/
 exports/godot/templates/
 .env
 *.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python

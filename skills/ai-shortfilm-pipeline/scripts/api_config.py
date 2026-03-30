@@ -1,19 +1,73 @@
 """
 AI工具API配置管理模块
 用于读取和管理.env中的API密钥
+
+使用方法:
+    from api_config import get_dmxapi_token, get_jimeng_keys
+    
+    # 获取DMXAPI Token
+    token = get_dmxapi_token()
+    
+    # 获取即梦AI密钥
+    ak, sk = get_jimeng_keys()
 """
 import os
+import sys
 from pathlib import Path
 
-# 尝试加载python-dotenv（如果已安装）
-try:
-    from dotenv import load_dotenv
-    # 加载.env文件
-    env_path = Path(__file__).parent.parent.parent / '.env'
-    if env_path.exists():
-        load_dotenv(dotenv_path=env_path)
-except ImportError:
-    pass  # 如果没有dotenv，直接读取系统环境变量
+
+def find_workspace_root():
+    """查找工作区根目录（包含.env的目录）"""
+    # 从当前文件位置开始向上查找
+    current = Path(__file__).resolve()
+    
+    # 向上查找最多5层
+    for _ in range(5):
+        parent = current.parent
+        if (parent / '.env').exists():
+            return parent
+        current = parent
+    
+    # 如果找不到，返回工作区默认路径
+    return Path('/root/.openclaw/workspace')
+
+
+def load_env_file():
+    """手动加载.env文件到环境变量"""
+    # 检查当前环境变量是否已设置（且不为空）
+    jimeng_ak = os.environ.get('JIMENG_ACCESS_KEY', '').strip()
+    jimeng_sk = os.environ.get('JIMENG_SECRET_KEY', '').strip()
+    dmxapi = os.environ.get('DMXAPI_TOKEN', '').strip()
+    
+    if jimeng_ak and jimeng_sk and dmxapi:
+        return True
+    
+    # 查找.env文件
+    workspace = find_workspace_root()
+    env_path = workspace / '.env'
+    
+    if not env_path.exists():
+        return False
+    
+    with open(env_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            # 跳过空行和注释
+            if not line or line.startswith('#'):
+                continue
+            # 解析KEY=VALUE
+            if '=' in line:
+                key, value = line.split('=', 1)
+                key = key.strip()
+                value = value.strip()
+                # 设置环境变量（如果当前为空或未设置）
+                if key:
+                    current = os.environ.get(key, '').strip()
+                    if not current:  # 只有当当前为空时才设置
+                        os.environ[key] = value
+    
+    return True
+
 
 class APIConfig:
     """API配置管理类"""
@@ -22,8 +76,9 @@ class APIConfig:
     @staticmethod
     def get_jimeng_keys():
         """获取即梦AI的AK/SK"""
-        ak = os.environ.get('JIMENG_ACCESS_KEY')
-        sk = os.environ.get('JIMENG_SECRET_KEY')
+        load_env_file()  # 确保已加载
+        ak = os.environ.get('JIMENG_ACCESS_KEY', '').strip()
+        sk = os.environ.get('JIMENG_SECRET_KEY', '').strip()
         
         if not ak or not sk:
             raise ValueError(
@@ -37,7 +92,8 @@ class APIConfig:
     @staticmethod
     def get_dmxapi_token():
         """获取DMXAPI的Token"""
-        token = os.environ.get('DMXAPI_TOKEN')
+        load_env_file()  # 确保已加载
+        token = os.environ.get('DMXAPI_TOKEN', '').strip()
         
         if not token:
             raise ValueError(
