@@ -2,3 +2,5 @@ scott-portfolio-data/
 snake/
 *.tpz
 exports/godot/templates/
+.env
+*.env
