@@ -269,11 +269,56 @@ print(f"状态: {status['status']}")  # PENDING/RUNNING/SUCCEEDED/FAILED
 - **Region**: `cn-north-1`
 - **Service**: `cv`
 
+## 豆包图片生成API (Seedream)
+
+豆包提供另一套图片生成API，使用OpenAI兼容格式，无需HMAC签名。
+
+### 模型列表
+
+| 模型 | 说明 |
+|------|------|
+| `doubao-seedream-5.0` | 最强图片生成模型，搭载联网检索功能 |
+| `doubao-seedream-4-0-250828` | 4.0版本 |
+| `doubao-seedream-3-0-t2i-250415` | 3.0版本 |
+
+### API调用示例 (Python)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://ark.cn-beijing.volces.com/api/v3",
+    api_key="你的ARK_API_KEY"  # 从火山引擎控制台获取
+)
+
+response = client.images.generate(
+    model="doubao-seedream-5.0",
+    prompt="一只可爱的柴犬在樱花树下，阳光明媚"
+)
+
+print(response.data[0].url)
+```
+
+### 图片传入方式 (图生图)
+
+- **公网URL**: 直接传入图片可访问链接
+- **Base64**: `data:image/png;base64,{base64编码}`
+
+### 与即梦API的区别
+
+| 特性 | 即梦API | 豆包Seedream API |
+|------|---------|-----------------|
+| 端点 | `visual.volcengineapi.com` | `ark.cn-beijing.volces.com/api/v3` |
+| 认证 | HMAC-SHA256签名 | API Key (OpenAI兼容) |
+| 协议 | 火山引擎自定义 | OpenAI兼容 |
+| 适用场景 | 即梦特色功能、视频生成 | 标准图片生成、快速接入 |
+
 ## 参考资源
 
 - 火山引擎签名文档：https://www.volcengine.com/docs/86081/2179673
 - 即梦AI产品页：https://www.volcengine.com/product/jimeng
 - 视觉大模型API文档：https://www.volcengine.com/docs/6791
+- 豆包API文档：https://www.volcengine.com/docs/82379
 
 ## 调试经验与常见问题
 
