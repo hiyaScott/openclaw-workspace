@@ -78,4 +78,62 @@ python3 skills/ai-shortfilm-pipeline/scripts/api_config.py
 
 ---
 
+## GitHub 推送指南
+
+### 问题：无交互式终端的 Git 推送
+
+在 headless 环境（无 TTY）中，`git push` 无法交互式输入用户名密码。
+
+### ❌ 已失效的方法
+
+| 方法 | 状态 | 原因 |
+|------|------|------|
+| URL 嵌入 token | ❌ 失效 | `https://user:token@github.com/...` 被 GitHub 禁用 |
+| 环境变量 GIT_USERNAME | ❌ 失效 | Git 不再支持 |
+| gh auth login | ❌ 复杂 | 需要交互式浏览器授权 |
+
+### ✅ 可靠方法：Git Credential Store
+
+**步骤：**
+
+```bash
+# 1. 启用 credential store
+git config credential.helper store
+
+# 2. 存储凭据（一次性）
+echo -e "protocol=https\nhost=github.com\nusername=hiyascott\npassword=YOUR_TOKEN\n" | \
+  git credential-store --file ~/.git-credentials store
+
+# 3. 推送
+git push origin master
+```
+
+**验证存储：**
+```bash
+cat ~/.git-credentials
+# 输出: https://hiyascott:YOUR_TOKEN@github.com
+```
+
+### 备用方法：SSH 密钥（推荐长期配置）
+
+```bash
+# 生成密钥
+ssh-keygen -t ed25519 -C "your@email.com"
+
+# 添加到 GitHub
+gh ssh-key add ~/.ssh/id_ed25519.pub --title "OpenClaw Server"
+
+# 使用 SSH 推送
+git remote set-url origin git@github.com:hiyaScott/openclaw-workspace.git
+git push origin master
+```
+
+### Token 要求
+
+- **类型**: Personal Access Token (classic)
+- **权限**: 必须勾选 `repo` (完整仓库访问)
+- **有效期**: 建议设置不过期，或及时更新
+
+---
+
 Add whatever helps you do your job. This is your cheat sheet.
