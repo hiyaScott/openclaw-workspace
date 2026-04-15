@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>灌溉系统能力卡片 - Soil & Water Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1a1f2e 0%, #0f1419 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .skill-card {
+            width: 100%;
+            max-width: 480px;
+            background: linear-gradient(145deg, #1e2530 0%, #151a23 100%);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 
+                        0 0 0 1px rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .skill-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #10b981, #059669, #047857);
+        }
+        
+        .header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .icon-wrapper {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            flex-shrink: 0;
+            box-shadow: 0 8px 16px -4px rgba(5, 150, 105, 0.3);
+        }
+        
+        .title-section h1 {
+            color: #f1f5f9;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        
+        .title-section .subtitle {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        
+        .meta-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .meta-tag {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        
+        .section {
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        
+        .capability-list {
+            list-style: none;
+        }
+        
+        .capability-list li {
+            color: #e2e8f0;
+            padding: 10px 0;
+            padding-left: 24px;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .capability-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .capability-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .feature-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .feature-item .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .feature-item .label {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        
+        .feature-item .value {
+            color: #f1f5f9;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .footer {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .version {
+            color: #64748b;
+            font-size: 12px;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #10b981;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .install-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+        
+        .install-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="skill-card">
+        <div class="header">
+            <div class="icon-wrapper">🌱</div>
+            <div class="title-section">
+                <h1>土壤与水分管理<br><span style="font-size: 14px; color: #94a3b8;">Soil & Water Management</span></h1>
+                <p class="subtitle">智能灌溉系统基础技能</p>
+            </div>
+        </div>
+        
+        <div class="meta-tags">
+            <span class="meta-tag">农业灌溉</span>
+            <span class="meta-tag">土壤科学</span>
+            <span class="meta-tag">水资源管理</span>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">核心能力</div>
+            <ul class="capability-list">
+                <li>土壤检测与分析（质地、pH、养分）</li>
+                <li>堆肥与土壤肥力建设</li>
+                <li>滴灌/喷灌系统设计</li>
+                <li>雨水收集与利用</li>
+                <li>坡地水分管理（梯田/沟渠）</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">技术规格</div>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="icon">💧</div>
+                    <div class="label">灌溉效率</div>
+                    <div class="value">滴灌 90%+</div>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">🧪</div>
+                    <div class="label">土壤测试</div>
+                    <div class="value">N-P-K 分析</div>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">♻️</div>
+                    <div class="label">堆肥方法</div>
+                    <div class="value">4种方案</div>
+                </div>
+                <div class="feature-item">
+                    <div class="icon">🌧️</div>
+                    <div class="label">雨水收集</div>
+                    <div class="value">合规检查</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <span class="version">v1.0.0 · ClawHub</span>
+            <div class="status">
+                <span class="status-dot"></span>
+                <span>已安装</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

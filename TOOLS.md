@@ -136,4 +136,43 @@ git push origin master
 
 ---
 
+## S-Rain-sys 灌溉计算器发布规则
+
+### 发布流程（已由课件专家确认）
+
+1. **日常修改** → 仅在 `hiyascott/scott-portfolio/irrigation-quotation` 上调整优化
+2. **发布指令** → 只有收到明确指令 **"在S-rain上发布最新的版本"** 时，才触发 S-Rain 部署
+3. **确认机制** → 收到指令后必须再做一次最终确认，获得同意后再执行
+4. **目标地址** → `https://s-rain-sys.github.io/counter/index.html`
+
+### 凭据配置
+
+| 项 | 值 |
+|---|---|
+| 源仓库 | `hiyascott/scott-portfolio` |
+| 目标仓库 | `S-Rain-sys/counter` |
+| Token 环境变量 | `SRAIN_GITHUB_TOKEN` (存储在 `~/.git-credentials`) |
+| Git 凭据存储 | `~/.git-credentials` (已配置) |
+
+### 部署命令
+
+```bash
+cd /tmp && rm -rf s-rain-counter && git clone https://github.com/S-Rain-sys/counter.git s-rain-counter
+cp /root/.openclaw/workspace/portfolio-blog/irrigation-quotation/* /tmp/s-rain-counter/
+cd /tmp/s-rain-counter && git add -A && git commit -m "sync from hiyascott" && git push origin main
+```
+
+---
+
+## GitHub Token 列表
+
+| 仓库 | 用户名 | Token 位置 | 用途 | 更新时间 |
+|---|---|---|---|---|
+| hiyaScott/scott-portfolio | hiyascott | `~/.git-credentials` | 个人作品集部署、Release创建 | 2026-04-15 |
+| S-Rain-sys/counter | S-Rain-sys | `~/.git-credentials` | 灌溉计算器发布 | - |
+
+**注意**: 所有 Token 仅存储在 `~/.git-credentials`，不提交到 Git 仓库
+
+---
+
 Add whatever helps you do your job. This is your cheat sheet.

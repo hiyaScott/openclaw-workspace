@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "skills": {
+    "soil-water-management": {
+      "version": "1.0.0",
+      "installedAt": 1775368381203
+    },
+    "fertigation": {
+      "version": "1.0.0",
+      "installedAt": 1775369341600
+    }
+  }
+}

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>灌溉系统技能图谱</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        header h1 {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+        
+        header p {
+            color: #64748b;
+            font-size: 16px;
+        }
+        
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .skill-card {
+            background: linear-gradient(145deg, #1e2530 0%, #151a23 100%);
+            border-radius: 20px;
+            padding: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .skill-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .skill-card.installed::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #10b981, #059669);
+        }
+        
+        .skill-card.pending::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #f59e0b, #d97706);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .card-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+        
+        .skill-card.installed .card-icon {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            box-shadow: 0 8px 16px -4px rgba(5, 150, 105, 0.3);
+        }
+        
+        .skill-card.pending .card-icon {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.3);
+        }
+        
+        .card-title h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+        }
+        
+        .card-title .en-name {
+            font-size: 13px;
+            color: #64748b;
+        }
+        
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        
+        .tag {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .skill-card.installed .tag {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        
+        .skill-card.pending .tag {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .capabilities {
+            list-style: none;
+        }
+        
+        .capabilities li {
+            padding: 8px 0 8px 20px;
+            position: relative;
+            color: #94a3b8;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        
+        .capabilities li:last-child {
+            border-bottom: none;
+        }
+        
+        .skill-card.installed .capabilities li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #10b981;
+        }
+        
+        .skill-card.pending .capabilities li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+        }
+        
+        .card-footer {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .installed .status-badge {
+            color: #10b981;
+        }
+        
+        .pending .status-badge {
+            color: #f59e0b;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .installed .status-dot {
+            background: #10b981;
+        }
+        
+        .pending .status-dot {
+            background: #f59e0b;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .view-link {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .installed .view-link {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        
+        .pending .view-link {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .view-link:hover {
+            opacity: 0.8;
+        }
+        
+        .system-info {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .system-info h3 {
+            font-size: 16px;
+            color: #f1f5f9;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .info-item .icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .info-item .text {
+            flex: 1;
+        }
+        
+        .info-item .label {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+        
+        .info-item .value {
+            font-size: 14px;
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌾 灌溉系统技能图谱</h1>
+            <p>智能农业 · 精准灌溉 · 水肥一体化</p>
+        </header>
+        
+        <div class="skills-grid">
+            <!-- Skill 1: Soil & Water Management -->
+            <div class="skill-card installed">
+                <div class="card-header">
+                    <div class="card-icon">🌱</div>
+                    <div class="card-title">
+                        <h2>土壤与水分管理</h2>
+                        <div class="en-name">Soil & Water Management</div>
+                    </div>
+                </div>
+                
+                <div class="card-tags">
+                    <span class="tag">土壤检测</span>
+                    <span class="tag">堆肥</span>
+                    <span class="tag">滴灌</span>
+                    <span class="tag">雨水收集</span>
+                </div>
+                
+                <ul class="capabilities">
+                    <li>土壤质地与pH检测分析</li>
+                    <li>N-P-K养分管理与堆肥方案</li>
+                    <li>滴灌/喷灌系统设计与效率优化</li>
+                    <li>雨水收集系统规划与合规检查</li>
+                    <li>坡地水分管理（沟渠/梯田）</li>
+                </ul>
+                
+                <div class="card-footer">
+                    <div class="status-badge">
+                        <span class="status-dot"></span>
+                        <span>已安装 · v1.0.0</span>
+                    </div>
+                    <a href="soil-water-management-card.html" class="view-link">查看详情 →</a>
+                </div>
+            </div>
+            
+            <!-- Skill 2: Fertigation -->
+            <div class="skill-card pending">
+                <div class="card-header">
+                    <div class="card-icon">⚗️</div>
+                    <div class="card-title">
+                        <h2>水肥一体化</h2>
+                        <div class="en-name">Fertigation</div>
+                    </div>
+                </div>
+                
+                <div class="card-tags">
+                    <span class="tag">精准施肥</span>
+                    <span class="tag">注入控制</span>
+                    <span class="tag">EC/pH监测</span>
+                    <span class="tag">自动化</span>
+                </div>
+                
+                <ul class="capabilities">
+                    <li>水肥一体化系统架构设计</li>
+                    <li>肥料配比计算与精准注入控制</li>
+                    <li>灌溉施肥同步调度策略</li>
+                    <li>EC/pH实时监测与自动调节</li>
+                    <li>多区域差异化施肥方案</li>
+                </ul>
+                
+                <div class="card-footer">
+                    <div class="status-badge">
+                        <span class="status-dot"></span>
+                        <span>安装中 · v1.0.0</span>
+                    </div>
+                    <a href="fertigation-card.html" class="view-link">查看详情 →</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="system-info">
+            <h3>🤖 Jetton 系统信息</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="icon">🎯</div>
+                    <div class="text">
+                        <div class="label">用途定位</div>
+                        <div class="value">灌溉系统课件设计专家</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="icon">📚</div>
+                    <div class="text">
+                        <div class="label">技能来源</div>
+                        <div class="value">ClawHub Registry</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="icon">⏱️</div>
+                    <div class="text">
+                        <div class="label">更新时间</div>
+                        <div class="value">2026-04-05</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="icon">🔗</div>
+                    <div class="text">
+                        <div class="label">团队对接</div>
+                        <div class="value">灌溉系统项目组</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -2,6 +2,301 @@
 
 ---
 
+## 【GitHub Token 管理指南】多仓库权限对照表 (2026-04-15)
+
+**适用场景**: 部署失败、Release创建失败、推送权限错误
+**关键词**: GitHub Token, gh, credentials, permission, 404
+
+### Token 权限矩阵
+
+| 仓库 | 所有者 | Token位置 | 用途 | 权限范围 |
+|------|--------|-----------|------|---------|
+| `hiyaScott/scott-portfolio` | hiyascott | `~/.git-credentials` | 个人作品集部署、Release创建 | 完整repo权限 |
+| `S-Rain-sys/counter` | S-Rain-sys | 环境变量 `SRAIN_GITHUB_TOKEN` | 灌溉计算器发布 | 仅S-Rain仓库 |
+| `hiyamax-blog` | hiyascott | `~/.git-credentials` | AI短片Pipeline | 完整repo权限 |
+
+### 常见错误
+
+**❌ 用 S-Rain Token 操作 hiyascott 仓库**
+```bash
+# 错误！会返回 404 或权限不足
+curl -H "Authorization: token $SRAIN_GITHUB_TOKEN" \
+  https://api.github.com/repos/hiyaScott/scott-portfolio/releases
+```
+
+**✅ 正确做法**
+```bash
+# 使用 hiyascott 的 token（从 git-credentials 读取）
+gh auth login  # 已配置，使用 ~/.git-credentials
+gh release create v1.0.0  # 自动使用正确token
+```
+
+### 快速修复步骤
+
+1. **检查当前使用的 token：**
+```bash
+cat ~/.git-credentials
+# 输出: https://hiyascott:TOKEN@github.com
+```
+
+2. **确认 gh CLI 已认证：**
+```bash
+gh auth status
+# 应显示: hiyascott 已登录
+```
+
+3. **创建 Release：**
+```bash
+cd /root/.openclaw/workspace/portfolio-blog
+gh release create v1.2.3 --title "Release v1.2.3" --notes "更新内容..."
+```
+
+### 教训
+
+> 2026-04-15 尝试用 S-Rain Token 创建 hiyascott 仓库的 Release，返回 404。
+> 
+> **Token 是绑定用户的，不是通用的。**
+> - hiyascott 的仓库 → 用 hiyascott 的 token
+> - S-Rain 的仓库 → 用 S-Rain 的 token
+> 
+> 不要混用。
+
+---
+
+## 【Debug参考】飞书群聊通信故障排查手册 (2026-04-15)
+
+**适用场景**: 飞书群聊单向通信（能发不能收）、免@模式失效、部分群不响应
+**关键词**: feishu, groupAllowFrom, requireMention, groupPolicy, Webhook vs WebSocket
+
+### 典型症状与根因对照
+
+| 症状 | 可能原因 | 检查点 |
+|------|---------|--------|
+| 群聊完全不响应 | `plugins.entries.feishu.enabled: false` | 插件是否启用 |
+| 群聊@也不响应 | `groupAllowFrom` 配置错误 | 应为用户ID，不是群ID |
+| 免@模式失效 | `groups` 配置缺失/错误 | `groups["*"]` 或特定群ID配置 |
+| 部分群不响应 | `groupPolicy: allowlist` 限制 | 改为 `open` 或添加群到allowFrom |
+| Gateway报错 | `requireMention` 放在根级别 | 必须放在 `groups` 对象内 |
+
+### 正确配置模板
+
+```json
+{
+  "channels": {
+    "feishu": {
+      "enabled": true,
+      "groupPolicy": "open",           // 或 "allowlist"
+      "groupAllowFrom": ["ou_xxx"],   // 用户OpenID，不是群ID！
+      "groups": {
+        "*": {                          // 通配符所有群
+          "requireMention": false       // 免@模式
+        },
+        // 或针对特定群
+        "oc_xxx": {
+          "requireMention": false
+        }
+      }
+    }
+  },
+  "plugins": {
+    "entries": {
+      "feishu": {
+        "enabled": true                  // 关键！群聊需要这个
+      }
+    }
+  }
+}
+```
+
+### 常见错误
+
+**❌ 错误1: groupAllowFrom填群ID**
+```json
+"groupAllowFrom": ["oc_e689c874..."]  // 错误！这是群ID
+```
+✅ 应该是用户OpenID: `"ou_ae2349cbd9e26205ab3f802f8dddad4b"`
+
+**❌ 错误2: requireMention放根级别**
+```json
+{
+  "channels": {
+    "feishu": {
+      "requireMention": false,  // 错误！Gateway会报错
+      "groups": { ... }
+    }
+  }
+}
+```
+✅ 必须放在 `groups` 对象内部
+
+**❌ 错误3: 混淆Webhook和WebSocket问题**
+- Webhook vs WebSocket 是**传输层**差异，不影响消息是否被接收
+- 两种模式都调用同一个 `eventDispatcher` 处理消息
+- 遇到通信问题先查**配置权限逻辑**，而非假设传输层有问题
+
+### 快速诊断命令
+
+```bash
+# 检查当前配置
+cd /root/.openclaw && python3 << 'EOF'
+import json
+with open('openclaw.json', 'r') as f:
+    config = json.load(f)
+feishu = config['channels']['feishu']
+print(f"enabled: {feishu.get('enabled')}")
+print(f"groupPolicy: {feishu.get('groupPolicy')}")
+print(f"groupAllowFrom: {feishu.get('groupAllowFrom')}")
+print(f"groups: {feishu.get('groups')}")
+print(f"plugins.entries.feishu.enabled: {config['plugins']['entries']['feishu'].get('enabled')}")
+EOF
+
+# 重启Gateway使配置生效
+systemctl --user restart openclaw-gateway
+```
+
+### 教训总结
+
+> 2026-04-15 我犯的错误：笃定地认为「Webhook vs WebSocket 模式不匹配」是问题根源，建议改为长连接。实际上：
+> 
+> 1. **传输方式不影响消息接收** — Webhook和WebSocket最终都走同一个事件处理器
+> 2. **真正的问题是配置错误** — groupAllowFrom填错ID、requireMention位置错误、插件未启用
+> 3. **遇到通信问题先查配置** — 权限逻辑 > 传输层假设
+> 
+> 参考源码：`/usr/lib/node_modules/openclaw/extensions/feishu/src/bot.ts` 的群权限检查逻辑
+
+---
+
+## 【项目记录】HiyaMax Player & Creator 个人品牌网站 (2026-04-14)
+
+**项目位置**: `/root/.openclaw/workspace/portfolio-blog/research/max-home/`
+**最后修改**: 2026-04-14
+**状态**: ✅ 开发中（待发布到新地址）
+**版本**: v1.5.1
+
+### 项目概述
+HiyaMax 个人品牌网站，核心理念是 **"Player & Creator" 双定位身份** —— 既是虚拟世界的好奇探索者，也是游戏、艺术、发明和故事的创作者。
+
+### 核心设计思路
+
+**1. 双定位视觉隐喻**
+- 中央大幅头像区域，由两张图片叠加组成（max-player.webp + max-creator.webp）
+- 通过 clip-path 裁剪，Player 图片显示左半部分，Creator 图片显示右半部分
+- 鼠标/触摸移动时，头像会跟随偏移，产生动态交互效果
+- 这种设计直观表达了"一体两面"的概念：同一个创作者，既是玩家也是创造者
+
+**2. 品牌叙事文案**
+- **Player**: "A curious explorer of games, stories and virtual worlds."
+- **Creator**: "<small></>Creator<small>></small>" + "A maker of games, art, inventions, stories and my own IP"
+- 代码符号 </> 嵌入 Creator 标题，强化技术创作者形象
+
+**3. 视觉设计系统**
+- **配色**: 深色导航栏 (#1a1a1a) + 纯白背景，高对比度现代感
+- **字体**: Inter，字重从 200 (超细) 到 700 (粗体)，营造层次感
+- **头像尺寸**: 813×813px 大头像，视觉冲击力强
+- **背景大字**: 90px 黑色粗体 Player/Creator，定位标签
+
+**4. 响应式架构**
+- **桌面端**: 固定 1200px 宽度，精确像素级布局
+- **平板**: 使用 vw 单位自适应 (50vw 高度，7.5vw 字体)
+- **手机**: 汉堡菜单，全屏下拉导航
+
+**5. 导航结构**
+- about | games | books | artworks | hiyaMax™️
+- 社交媒体: 微信、小红书、Instagram、Facebook
+- 小写字母设计，纤细字重 (200)，精致现代
+
+**6. 作品展示区**
+- 标题: "Some of my latest work"
+- 卡片式布局，emoji + 渐变背景作为占位图
+- 示例内容: Pixel World Explorer (游戏)、Reading Tracker (Web)、Arduino Projects (硬件)
+
+**7. 交互细节**
+- 鼠标在 Hero 区域移动时，头像会轻微跟随 (最大偏移 30px)
+- 左右两侧的 Player/Creator 文字会根据鼠标位置产生透明度变化
+- 平滑过渡动画 (0.3s ease-out)
+
+### 技术实现亮点
+
+**图片叠加技术**:
+```css
+.avatar-player {
+  z-index: 2;
+  clip-path: inset(0 50% 0 0);  /* 显示左半 */
+}
+.avatar-creator {
+  z-index: 1;
+  clip-path: inset(0 0 0 50%);  /* 显示右半 */
+}
+```
+
+**动态交互逻辑**:
+- 监听 mousemove/touchmove 事件
+- 计算鼠标在屏幕的水平位置百分比 (-1 到 1)
+- 根据百分比调整头像位移和文字透明度
+- 使用 requestAnimationFrame 实现平滑动画
+
+### 文件结构
+```
+research/max-home/
+├── index.html              # 主页面 (4月14日)
+├── logo-hiya-max.webp      # Logo
+├── max-player.png/.webp    # Player 侧头像 (右侧被裁剪)
+├── max-creator.png/.webp   # Creator 侧头像 (左侧被裁剪)
+├── logo.png                # Logo 备用
+├── index.html.backup.20260414-105434  # 备份
+```
+
+### 未来发布计划
+- 当前托管在 GitHub Pages 子目录 (`research/max-home/`)
+- 设计完成后将发布到**独立新地址**（待确认具体域名）
+- 内容将填充真实的游戏、书籍、艺术作品项目
+
+### 设计哲学
+这个网站不只是作品集，而是一个**身份宣言** —— "我既是消费内容的玩家，也是创造内容的创作者"。双定位的设计选择反映了对游戏文化、创意产业和数字游民生活方式的深度认同。
+
+---
+
+## 【发布成功】S-Rain 灌溉计算器统计功能 v1.1 (2026-04-14)
+
+**发布时间**: 2026-04-14 21:30
+**版本**: v1.1
+**状态**: ✅ 已成功上线
+
+### 发布内容
+- **统计埋点功能**: 计算器生成报价时自动记录数据
+- **统计后台页面**: 独立的 admin 面板，密码访问
+- **数据导出**: 支持 CSV 格式下载
+
+### 访问地址
+- 📱 计算器: https://s-rain-sys.github.io/counter/index.html
+- 📊 统计后台: https://s-rain-sys.github.io/counter/stats.html (密码: `srain8`)
+
+### 提交记录
+- 主仓库: `2e01fe50` - v1.1: add stats tracking and admin panel
+- S-Rain: `27f3f35` - v1.1: add stats tracking and admin panel
+
+### 发布流程复盘
+
+**正确执行的步骤**:
+1. ✅ 本地代码修改完成 (index.html + stats.html)
+2. ✅ 提交到主仓库 hiyascott/scott-portfolio
+3. ✅ 使用正确的 S-Rain Token 部署
+4. ✅ QA 验证 (HTTP 200 + 内容检查)
+5. ✅ 确认上线后才通知用户
+
+**经验教训**:
+- **Token 管理**: S-Rain 和 hiyascott 使用不同 Token，必须区分
+- **权限检查**: 部署前确认 GitHub 账户权限
+- **QA 验证**: 必须等页面实际可访问后再说"完成"
+
+### 技术细节
+- 数据存储: localStorage (浏览器本地)
+- 埋点触发: 点击"生成报价"按钮
+- 统计维度: 总次数、今日/本周/本月、时段分布、趋势图
+- 导出格式: CSV
+
+---
+
 ## 【系统更新】凯拉什灌溉控制系统 v1.7.0 (2026-04-07)
 
 **更新时间**: 2026-04-07 12:30

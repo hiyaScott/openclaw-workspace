@@ -1,0 +1,2952 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>藏区灌溉系统控制台 - 交互原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* ========== 主题变量 ========== */
+        :root {
+            /* Dark Theme (Default) */
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --bg-hover: #252535;
+            --bg-card: #12121a;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: rgba(0, 212, 255, 0.15);
+            --border-light: rgba(255, 255, 255, 0.05);
+            --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --shadow-float: 0 10px 40px rgba(0, 0, 0, 0.5);
+            
+            --neon-blue: #00d4ff;
+            --neon-green: #39ff14;
+            --neon-amber: #ffaa00;
+            --neon-red: #ff4757;
+            --neon-purple: #a855f7;
+            
+            --header-height: 60px;
+            --sidebar-width: 240px;
+            --sidebar-collapsed-width: 60px;
+            --safe-area-top: env(safe-area-inset-top, 0);
+            --safe-area-bottom: env(safe-area-inset-bottom, 0);
+            --safe-area-left: env(safe-area-inset-left, 0);
+            --safe-area-right: env(safe-area-inset-right, 0);
+            
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Daylight Theme */
+        [data-theme="daylight"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --bg-hover: #e2e8f0;
+            --bg-card: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: rgba(0, 212, 255, 0.25);
+            --border-light: rgba(0, 0, 0, 0.06);
+            --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+            --shadow-float: 0 10px 40px rgba(0, 0, 0, 0.1);
+            
+            --neon-blue: #0ea5e9;
+            --neon-green: #22c55e;
+            --neon-amber: #f59e0b;
+            --neon-red: #ef4444;
+            --neon-purple: #a855f7;
+        }
+        
+        html {
+            font-size: 16px;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: background var(--transition-normal), color var(--transition-normal);
+        }
+        
+        /* ========== 顶部导航 ========== */
+        .header {
+            background: var(--bg-secondary);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-light);
+            padding: 0 16px;
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding-top: var(--safe-area-top);
+            transition: background var(--transition-normal);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* 菜单按钮 - 桌面端始终显示 */
+        .menu-btn {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .menu-btn:hover, .menu-btn:active {
+            background: var(--bg-hover);
+        }
+        
+        .menu-btn.active {
+            background: var(--bg-hover);
+            transform: rotate(180deg);
+        }
+        
+        /* 主题切换按钮 */
+        .theme-btn {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .theme-btn:hover {
+            background: var(--bg-hover);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--neon-blue);
+            transition: opacity var(--transition-fast);
+        }
+        
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            transition: transform var(--transition-fast);
+        }
+        
+        [data-sidebar="collapsed"] .logo-icon {
+            transform: scale(0.9);
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(57, 255, 20, 0.1);
+            border: 1px solid rgba(57, 255, 20, 0.2);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--neon-green);
+            white-space: nowrap;
+            transition: all var(--transition-fast);
+        }
+        
+        [data-theme="daylight"] .connection-status {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+        
+        .connection-status.offline {
+            background: rgba(255, 71, 87, 0.1);
+            border-color: rgba(255, 71, 87, 0.2);
+            color: var(--neon-red);
+        }
+        
+        [data-theme="daylight"] .connection-status.offline {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+        
+        .connection-status.connecting {
+            background: rgba(255, 170, 0, 0.1);
+            border-color: rgba(255, 170, 0, 0.2);
+            color: var(--neon-amber);
+        }
+        
+        [data-theme="daylight"] .connection-status.connecting {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+        
+        .connection-status span:first-child {
+            font-size: 8px;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background var(--transition-fast);
+            font-size: 14px;
+        }
+        
+        .user-menu:hover {
+            background: var(--bg-hover);
+        }
+        
+        /* ========== 侧边栏 ========== */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity var(--transition-normal);
+        }
+        
+        [data-theme="daylight"] .sidebar-overlay {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .sidebar-overlay.show {
+            opacity: 1;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: var(--header-height);
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-light);
+            padding: 16px 0;
+            overflow-y: auto;
+            z-index: 998;
+            transition: width var(--transition-normal), transform var(--transition-normal), background var(--transition-normal);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 侧边栏折叠状态 - 桌面端 */
+        @media (min-width: 769px) {
+            [data-sidebar="collapsed"] .sidebar {
+                width: var(--sidebar-collapsed-width);
+            }
+            
+            [data-sidebar="collapsed"] .nav-item span:not(.icon),
+            [data-sidebar="collapsed"] .nav-badge,
+            [data-sidebar="collapsed"] .nav-title {
+                opacity: 0;
+                width: 0;
+                overflow: hidden;
+            }
+            
+            [data-sidebar="collapsed"] .nav-item {
+                justify-content: center;
+                padding: 12px;
+            }
+            
+            [data-sidebar="collapsed"] .nav-item .icon {
+                width: auto;
+                font-size: 22px;
+            }
+            
+            [data-sidebar="collapsed"] .version-info {
+                opacity: 0;
+                pointer-events: none;
+            }
+            
+            [data-sidebar="collapsed"] .main-content {
+                margin-left: var(--sidebar-collapsed-width);
+            }
+        }
+        
+        /* 版本信息 */
+        .version-info {
+            margin-top: auto;
+            padding: 12px 16px calc(12px + var(--safe-area-bottom));
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-light);
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+            transition: opacity var(--transition-fast);
+        }
+        
+        .nav-section {
+            margin-bottom: 20px;
+        }
+        
+        .nav-title {
+            padding: 0 16px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            transition: opacity var(--transition-fast);
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            margin: 0 8px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border-radius: 10px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            min-height: 48px;
+            white-space: nowrap;
+        }
+        
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .nav-item.active {
+            background: var(--neon-blue);
+            color: white;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+        }
+        
+        [data-theme="daylight"] .nav-item.active {
+            box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
+        }
+        
+        .nav-item .icon {
+            width: 24px;
+            text-align: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            transition: font-size var(--transition-fast);
+        }
+        
+        .nav-badge {
+            margin-left: auto;
+            background: var(--neon-red);
+            color: white;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+            flex-shrink: 0;
+            transition: opacity var(--transition-fast);
+        }
+        
+        /* ========== 主内容区 ========== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--header-height);
+            padding: 20px;
+            padding-bottom: calc(20px + var(--safe-area-bottom));
+            min-height: calc(100vh - var(--header-height));
+            transition: margin-left var(--transition-normal);
+        }
+        
+        .page-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .page-title > span {
+            font-weight: 600;
+        }
+        
+        .page-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        /* ========== 统计卡片 ========== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+            box-shadow: var(--shadow-card);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-color);
+            box-shadow: var(--shadow-float);
+        }
+        
+        [data-theme="daylight"] .stat-card:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card:active {
+            transform: translateY(0);
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        
+        .stat-value.success { color: var(--neon-green); }
+        .stat-value.primary { color: var(--neon-blue); }
+        .stat-value.warning { color: var(--neon-amber); }
+        .stat-value.danger { color: var(--neon-red); }
+        
+        .stat-change {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .stat-change.positive {
+            color: var(--neon-green);
+        }
+        
+        /* ========== 内容卡片 ========== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            transition: background var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
+        }
+        
+        [data-theme="daylight"] .card {
+            border: 1px solid var(--border-light);
+        }
+        
+        .card-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+        
+        .card-body {
+            padding: 16px;
+        }
+        
+        /* ========== 设备网格 ========== */
+        .device-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        
+        .device-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            padding: 16px;
+            transition: all var(--transition-fast);
+        }
+        
+        .device-card:hover {
+            border-color: var(--border-color);
+            transform: translateY(-1px);
+        }
+        
+        [data-theme="daylight"] .device-card {
+            background: #f8fafc;
+        }
+        
+        .device-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+        
+        .device-name {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            word-break: break-word;
+        }
+        
+        .device-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .device-status.online {
+            background: rgba(57, 255, 20, 0.15);
+            color: var(--neon-green);
+        }
+        
+        [data-theme="daylight"] .device-status.online {
+            background: rgba(34, 197, 94, 0.12);
+        }
+        
+        .device-status.offline {
+            background: rgba(255, 71, 87, 0.15);
+            color: var(--neon-red);
+        }
+        
+        [data-theme="daylight"] .device-status.offline {
+            background: rgba(239, 68, 68, 0.12);
+        }
+        
+        .device-status.warning {
+            background: rgba(255, 170, 0, 0.15);
+            color: var(--neon-amber);
+        }
+        
+        [data-theme="daylight"] .device-status.warning {
+            background: rgba(245, 158, 11, 0.12);
+        }
+        
+        .device-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        
+        .device-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            padding: 4px 0;
+        }
+        
+        .device-controls {
+            display: flex;
+            gap: 8px;
+        }
+        
+        /* ========== 按钮 ========== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border: none;
+            outline: none;
+            min-height: 44px;
+            white-space: nowrap;
+            touch-action: manipulation;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary {
+            background: var(--neon-blue);
+            color: white;
+        }
+        
+        [data-theme="daylight"] .btn-primary {
+            background: #0ea5e9;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+        }
+        
+        .btn-success {
+            background: var(--neon-green);
+            color: white;
+        }
+        
+        [data-theme="daylight"] .btn-success {
+            background: #22c55e;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35);
+        }
+        
+        .btn-danger {
+            background: var(--neon-red);
+            color: white;
+        }
+        
+        [data-theme="daylight"] .btn-danger {
+            background: #ef4444;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+        }
+        
+        [data-theme="daylight"] .btn-secondary {
+            background: #f1f5f9;
+            border-color: #e2e8f0;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 13px;
+            min-height: 36px;
+        }
+        
+        /* ========== 开关 ========== */
+        .switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            background: var(--bg-tertiary);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background var(--transition-fast);
+            border: 1px solid var(--border-light);
+            flex-shrink: 0;
+        }
+        
+        .switch.active {
+            background: var(--neon-green);
+            border-color: var(--neon-green);
+        }
+        
+        .switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform var(--transition-fast);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .switch.active::after {
+            transform: translateX(22px);
+        }
+        
+        /* ========== 告警列表 ========== */
+        .alert-list {
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: var(--bg-tertiary);
+            border-left: 3px solid transparent;
+            transition: background var(--transition-fast);
+        }
+        
+        [data-theme="daylight"] .alert-item {
+            background: #f8fafc;
+        }
+        
+        .alert-item:hover {
+            background: var(--bg-hover);
+        }
+        
+        .alert-item.warning {
+            border-left-color: var(--neon-amber);
+        }
+        
+        .alert-item.danger {
+            border-left-color: var(--neon-red);
+        }
+        
+        .alert-item.info {
+            border-left-color: var(--neon-blue);
+        }
+        
+        .alert-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        
+        .alert-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .alert-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+        
+        .alert-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        .alert-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        
+        /* ========== Toast 通知 ========== */
+        .toast-container {
+            position: fixed;
+            top: calc(var(--header-height) + 16px);
+            right: 16px;
+            left: 16px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+        
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow-float);
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+            max-width: 400px;
+            margin-left: auto;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .toast.success {
+            border-color: var(--neon-green);
+        }
+        
+        .toast.error {
+            border-color: var(--neon-red);
+        }
+        
+        .toast.warning {
+            border-color: var(--neon-amber);
+        }
+        
+        /* ========== 模态框 ========== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-normal);
+            padding: 20px;
+            padding-bottom: calc(20px + var(--safe-area-bottom));
+        }
+        
+        [data-theme="daylight"] .modal-overlay {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9) translateY(20px);
+            transition: transform var(--transition-normal);
+        }
+        
+        .modal-overlay.show .modal {
+            transform: scale(1) translateY(0);
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .modal-body {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .modal-footer .btn {
+            flex: 1;
+        }
+        
+        /* ========== 进度条 ========== */
+        .progress-bar {
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-green));
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        
+        /* ========== 树形结构 ========== */
+        .tree-node {
+            padding: 6px 0;
+        }
+        
+        .tree-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 10px 12px;
+            border-radius: 8px;
+            transition: background var(--transition-fast);
+            min-height: 44px;
+        }
+        
+        .tree-header:hover {
+            background: var(--bg-hover);
+        }
+        
+        .tree-children {
+            padding-left: 24px;
+            border-left: 1px dashed var(--border-color);
+            margin-left: 12px;
+        }
+        
+        /* ========== 隐藏内容 ========== */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* ========== 页面切换动画 ========== */
+        .page {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* ========== 加载动画 ========== */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-light);
+            border-top-color: var(--neon-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ========== 脉冲动画 ========== */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* ========== 两列布局 ========== */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        /* ========== 7天预测 ========== */
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+        }
+        
+        .forecast-item {
+            text-align: center;
+            padding: 16px 8px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            transition: transform var(--transition-fast);
+        }
+        
+        [data-theme="daylight"] .forecast-item {
+            background: #f8fafc;
+        }
+        
+        .forecast-item:hover {
+            transform: translateY(-2px);
+        }
+        
+        .forecast-item.today {
+            border: 1px solid var(--neon-green);
+        }
+        
+        /* ========== 输入框 ========== */
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 15px;
+            min-height: 44px;
+            -webkit-appearance: none;
+            appearance: none;
+            transition: border-color var(--transition-fast), background var(--transition-fast);
+        }
+        
+        [data-theme="daylight"] input[type="text"],
+        [data-theme="daylight"] input[type="number"],
+        [data-theme="daylight"] select {
+            background: #f8fafc;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+        }
+        
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+        
+        /* ========== 日志列表 ========== */
+        .log-item {
+            display: flex;
+            padding: 14px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 13px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .log-time {
+            color: var(--text-muted);
+            min-width: 140px;
+        }
+        
+        .log-user {
+            min-width: 70px;
+        }
+        
+        .log-action {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .log-result {
+            font-weight: 500;
+        }
+        
+        .log-result.success { color: var(--neon-green); }
+        .log-result.warning { color: var(--neon-amber); }
+        .log-result.error { color: var(--neon-red); }
+        
+        /* ========== 推荐卡片 ========== */
+        .recommendation-card {
+            padding: 20px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border-left: 4px solid;
+        }
+        
+        [data-theme="daylight"] .recommendation-card {
+            background: #f8fafc;
+        }
+        
+        .recommendation-card.priority-high { border-left-color: var(--neon-red); }
+        .recommendation-card.priority-medium { border-left-color: var(--neon-amber); }
+        .recommendation-card.priority-low { border-left-color: var(--neon-blue); }
+        
+        /* ========== 作物状态卡片 ========== */
+        .crop-card {
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+        
+        [data-theme="daylight"] .crop-card {
+            background: #f8fafc;
+        }
+        
+        /* ========== 快捷操作 ========== */
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        /* ========== 传感器数据卡片 ========== */
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .sensor-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+        }
+        
+        .sensor-card:hover {
+            border-color: var(--border-color);
+            transform: translateY(-2px);
+        }
+        
+        .sensor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-green));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .sensor-card.live::before {
+            opacity: 1;
+            animation: pulse-bar 2s infinite;
+        }
+        
+        @keyframes pulse-bar {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .sensor-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .sensor-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        
+        .sensor-icon.soil {
+            background: rgba(57, 255, 20, 0.1);
+            color: var(--neon-green);
+        }
+        
+        [data-theme="daylight"] .sensor-icon.soil {
+            background: rgba(34, 197, 94, 0.1);
+        }
+        
+        .sensor-icon.temp {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--neon-red);
+        }
+        
+        [data-theme="daylight"] .sensor-icon.temp {
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .sensor-icon.wind {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--neon-blue);
+        }
+        
+        [data-theme="daylight"] .sensor-icon.wind {
+            background: rgba(14, 165, 233, 0.1);
+        }
+        
+        .sensor-icon.solar {
+            background: rgba(255, 170, 0, 0.1);
+            color: var(--neon-amber);
+        }
+        
+        [data-theme="daylight"] .sensor-icon.solar {
+            background: rgba(245, 158, 11, 0.1);
+        }
+        
+        .sensor-name {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .sensor-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-family: 'SF Mono', Monaco, monospace;
+            letter-spacing: -0.5px;
+        }
+        
+        .sensor-value .unit {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+        
+        .sensor-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .sensor-trend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .sensor-trend.up {
+            color: var(--neon-green);
+        }
+        
+        .sensor-trend.down {
+            color: var(--neon-red);
+        }
+        
+        .sensor-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            background: rgba(57, 255, 20, 0.1);
+            color: var(--neon-green);
+            border-radius: 10px;
+            font-size: 11px;
+        }
+        
+        .sensor-status::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* ========== 传感器详情 ========== */
+        .sensor-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 12px;
+        }
+        
+        .sensor-detail-item {
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        [data-theme="daylight"] .sensor-detail-item {
+            background: #f1f5f9;
+        }
+        
+        .sensor-detail-value {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .sensor-detail-label {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        
+        /* ========== 任务卡片 ========== */
+        .task-card {
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+        
+        [data-theme="daylight"] .task-card {
+            background: #f8fafc;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .task-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        
+        .task-progress-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            text-align: right;
+        }
+        
+        /* ========== 计划项 ========== */
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        [data-theme="daylight"] .schedule-item {
+            background: #f8fafc;
+        }
+        
+        .schedule-info {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .schedule-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .schedule-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        
+        .schedule-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        /* ========== 状态标签 ========== */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .status-badge.high {
+            background: rgba(255, 71, 87, 0.15);
+            color: var(--neon-red);
+        }
+        
+        [data-theme="daylight"] .status-badge.high {
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .status-badge.medium {
+            background: rgba(255, 170, 0, 0.15);
+            color: var(--neon-amber);
+        }
+        
+        [data-theme="daylight"] .status-badge.medium {
+            background: rgba(245, 158, 11, 0.1);
+        }
+        
+        .status-badge.low {
+            background: rgba(0, 212, 255, 0.15);
+            color: var(--neon-blue);
+        }
+        
+        [data-theme="daylight"] .status-badge.low {
+            background: rgba(14, 165, 233, 0.1);
+        }
+        
+        /* ========== 标签 ========== */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            background: rgba(57, 255, 20, 0.1);
+            color: var(--neon-green);
+            border-radius: 12px;
+            font-size: 12px;
+            gap: 4px;
+        }
+        
+        [data-theme="daylight"] .tag {
+            background: rgba(34, 197, 94, 0.1);
+        }
+        
+        /* ========== 响应式 - 平板 ========== */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .sensor-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .sensor-detail-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* ========== 响应式 - 手机 ========== */
+        @media (max-width: 768px) {
+            :root {
+                --header-height: 56px;
+            }
+            
+            html {
+                font-size: 15px;
+            }
+            
+            .sidebar-overlay {
+                display: block;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+                top: 0;
+                padding-top: calc(var(--header-height) + 8px);
+                width: 280px;
+                max-width: 80vw;
+                box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+            }
+            
+            [data-theme="daylight"] .sidebar {
+                box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            /* 移动端不使用折叠状态 */
+            [data-sidebar="collapsed"] .sidebar {
+                width: 280px;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+            
+            [data-sidebar="collapsed"] .main-content {
+                margin-left: 0;
+            }
+            
+            .logo span {
+                font-size: 14px;
+            }
+            
+            .user-menu span:last-child,
+            .connection-status span:last-child {
+                display: none;
+            }
+            
+            .connection-status {
+                padding: 8px;
+            }
+            
+            .page-title {
+                font-size: 18px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .page-actions {
+                width: 100%;
+            }
+            
+            .page-actions .btn {
+                flex: 1;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .sensor-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+            
+            .sensor-card {
+                padding: 14px;
+            }
+            
+            .sensor-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+            
+            .sensor-value {
+                font-size: 22px;
+            }
+            
+            .sensor-detail-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-card {
+                padding: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+            }
+            
+            .stat-label {
+                margin-bottom: 4px;
+            }
+            
+            .stat-value {
+                font-size: 28px;
+                margin-bottom: 0;
+            }
+            
+            .device-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .forecast-grid {
+                display: flex;
+                gap: 10px;
+                overflow-x: auto;
+                padding-bottom: 8px;
+                -webkit-overflow-scrolling: touch;
+                scroll-snap-type: x mandatory;
+            }
+            
+            .forecast-item {
+                flex: 0 0 calc(25% - 8px);
+                min-width: 80px;
+                padding: 14px 8px;
+                scroll-snap-align: start;
+            }
+            
+            .log-item {
+                flex-direction: column;
+                gap: 6px;
+            }
+            
+            .log-time, .log-user {
+                min-width: auto;
+            }
+            
+            .modal-footer {
+                flex-direction: column-reverse;
+            }
+            
+            .modal-footer .btn {
+                width: 100%;
+            }
+            
+            .schedule-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .schedule-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .tree-children {
+                padding-left: 16px;
+                margin-left: 8px;
+            }
+            
+            .alert-item {
+                padding: 12px;
+            }
+            
+            .toast {
+                max-width: none;
+                margin-left: 0;
+            }
+        }
+        
+        /* ========== 小屏手机 ========== */
+        @media (max-width: 380px) {
+            .logo span {
+                display: none;
+            }
+            
+            .connection-status {
+                padding: 6px;
+            }
+            
+            .stat-value {
+                font-size: 24px;
+            }
+            
+            .sensor-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sensor-value {
+                font-size: 26px;
+            }
+            
+            .forecast-item {
+                flex: 0 0 calc(33.333% - 7px);
+            }
+        }
+        
+        /* ========== 横屏手机 ========== */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .sidebar {
+                padding-top: calc(var(--header-height) + 4px);
+            }
+            
+            .nav-item {
+                padding: 8px 16px;
+                min-height: 40px;
+            }
+        }
+        
+        /* ========== 超大屏幕 ========== */
+        @media (min-width: 1920px) {
+            .main-content {
+                max-width: 1600px;
+                margin-left: var(--sidebar-width);
+                margin-right: auto;
+            }
+            
+            [data-sidebar="collapsed"] .main-content {
+                margin-left: var(--sidebar-collapsed-width);
+            }
+            
+            .device-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            }
+        }
+        
+        /* ========== 打印优化 ========== */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            
+            .sidebar, .header {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                margin-top: 0;
+            }
+        }
+        
+        /* ========== 减少动画偏好 ========== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body data-theme="dark" data-sidebar="expanded">
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="header-left">
+            <button class="menu-btn" id="menuBtn" aria-label="切换侧边栏">☰</button>
+            <div class="logo">
+                <div class="logo-icon">🌾</div>
+                <span>冈仁波齐灌溉控制台</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="theme-btn" id="themeBtn" aria-label="切换主题">🌙</button>
+            <div class="connection-status" id="connectionStatus">
+                <span class="pulse">●</span>
+                <span>已连接</span>
+            </div>
+            <div class="user-menu">
+                <span>👤 管理员</span>
+                <span>▼</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 侧边栏遮罩 -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- 侧边栏 -->
+    <aside class="sidebar" id="sidebar">
+        <div class="nav-section">
+            <div class="nav-title">主菜单</div>
+            <div class="nav-item active" data-page="dashboard">
+                <span class="icon">📊</span>
+                <span>仪表盘</span>
+            </div>
+            <div class="nav-item" data-page="irrigation">
+                <span class="icon">💧</span>
+                <span>灌溉管理</span>
+            </div>
+            <div class="nav-item" data-page="fertilization">
+                <span class="icon">🧪</span>
+                <span>施肥管理</span>
+                <span class="nav-badge" style="background: var(--neon-purple);">3</span>
+            </div>
+            <div class="nav-item" data-page="devices">
+                <span class="icon">🔧</span>
+                <span>设备管理</span>
+                <span class="nav-badge">2</span>
+            </div>
+            <div class="nav-item" data-page="analytics">
+                <span class="icon">📈</span>
+                <span>数据分析</span>
+            </div>
+            <div class="nav-item" data-page="recommendation">
+                <span class="icon">🤖</span>
+                <span>智能推荐</span>
+                <span class="nav-badge" style="background: var(--neon-green);">3</span>
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-title">系统</div>
+            <div class="nav-item" data-page="settings">
+                <span class="icon">⚙️</span>
+                <span>系统设置</span>
+            </div>
+            <div class="nav-item" data-page="logs">
+                <span class="icon">📝</span>
+                <span>系统日志</span>
+            </div>
+        </div>
+        
+        <!-- 版本信息 -->
+        <div class="version-info">
+            <div id="version-display">v1.7.0 · 2026-04-07</div>
+            <div style="font-size: 10px; margin-top: 4px; opacity: 0.7;">冈仁波齐灌溉系统</div>
+        </div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <!-- 仪表盘页面 -->
+        <div class="page" id="page-dashboard">
+            <div class="page-title">
+                <span>📊 系统概览</span>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="refreshData()">
+                        <span>🔄</span> 刷新
+                    </button>
+                    <button class="btn btn-primary" onclick="showQuickControl()">
+                        <span>⚡</span> 快捷控制
+                    </button>
+                </div>
+            </div>
+
+            <!-- 实时传感器数据 -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📡 实时环境监控</span>
+                    <span class="sensor-status">实时更新</span>
+                </div>
+                <div class="card-body">
+                    <div class="sensor-grid">
+                        <div class="sensor-card live">
+                            <div class="sensor-header">
+                                <div class="sensor-icon soil">💧</div>
+                                <div class="sensor-name">土壤湿度</div>
+                            </div>
+                            <div class="sensor-value">
+                                <span id="soil-moisture">62.4</span><span class="unit">%</span>
+                            </div>
+                            <div class="sensor-meta">
+                                <span class="sensor-trend up">↑ 2.1%</span>
+                                <span>10cm深度</span>
+                            </div>
+                            <div class="sensor-detail-grid">
+                                <div class="sensor-detail-item">
+                                    <div class="sensor-detail-value" style="color: var(--neon-green);">65%</div>
+                                    <div class="sensor-detail-label">20cm</div>
+                                </div>
+                                <div class="sensor-detail-item">
+                                    <div class="sensor-detail-value" style="color: var(--neon-blue);">68%</div>
+                                    <div class="sensor-detail-label">30cm</div>
+                                </div>
+                                <div class="sensor-detail-item">
+                                    <div class="sensor-detail-value" style="color: var(--neon-purple);">72%</div>
+                                    <div class="sensor-detail-label">40cm</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="sensor-card live">
+                            <div class="sensor-header">
+                                <div class="sensor-icon temp">🌡️</div>
+                                <div class="sensor-name">环境温度</div>
+                            </div>
+                            <div class="sensor-value">
+                                <span id="air-temp">8.5</span><span class="unit">°C</span>
+                            </div>
+                            <div class="sensor-meta">
+                                <span class="sensor-trend down">↓ 1.2°C</span>
+                                <span>棚外温度</span>
+                            </div>
+                            <div class="sensor-detail-grid">
+                                <div class="sensor-detail-item">
+                                    <div class="sensor-detail-value" style="color: var(--neon-green);">12°C</div>
+                                    <div class="sensor-detail-label">棚内</div>
+                                </div>
+                                <div class="sensor-detail-item">
+                                    <div class="sensor-detail-value" style="color: var(--neon-amber);">6°C</div>
+                                    <div class="sensor-detail-label">地表</div>
+                                </div>
+                                <div class="sensor-detail-item">
+                                    <div class="sensor-detail-value" style="color: var(--neon-blue);">8°C</div>
+                                    <div class="sensor-detail-label">土壤</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="sensor-card live">
+                            <div class="sensor-header">
+                                <div class="sensor-icon wind">🌬️</div>
+                                <div class="sensor-name">风速风向</div>
+                            </div>
+                            <div class="sensor-value">
+                                <span id="wind-speed">4.2</span><span class="unit">m/s</span>
+                            </div>
+                            <div class="sensor-meta">
+                                <span class="sensor-trend up">↑ 0.8m/s</span>
+                                <span id="wind-dir">西北风</span>
+                            </div>
+                            <div class="sensor-detail-grid">
+                                <div class="sensor-detail-item">
+                                    <div class="sensor-detail-value" style="color: var(--neon-amber);">8.5</div>
+                                    <div class="sensor-detail-label">阵风 m/s</div>
+                                </div>
+                                <div class="sensor-detail-item">
+                                    <div class="sensor-detail-value" style="color: var(--neon-blue);">315°</div>
+                                    <div class="sensor-detail-label">风向</div>
+                                </div>
+                                <div class="sensor-detail-item">
+                                    <div class="sensor-detail-value" style="color: var(--text-muted);">2级</div>
+                                    <div class="sensor-detail-label">风力</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="sensor-card live">
+                            <div class="sensor-header">
+                                <div class="sensor-icon solar">☀️</div>
+                                <div class="sensor-name">太阳辐射</div>
+                            </div>
+                            <div class="sensor-value">
+                                <span id="solar-radiation">856</span><span class="unit">W/m²</span>
+                            </div>
+                            <div class="sensor-meta">
+                                <span class="sensor-trend down">↓ 12%</span>
+                                <span>紫外线 极强</span>
+                            </div>
+                            <div class="sensor-detail-grid">
+                                <div class="sensor-detail-item">
+                                    <div class="sensor-detail-value" style="color: var(--neon-amber);">UV 11</div>
+                                    <div class="sensor-detail-label">指数</div>
+                                </div>
+                                <div class="sensor-detail-item">
+                                    <div class="sensor-detail-value" style="color: var(--neon-blue);">42k</div>
+                                    <div class="sensor-detail-label">Lux</div>
+                                </div>
+                                <div class="sensor-detail-item">
+                                    <div class="sensor-detail-value" style="color: var(--neon-green);">85%</div>
+                                    <div class="sensor-detail-label">日照率</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card" onclick="navigateTo('devices')">
+                    <div>
+                        <div class="stat-label">在线设备</div>
+                        <div class="stat-value success" id="stat-online">12</div>
+                    </div>
+                    <div class="stat-change">共 14 台设备</div>
+                </div>
+                <div class="stat-card" onclick="navigateTo('irrigation')">
+                    <div>
+                        <div class="stat-label">运行中</div>
+                        <div class="stat-value primary" id="stat-running">5</div>
+                    </div>
+                    <div class="stat-change">3个区域灌溉中</div>
+                </div>
+                <div class="stat-card" onclick="showAlerts()">
+                    <div>
+                        <div class="stat-label">待处理告警</div>
+                        <div class="stat-value warning" id="stat-alerts">2</div>
+                    </div>
+                    <div class="stat-change">1个紧急</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">今日用水量</div>
+                        <div class="stat-value" style="color: var(--neon-blue);">128m³</div>
+                    </div>
+                    <div class="stat-change positive">↓ 15% 较昨日</div>
+                </div>
+            </div>
+
+            <!-- 智能推荐卡片 -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🤖 智能灌溉推荐</span>
+                    <span style="font-size: 12px; color: var(--neon-green);">基于高海拔作物模型分析</span>
+                </div>
+                <div class="card-body">
+                    <div id="smart-recommendations"></div>
+                </div>
+            </div>
+
+            <!-- 实时告警 -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">⚠️ 实时告警</span>
+                    <button class="btn btn-sm btn-secondary" onclick="clearAllAlerts()">全部清除</button>
+                </div>
+                <div class="card-body">
+                    <div class="alert-list" id="alert-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 灌溉管理页面 -->
+        <div class="page hidden" id="page-irrigation">
+            <div class="page-title">
+                <span>💧 灌溉管理</span>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="refreshData()">
+                        <span>🔄</span> 刷新
+                    </button>
+                    <button class="btn btn-primary" onclick="showToast('功能开发中', 'info')">
+                        <span>+</span> 新建灌溉程序
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🎮 手动控制</span>
+                    <div class="quick-actions">
+                        <button class="btn btn-sm btn-success" onclick="showToast('全部开启命令已发送', 'success')">全部开启</button>
+                        <button class="btn btn-sm btn-danger" onclick="showToast('全部关闭命令已发送', 'success')">全部关闭</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="device-grid" id="irrigation-controls"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📅 灌溉计划</span>
+                </div>
+                <div class="card-body">
+                    <div id="schedule-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 施肥管理页面 -->
+        <div class="page hidden" id="page-fertilization">
+            <div class="page-title">
+                <span>🧪 施肥管理</span>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="refreshData()">
+                        <span>🔄</span> 刷新
+                    </button>
+                    <button class="btn btn-primary" onclick="showToast('功能开发中', 'info')">
+                        <span>+</span> 新建施肥计划
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🧪 施肥阀控制</span>
+                </div>
+                <div class="card-body">
+                    <div id="fertilization-valves"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📅 施肥计划</span>
+                </div>
+                <div class="card-body">
+                    <div id="fertilization-schedule"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设备管理页面 -->
+        <div class="page hidden" id="page-devices">
+            <div class="page-title">
+                <span>🔧 设备管理</span>
+                <div class="page-actions">
+                    <button class="btn btn-secondary">📥 导出</button>
+                    <button class="btn btn-primary">🔍 搜索</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🗺️ 设备拓扑图</span>
+                    <button class="btn btn-sm btn-secondary" onclick="toggleAllNodes()">展开/折叠全部</button>
+                </div>
+                <div class="card-body">
+                    <div id="device-tree"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📋 设备列表</span>
+                </div>
+                <div class="card-body">
+                    <div class="device-grid" id="device-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据分析页面 -->
+        <div class="page hidden" id="page-analytics">
+            <div class="page-title">
+                <span>📈 数据分析</span>
+                <div class="page-actions">
+                    <select style="padding: 10px 12px;">
+                        <option>近7天</option>
+                        <option>近30天</option>
+                        <option>本年度</option>
+                    </select>
+                    <button class="btn btn-primary">📥 导出报表</button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">总用水量</div>
+                        <div class="stat-value" style="color: var(--neon-blue);">2,456m³</div>
+                    </div>
+                    <div class="stat-change">本月累计</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">节水率</div>
+                        <div class="stat-value success">42%</div>
+                    </div>
+                    <div class="stat-change">较传统漫灌</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">设备在线率</div>
+                        <div class="stat-value">85.7%</div>
+                    </div>
+                    <div class="stat-change">平均</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">故障次数</div>
+                        <div class="stat-value warning">3</div>
+                    </div>
+                    <div class="stat-change">本月</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">💧 用水趋势</span>
+                </div>
+                <div class="card-body">
+                    <div style="height: 300px; background: var(--bg-tertiary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary);">
+                        📊 图表区域（集成 ECharts）
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 系统设置页面 -->
+        <div class="page hidden" id="page-settings">
+            <div class="page-title">
+                <span>⚙️ 系统设置</span>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🔌 控制器连接</span>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; gap: 16px; max-width: 500px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 14px;">帐号</label>
+                            <input type="text" value="88888888888">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 14px;">设备ID</label>
+                            <input type="text" value="2119992778">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 14px;">轮询间隔（秒）</label>
+                            <input type="number" value="30">
+                        </div>
+                        <button class="btn btn-primary" style="width: fit-content;">保存设置</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">🔔 告警通知</span>
+                </div>
+                <div class="card-body">
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>设备离线告警</span>
+                            <div class="switch active"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>低电量告警</span>
+                            <div class="switch active"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>短信通知</span>
+                            <div class="switch"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作日志页面 -->
+        <div class="page hidden" id="page-logs">
+            <div class="page-title">
+                <span>📝 系统日志</span>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="showToast('导出成功', 'success')">
+                        <span>📥</span> 导出
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">今日用水量</div>
+                        <div class="stat-value" style="color: var(--neon-blue);">326.7</div>
+                    </div>
+                    <div class="stat-change">m³</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">今日肥水量</div>
+                        <div class="stat-value" style="color: var(--neon-purple);">27.0</div>
+                    </div>
+                    <div class="stat-change">m³</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">本周累计用水</div>
+                        <div class="stat-value success">2,150.5</div>
+                    </div>
+                    <div class="stat-change">m³</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">总用水量</div>
+                        <div class="stat-value primary">12,580.5</div>
+                    </div>
+                    <div class="stat-change">m³ (累计)</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📋 灌溉施肥日志</span>
+                </div>
+                <div class="card-body">
+                    <div id="logs-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 智能推荐页面 -->
+        <div class="page hidden" id="page-recommendation">
+            <div class="page-title">
+                <span>🤖 智能灌溉推荐</span>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="showToast('分析已刷新', 'success')">
+                        <span>🔄</span> 刷新分析
+                    </button>
+                    <button class="btn btn-primary" onclick="showToast('已应用全部推荐', 'success')">
+                        <span>✓</span> 应用全部
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">🌡️ 气温</div>
+                        <div class="stat-value" style="color: var(--neon-blue);">8.5°C</div>
+                    </div>
+                    <div class="stat-change">昼夜温差 18°C</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">💧 土壤湿度</div>
+                        <div class="stat-value success">62%</div>
+                    </div>
+                    <div class="stat-change">10cm深度</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">☀️ 紫外线指数</div>
+                        <div class="stat-value warning">极高</div>
+                    </div>
+                    <div class="stat-change">SPF建议 50+</div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-label">🌬️ 风速</div>
+                        <div class="stat-value">4.2m/s</div>
+                    </div>
+                    <div class="stat-change">西北风</div>
+                </div>
+            </div>
+
+            <div class="two-column">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">💡 今日灌溉建议</span>
+                        <span style="font-size: 12px; color: var(--neon-green);">AI生成</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="ai-recommendations"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">🌾 作物生长监测</span>
+                        <button class="btn btn-sm btn-secondary">查看详情</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="crop-status"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">📅 未来7天灌溉预测</span>
+                </div>
+                <div class="card-body">
+                    <div class="forecast-grid" id="forecast-list"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast 容器 -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- 确认模态框 -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal">
+            <div class="modal-title" id="modal-title">确认操作</div>
+            <div class="modal-body" id="modal-body">您确定要执行此操作吗？</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" id="modal-confirm-btn" onclick="confirmAction()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 全局状态 ==========
+        const state = {
+            currentPage: 'dashboard',
+            sidebarOpen: false,
+            sidebarCollapsed: false,
+            theme: 'dark',
+            devices: [],
+            alerts: [],
+            tasks: [],
+            schedules: [],
+            logs: [],
+            modalCallback: null
+        };
+
+        // ========== 初始化 ==========
+        function init() {
+            initData();
+            initEventListeners();
+            renderDashboard();
+            
+            // 从localStorage读取主题和侧边栏状态
+            const savedTheme = localStorage.getItem('kailash-theme');
+            const savedSidebar = localStorage.getItem('kailash-sidebar');
+            
+            if (savedTheme) {
+                setTheme(savedTheme);
+            }
+            if (savedSidebar === 'collapsed') {
+                toggleSidebarCollapse(false);
+            }
+        }
+
+        function initEventListeners() {
+            // 菜单按钮
+            document.getElementById('menuBtn').addEventListener('click', toggleSidebar);
+            document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+            
+            // 主题切换
+            document.getElementById('themeBtn').addEventListener('click', () => {
+                const newTheme = state.theme === 'dark' ? 'daylight' : 'dark';
+                setTheme(newTheme);
+            });
+            
+            // 导航项
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const page = item.dataset.page;
+                    if (page) navigateTo(page);
+                });
+            });
+            
+            // 窗口大小变化
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768 && state.sidebarOpen) {
+                    closeSidebar();
+                }
+            });
+        }
+
+        // ========== 主题切换 ==========
+        function setTheme(theme) {
+            state.theme = theme;
+            document.body.setAttribute('data-theme', theme);
+            
+            const themeBtn = document.getElementById('themeBtn');
+            themeBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
+            
+            localStorage.setItem('kailash-theme', theme);
+        }
+
+        // ========== 侧边栏控制 ==========
+        function toggleSidebar() {
+            // 移动端：侧边栏滑动
+            if (window.innerWidth <= 768) {
+                state.sidebarOpen = !state.sidebarOpen;
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                
+                if (state.sidebarOpen) {
+                    sidebar.classList.add('show');
+                    overlay.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            } else {
+                // 桌面端：折叠/展开
+                toggleSidebarCollapse();
+            }
+        }
+
+        function toggleSidebarCollapse(save = true) {
+            state.sidebarCollapsed = !state.sidebarCollapsed;
+            const menuBtn = document.getElementById('menuBtn');
+            
+            if (state.sidebarCollapsed) {
+                document.body.setAttribute('data-sidebar', 'collapsed');
+                menuBtn.classList.add('active');
+            } else {
+                document.body.setAttribute('data-sidebar', 'expanded');
+                menuBtn.classList.remove('active');
+            }
+            
+            if (save) {
+                localStorage.setItem('kailash-sidebar', state.sidebarCollapsed ? 'collapsed' : 'expanded');
+            }
+        }
+
+        function closeSidebar() {
+            state.sidebarOpen = false;
+            document.getElementById('sidebar').classList.remove('show');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        // ========== 页面导航 ==========
+        function navigateTo(page) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === page) {
+                    item.classList.add('active');
+                }
+            });
+
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`page-${page}`).classList.remove('hidden');
+
+            state.currentPage = page;
+            closeSidebar();
+
+            if (page === 'dashboard') renderDashboard();
+            else if (page === 'irrigation') renderIrrigation();
+            else if (page === 'fertilization') renderFertilization();
+            else if (page === 'devices') renderDevices();
+            else if (page === 'logs') renderLogs();
+            else if (page === 'recommendation') renderRecommendations();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ========== 数据初始化 ==========
+        function initData() {
+            state.devices = [
+                { id: 1, name: '水泵-主', type: 'pump', status: 'online', power: 85, isOpen: true, parent: null, level: 1 },
+                { id: 2, name: '灌溉主阀', type: 'mainValve', status: 'online', power: 92, isOpen: true, parent: 1, level: 2 },
+                { id: 3, name: '施肥阀-A', type: 'fertValve', status: 'online', power: 88, isOpen: false, parent: 1, level: 2 },
+                { id: 4, name: '施肥阀-B', type: 'fertValve', status: 'online', power: 86, isOpen: false, parent: 1, level: 2 },
+                { id: 5, name: '施肥阀-C', type: 'fertValve', status: 'warning', power: 25, isOpen: false, parent: 1, level: 2 },
+                { id: 6, name: '田间阀-01', type: 'fieldValve', status: 'online', power: 90, isOpen: false, parent: 1, level: 3, field: '青稞田-A1' },
+                { id: 7, name: '田间阀-02', type: 'fieldValve', status: 'online', power: 88, isOpen: false, parent: 1, level: 3, field: '青稞田-A2' },
+                { id: 8, name: '田间阀-03', type: 'fieldValve', status: 'online', power: 85, isOpen: true, parent: 1, level: 3, field: '油菜田-B1' },
+                { id: 9, name: '田间阀-04', type: 'fieldValve', status: 'offline', power: 0, isOpen: false, parent: 1, level: 3, field: '油菜田-B2' },
+                { id: 10, name: '田间阀-05', type: 'fieldValve', status: 'online', power: 87, isOpen: false, parent: 1, level: 3, field: '马铃薯-C1' },
+                { id: 11, name: '田间阀-06', type: 'fieldValve', status: 'online', power: 89, isOpen: false, parent: 1, level: 3, field: '马铃薯-C2' },
+                { id: 12, name: '田间阀-07', type: 'fieldValve', status: 'warning', power: 30, isOpen: false, parent: 1, level: 3, field: '试验田-D1' },
+                { id: 13, name: '田间阀-08', type: 'fieldValve', status: 'online', power: 91, isOpen: false, parent: 1, level: 3, field: '试验田-D2' }
+            ];
+
+            state.alerts = [
+                { id: 1, type: 'warning', title: '阀门-A03 电量低', desc: '当前电量25%，建议尽快更换电池', time: '5分钟前' },
+                { id: 2, type: 'danger', title: '阀门-B02 离线', desc: '设备通信中断，请检查供电和网络', time: '12分钟前' }
+            ];
+
+            state.tasks = [
+                { id: 1, name: '区域A定时灌溉', zone: '青稞田-A区', progress: 65, duration: '45分钟', remaining: '16分钟' },
+                { id: 2, name: '区域B早间灌溉', zone: '油菜田-B区', progress: 30, duration: '30分钟', remaining: '21分钟' },
+                { id: 3, name: '马铃薯膨大水', zone: '马铃薯-C区', progress: 90, duration: '60分钟', remaining: '6分钟' }
+            ];
+
+            state.schedules = [
+                { id: 1, name: '早间自动灌溉', zone: '全部区域', time: '06:00', duration: '30分钟', status: 'enabled', repeat: '每天' },
+                { id: 2, name: '傍晚降温灌溉', zone: '油菜田', time: '18:00', duration: '20分钟', status: 'enabled', repeat: '每天' },
+                { id: 3, name: '周末深度灌溉', zone: '青稞田', time: '09:00', duration: '60分钟', status: 'disabled', repeat: '周六' }
+            ];
+
+            state.logs = [
+                { time: '2026-04-07 12:20:00', user: '系统', action: '自动执行油菜田灌溉', result: '成功', type: 'irrigation' },
+                { time: '2026-04-07 11:45:23', user: '管理员', action: '执行马铃薯膨大肥方案', result: '成功', type: 'fertilization' },
+                { time: '2026-04-07 10:20:15', user: '系统', action: '自动执行早间灌溉计划', result: '成功', type: 'irrigation' },
+                { time: '2026-04-07 09:15:42', user: '管理员', action: '手动开启施肥阀-B', result: '成功', type: 'fertilization' },
+                { time: '2026-04-07 08:30:00', user: '系统', action: '自动灌溉完成', result: '成功', type: 'irrigation' },
+                { time: '2026-04-06 18:45:23', user: '管理员', action: '开启阀门-A01', result: '成功', type: 'system' },
+                { time: '2026-04-06 17:58:10', user: '系统', action: '检测到阀门-A03电量低', result: '告警', type: 'system' }
+            ];
+
+            state.recommendations = [
+                {
+                    id: 1,
+                    crop: '青稞',
+                    zone: '青稞田-A区',
+                    stage: '拔节期',
+                    priority: 'high',
+                    title: '建议立即进行拔节水灌溉',
+                    reason: '当前土壤湿度62%，低于拔节期最佳湿度(70%)。未来3天无降雨预报。',
+                    action: '开启阀门-A01、A02，持续45分钟',
+                    waterAmount: '预计用水 18m³',
+                    benefits: ['促进分蘖成穗', '增加穗粒数', '提高抗倒伏能力']
+                },
+                {
+                    id: 2,
+                    crop: '油菜',
+                    zone: '油菜田-B区',
+                    stage: '花期',
+                    priority: 'medium',
+                    title: '花期补水建议（明日执行）',
+                    reason: '花期需保持土壤湿度65%以上，当前湿度58%。',
+                    action: '明日14:00开启阀门-B01，持续20分钟',
+                    waterAmount: '预计用水 8m³',
+                    benefits: ['延长花期', '提高结实率', '增加含油量']
+                },
+                {
+                    id: 3,
+                    crop: '马铃薯',
+                    zone: '马铃薯-C区',
+                    stage: '块茎膨大期',
+                    priority: 'high',
+                    title: '块茎膨大关键水 - 紧急',
+                    reason: '块茎膨大期是需水高峰期，当前土壤湿度仅55%，严重不足。',
+                    action: '立即开启水泵及阀门，持续60分钟',
+                    waterAmount: '预计用水 25m³',
+                    benefits: ['促进块茎膨大', '增加单薯重', '提高淀粉含量']
+                }
+            ];
+
+            state.crops = [
+                { name: '青稞', zone: 'A区', stage: '拔节期', day: 45, totalDays: 110, health: 85, waterNeed: '高', nextWater: '今天' },
+                { name: '油菜', zone: 'B区', stage: '花期', day: 65, totalDays: 130, health: 92, waterNeed: '中', nextWater: '明天' },
+                { name: '马铃薯', zone: 'C区', stage: '块茎膨大', day: 55, totalDays: 115, health: 78, waterNeed: '极高', nextWater: '立即' }
+            ];
+
+            state.forecast = [
+                { day: '今天', date: '4/7', weather: '☀️', temp: '8~15°C', humidity: '45%', action: '青稞拔节水', priority: 'high' },
+                { day: '明天', date: '4/8', weather: '🌤️', temp: '6~14°C', humidity: '50%', action: '油菜花期补水', priority: 'medium' },
+                { day: '周三', date: '4/9', weather: '☁️', temp: '5~12°C', humidity: '60%', action: '马铃薯膨大水', priority: 'high' },
+                { day: '周四', date: '4/10', weather: '🌧️', temp: '3~10°C', humidity: '75%', action: '暂停灌溉', priority: 'low' },
+                { day: '周五', date: '4/11', weather: '☁️', temp: '4~11°C', humidity: '65%', action: '观察墒情', priority: 'low' },
+                { day: '周六', date: '4/12', weather: '🌤️', temp: '7~13°C', humidity: '55%', action: '常规巡检', priority: 'medium' },
+                { day: '周日', date: '4/13', weather: '☀️', temp: '8~16°C', humidity: '45%', action: '深度灌溉', priority: 'medium' }
+            ];
+        }
+
+        // ========== 渲染函数 ==========
+        function renderDashboard() {
+            // 告警列表
+            document.getElementById('alert-list').innerHTML = state.alerts.map(alert => `
+                <div class="alert-item ${alert.type}">
+                    <span class="alert-icon">${alert.type === 'warning' ? '⚠️' : '🔴'}</span>
+                    <div class="alert-content">
+                        <div class="alert-title">${alert.title}</div>
+                        <div class="alert-desc">${alert.desc}</div>
+                    </div>
+                    <span class="alert-time">${alert.time}</span>
+                </div>
+            `).join('');
+
+            // 智能推荐
+            document.getElementById('smart-recommendations').innerHTML = state.recommendations.slice(0, 2).map(rec => `
+                <div class="recommendation-card priority-${rec.priority}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;">${rec.title}</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">${rec.crop} · ${rec.zone} · ${rec.stage}</div>
+                        </div>
+                        <span class="status-badge ${rec.priority === 'high' ? 'high' : 'medium'}">${rec.priority === 'high' ? '紧急' : '建议'}</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5;">
+                        ${rec.reason}
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn btn-sm btn-primary" onclick="showToast('已应用推荐: ${rec.title}', 'success')">应用</button>
+                        <button class="btn btn-sm btn-secondary" onclick="showToast('已查看详情', 'info')">详情</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderIrrigation() {
+            const irrigationControls = document.getElementById('irrigation-controls');
+            const fieldValves = state.devices.filter(d => d.type === 'fieldValve');
+            
+            irrigationControls.innerHTML = fieldValves.map(device => `
+                <div class="device-card">
+                    <div class="device-header">
+                        <div class="device-name">💧 ${device.name}</div>
+                        <div class="device-status ${device.status}">
+                            <span>●</span> ${device.status === 'online' ? '在线' : device.status === 'warning' ? '警告' : '离线'}
+                        </div>
+                    </div>
+                    <div class="device-info">
+                        <div class="device-info-row">
+                            <span>电量</span>
+                            <span style="color: ${device.power < 30 ? 'var(--neon-amber)' : 'var(--neon-green)'}">${device.power}%</span>
+                        </div>
+                        <div class="device-info-row">
+                            <span>状态</span>
+                            <span>${device.isOpen ? '开启' : '关闭'}</span>
+                        </div>
+                    </div>
+                    <div class="device-controls">
+                        <button class="btn btn-sm btn-success" onclick="toggleDevice(${device.id}, true)">开启</button>
+                        <button class="btn btn-sm btn-danger" onclick="toggleDevice(${device.id}, false)">关闭</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const scheduleList = document.getElementById('schedule-list');
+            scheduleList.innerHTML = state.schedules.map(schedule => `
+                <div class="schedule-item">
+                    <div class="schedule-info">
+                        <div class="schedule-title">${schedule.name}</div>
+                        <div class="schedule-meta">${schedule.zone} · ${schedule.time} · ${schedule.duration} · ${schedule.repeat}</div>
+                    </div>
+                    <div class="schedule-actions">
+                        <div class="switch ${schedule.status === 'enabled' ? 'active' : ''}" onclick="toggleSchedule(${schedule.id})"></div>
+                        <button class="btn btn-sm btn-secondary">编辑</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderFertilization() {
+            const fertValves = document.getElementById('fertilization-valves');
+            const valves = state.devices.filter(d => d.type === 'fertValve');
+            
+            fertValves.innerHTML = valves.map(device => `
+                <div class="device-card" style="margin-bottom: 12px;">
+                    <div class="device-header">
+                        <div class="device-name">🧪 ${device.name}</div>
+                        <div class="device-status ${device.status}">
+                            <span>●</span> ${device.status === 'online' ? '在线' : '警告'}
+                        </div>
+                    </div>
+                    <div class="device-info">
+                        <div class="device-info-row">
+                            <span>电量</span>
+                            <span style="color: ${device.power < 30 ? 'var(--neon-amber)' : 'var(--neon-green)'}">${device.power}%</span>
+                        </div>
+                    </div>
+                    <div class="device-controls">
+                        <button class="btn btn-sm btn-success" onclick="toggleDevice(${device.id}, true)">开启</button>
+                        <button class="btn btn-sm btn-danger" onclick="toggleDevice(${device.id}, false)">关闭</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const scheduleList = document.getElementById('fertilization-schedule');
+            scheduleList.innerHTML = state.schedules.slice(0, 2).map(schedule => `
+                <div class="schedule-item">
+                    <div class="schedule-info">
+                        <div class="schedule-title">${schedule.name}</div>
+                        <div class="schedule-meta">${schedule.zone} · ${schedule.time} · ${schedule.duration}</div>
+                    </div>
+                    <div class="schedule-actions">
+                        <span class="tag">NPK</span>
+                        <button class="btn btn-sm btn-primary">执行</button>
+                    </div>
+                </div>
+            `).join('') || '<p style="color: var(--text-muted); text-align: center;">暂无施肥计划</p>';
+        }
+
+        function renderDevices() {
+            const deviceList = document.getElementById('device-list');
+            deviceList.innerHTML = state.devices.map(device => `
+                <div class="device-card">
+                    <div class="device-header">
+                        <div class="device-name">${device.type === 'pump' ? '🔌' : device.type === 'fertValve' ? '🧪' : '💧'} ${device.name}</div>
+                        <div class="device-status ${device.status}">
+                            <span>●</span> ${device.status === 'online' ? '在线' : device.status === 'warning' ? '警告' : '离线'}
+                        </div>
+                    </div>
+                    <div class="device-info">
+                        <div class="device-info-row">
+                            <span>电量</span>
+                            <span style="color: ${device.power < 30 ? 'var(--neon-amber)' : 'var(--neon-green)'}">${device.power}%</span>
+                        </div>
+                        ${device.field ? `<div class="device-info-row"><span>所属区域</span><span>${device.field}</span></div>` : ''}
+                    </div>
+                    <div class="device-controls">
+                        <button class="btn btn-sm btn-secondary">详情</button>
+                        <button class="btn btn-sm ${device.isOpen ? 'btn-danger' : 'btn-success'}" onclick="toggleDevice(${device.id}, ${!device.isOpen})">
+                            ${device.isOpen ? '关闭' : '开启'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            // 设备树
+            const deviceTree = document.getElementById('device-tree');
+            const pump = state.devices.find(d => d.type === 'pump');
+            const children = state.devices.filter(d => d.parent === pump.id);
+            
+            deviceTree.innerHTML = `
+                <div class="tree-node">
+                    <div class="tree-header" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                        <span>🔌</span>
+                        <span>${pump.name}</span>
+                        <span style="margin-left: auto; color: var(--neon-green);">● 在线</span>
+                    </div>
+                    <div class="tree-children">
+                        ${children.map(child => `
+                            <div class="tree-node">
+                                <div class="tree-header">
+                                    <span>${child.type === 'fertValve' ? '🧪' : '💧'}</span>
+                                    <span>${child.name}</span>
+                                    <span style="margin-left: auto; color: ${child.status === 'online' ? 'var(--neon-green)' : child.status === 'warning' ? 'var(--neon-amber)' : 'var(--neon-red)'}">● ${child.status === 'online' ? '在线' : child.status === 'warning' ? '警告' : '离线'}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLogs() {
+            const logsList = document.getElementById('logs-list');
+            logsList.innerHTML = state.logs.map(log => `
+                <div class="log-item">
+                    <span class="log-time">${log.time}</span>
+                    <span class="log-user">${log.user}</span>
+                    <span class="log-action">${log.action}</span>
+                    <span class="log-result ${log.result === '成功' ? 'success' : log.result === '告警' ? 'warning' : 'error'}">${log.result}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderRecommendations() {
+            document.getElementById('ai-recommendations').innerHTML = state.recommendations.map(rec => `
+                <div class="recommendation-card priority-${rec.priority}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 4px;">${rec.title}</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">${rec.crop} · ${rec.zone}</div>
+                        </div>
+                        <span class="status-badge ${rec.priority === 'high' ? 'high' : rec.priority === 'medium' ? 'medium' : 'low'}">${rec.priority === 'high' ? '紧急' : rec.priority === 'medium' ? '建议' : '可选'}</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5;">${rec.reason}</div>
+                    <div style="background: var(--bg-tertiary); padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 13px;">
+                        <div style="font-weight: 500; margin-bottom: 4px;">💡 建议操作</div>
+                        <div style="color: var(--text-secondary);">${rec.action}</div>
+                        <div style="color: var(--neon-blue); margin-top: 4px;">${rec.waterAmount}</div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-sm btn-primary" onclick="showToast('已应用推荐', 'success')">应用</button>
+                        <button class="btn btn-sm btn-secondary">忽略</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('crop-status').innerHTML = state.crops.map(crop => `
+                <div class="crop-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 24px;">🌾</span>
+                            <div>
+                                <div style="font-weight: 600;">${crop.name}</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">${crop.zone}</div>
+                            </div>
+                        </div>
+                        <span class="tag">健康度 ${crop.health}%</span>
+                    </div>
+                    <div class="progress-bar" style="margin-bottom: 8px;">
+                        <div class="progress-fill" style="width: ${(crop.day / crop.totalDays) * 100}%"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                        <span>${crop.stage} (第${crop.day}天/共${crop.totalDays}天)</span>
+                        <span>下次灌溉: ${crop.nextWater}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('forecast-list').innerHTML = state.forecast.map(day => `
+                <div class="forecast-item ${day.day === '今天' ? 'today' : ''}">
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">${day.day}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">${day.date}</div>
+                    <div style="font-size: 32px; margin-bottom: 8px;">${day.weather}</div>
+                    <div style="font-size: 12px; margin-bottom: 4px;">${day.temp}</div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">💧 ${day.humidity}</div>
+                    <div style="font-size: 11px; color: var(--neon-blue);">${day.action}</div>
+                    ${day.priority === 'high' ? '<span class="status-badge high" style="margin-top: 8px;">紧急</span>' : ''}
+                </div>
+            `).join('');
+        }
+
+        // ========== 操作函数 ==========
+        function toggleDevice(deviceId, open) {
+            const device = state.devices.find(d => d.id === deviceId);
+            if (device) {
+                device.isOpen = open;
+                showToast(`${device.name} 已${open ? '开启' : '关闭'}`, 'success');
+                renderDevices();
+                renderIrrigation();
+            }
+        }
+
+        function toggleSchedule(scheduleId) {
+            const schedule = state.schedules.find(s => s.id === scheduleId);
+            if (schedule) {
+                schedule.status = schedule.status === 'enabled' ? 'disabled' : 'enabled';
+                renderIrrigation();
+            }
+        }
+
+        function toggleAllNodes() {
+            document.querySelectorAll('.tree-children').forEach(el => {
+                el.classList.toggle('hidden');
+            });
+        }
+
+        function refreshData() {
+            showToast('数据已刷新', 'success');
+            if (state.currentPage === 'dashboard') renderDashboard();
+            else if (state.currentPage === 'irrigation') renderIrrigation();
+            else if (state.currentPage === 'fertilization') renderFertilization();
+        }
+
+        function showQuickControl() {
+            showToast('快捷控制面板 - 开发中', 'info');
+        }
+
+        function showAlerts() {
+            navigateTo('dashboard');
+        }
+
+        function clearAllAlerts() {
+            state.alerts = [];
+            renderDashboard();
+            showToast('告警已清除', 'success');
+        }
+
+        // ========== Toast 通知 ==========
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span>${type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ️'}</span>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ========== 模态框 ==========
+        function showModal(title, body, callback) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').textContent = body;
+            state.modalCallback = callback;
+            document.getElementById('confirm-modal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('confirm-modal').classList.remove('show');
+            state.modalCallback = null;
+        }
+
+        function confirmAction() {
+            if (state.modalCallback) {
+                state.modalCallback();
+            }
+            closeModal();
+        }
+
+        // 启动应用
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
