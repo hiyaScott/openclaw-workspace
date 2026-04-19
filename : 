@@ -1,0 +1,77 @@
+
+
+---
+
+## 【项目完成】HiyaMax Jekyll重构 (2026-04-18 13:10)
+
+**任务**: 将HiyaMax Player & Creator品牌站从静态HTML迁移到Jekyll结构  
+**范围**: 仅`research/max-home/`子站（非全站）  
+**状态**: ✅ 框架完成，待部署
+
+### 已完成工作
+
+**1. 新仓库创建**  
+路径: `/root/.openclaw/workspace/hiyamax-home-jekyll/`  
+Git初始化: 已完成2次提交
+- `d9bc558` - Initial Jekyll setup for HiyaMax brand site (21 files)
+- `2eea371` - Add README with project documentation
+
+**2. Jekyll架构**
+
+| 层级 | 文件 | 用途 |
+|------|------|------|
+| 配置 | `_config.yml` | 站点配置+Collections定义 |
+| 数据 | `_data/navigation.yml` | 导航+社交链接+SVG图标 |
+| 布局 | `_layouts/default.html` | 基础HTML骨架 |
+| 布局 | `_layouts/home.html` | Player&Creator主页 |
+| 布局 | `_layouts/games-list.html` | 游戏列表页 |
+| 布局 | `_layouts/game.html` | 单个游戏页+面包屑 |
+| 组件 | `_includes/header.html` | 统一顶部导航 |
+| 组件 | `_includes/footer.html` | 统一页脚 |
+| 组件 | `_includes/head.html` | SEO+字体+样式引用 |
+| 组件 | `_includes/game-card.html` | 游戏卡片复用组件 |
+| 样式 | `_sass/*.scss` | 四模块: base/layout/components/responsive |
+| 脚本 | `assets/js/main.js` | 头像交互+陀螺仪+移动端菜单 |
+| 游戏 | `_games/*.md` | Word Alchemy/Mama Counter/Who is Spy |
+
+**3. 完整保留的视觉设计**
+
+- Player/Creator双头像 + clip-path裁剪
+- 鼠标移动/陀螺仪倾斜交互效果
+- 背景大字淡入淡出动画
+- Inter字体 + 响应式断点(1200px/768px/640px)
+- 作品卡片悬停动效
+- 移动端汉堡菜单全屏覆盖
+- 社交图标(微信/小红书/Instagram/Facebook)
+
+**4. 未完成任务**
+
+- [ ] 图片资源复制到`assets/images/`
+- [ ] 游戏逻辑从旧站迁移
+- [ ] GitHub仓库创建和推送
+- [ ] GitHub Pages部署验证
+
+### 部署指令（待执行）
+
+```bash
+cd /root/.openclaw/workspace/hiyamax-home-jekyll
+gh repo create hiyaScott/hiyamax-home --public
+git remote add origin https://github.com/hiyaScott/hiyamax-home.git
+git push -u origin main
+```
+
+**预期地址**: `https://hiyascott.github.io/hiyamax-home/`
+
+### 项目状态总结
+
+| 项目 | 状态 |
+|------|------|
+| Jekyll框架 | ✅ 完成 |
+| 视觉还原 | ✅ 完成 |
+| 组件系统 | ✅ 完成 |
+| 游戏集合 | ✅ 骨架完成 |
+| 图片资源 | ⏳ 待复制 |
+| 游戏逻辑 | ⏳ 待迁移 |
+| GitHub部署 | ⏳ 待执行 |
+
+---
