@@ -219,6 +219,17 @@ Think of it like a human reviewing their journal and updating their mental model
 
 The goal: Be helpful without being annoying. Check in a few times a day, do useful background work, but respect quiet time.
 
+## 🛠️ Coding Agent Collaboration — Karpathy Principles (Ref)
+
+When working with Claude Code or other coding agents, keep these four principles in mind. They directly address the most common LLM coding pitfalls:
+
+1. **Think Before Coding** — State assumptions explicitly. Present multiple interpretations when ambiguous. Stop when confused and ask.
+2. **Simplicity First** — Minimum code that solves the problem. No speculative abstractions. If 200 lines could be 50, rewrite it.
+3. **Surgical Changes** — Touch only what you must. Don't "improve" adjacent code. Match existing style. Remove only what YOUR changes made unused.
+4. **Goal-Driven Execution** — Define verifiable success criteria before starting. Transform "fix the bug" into "write a test that reproduces it, then make it pass."
+
+Source: `forrestchang/andrej-karpathy-skills` — not a Skill to install, but a set of guidelines to internalize.
+
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
