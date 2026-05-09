@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>灌溉CAD设计系统 - 测试界面</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .header {
+            background: #1e293b;
+            padding: 16px 24px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 18px; font-weight: 600; color: #f8fafc; }
+        .header .version { font-size: 12px; color: #64748b; }
+        .main {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+        .sidebar {
+            width: 320px;
+            background: #1e293b;
+            border-right: 1px solid #334155;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .panel-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #334155;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 13px;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 8px;
+        }
+        .btn:hover { background: #2563eb; }
+        .btn.secondary {
+            background: #334155;
+        }
+        .btn.secondary:hover { background: #475569; }
+        .btn.success {
+            background: #10b981;
+        }
+        .btn.success:hover { background: #059669; }
+        .canvas-area {
+            flex: 1;
+            position: relative;
+            background: #0f172a;
+            overflow: hidden;
+        }
+        #canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+        }
+        .canvas-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 8px;
+        }
+        .canvas-controls button {
+            padding: 6px 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            color: #e2e8f0;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .canvas-controls button:hover {
+            background: #334155;
+        }
+        .legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        .stats-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 16px;
+            min-width: 200px;
+            display: none;
+        }
+        .stats-panel.visible { display: block; }
+        .stats-panel h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #f8fafc;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #cbd5e1;
+        }
+        .zone-list {
+            margin-top: 8px;
+        }
+        .zone-item {
+            padding: 8px;
+            background: #0f172a;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        .zone-item .zone-name {
+            font-weight: 500;
+            color: #f8fafc;
+        }
+        .zone-item .zone-detail {
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            color: #64748b;
+        }
+        .mode-selector {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+        .mode-selector button {
+            flex: 1;
+            padding: 8px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #94a3b8;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .mode-selector button.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        .file-input-label {
+            display: block;
+            padding: 10px;
+            background: #0f172a;
+            border: 2px dashed #334155;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            color: #64748b;
+        }
+        .file-input-label:hover {
+            border-color: #3b82f6;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌿 灌溉CAD设计系统</h1>
+        <span class="version">v1.0 测试版</span>
+    </div>
+    
+    <div class="main">
+        <div class="sidebar">
+            <div class="panel-title">输入数据</div>
+            
+            <div class="file-input-wrapper">
+                <input type="file" id="dxfFile" accept=".dxf,.dwg" onchange="loadDXF(event)">
+                <label for="dxfFile" class="file-input-label" id="fileLabel">
+                    点击上传 DXF/DWG 图纸<br>
+                    <small>或直接使用下方测试数据</small>
+                </label>
+            </div>
+            
+            <div style="margin: 12px 0; text-align: center; color: #64748b; font-size: 12px;">
+                — 或 —
+            </div>
+            
+            <button class="btn secondary" onclick="loadTestData()">
+                📋 加载4.16图纸测试数据
+            </button>
+            
+            <div class="panel-title" style="margin-top: 20px;">设计参数</div>
+            
+            <div class="form-group">
+                <label>水源流量 (m³/h)</label>
+                <input type="number" id="waterFlow" value="2.5" step="0.1">
+            </div>
+            
+            <div class="form-group">
+                <label>水源位置 X</label>
+                <input type="number" id="sourceX" value="400000" step="1000">
+            </div>
+            
+            <div class="form-group">
+                <label>水源位置 Y</label>
+                <input type="number" id="sourceY" value="-180000" step="1000">
+            </div>
+            
+            <div class="form-group">
+                <label>主管管径</label>
+                <select id="mainDia">
+                    <option value="25">de25 PPR</option>
+                    <option value="32" selected>de32 PPR</option>
+                    <option value="40">de40 PPR</option>
+                </select>
+            </div>
+            
+            <div class="panel-title" style="margin-top: 20px;">区域识别</div>
+            
+            <div class="mode-selector">
+                <button class="active" onclick="setMode('green')">绿化</button>
+                <button onclick="setMode('forbidden')">禁区</button>
+                <button onclick="setMode('hard')">硬化</button>
+            </div>
+            
+            <div class="zone-list" id="zoneList">
+                <!-- Zones will be listed here -->
+            </div>
+            
+            <div class="panel-title" style="margin-top: 20px;">操作</div>
+            
+            <button class="btn" onclick="runAlgorithm()">
+                ▶ 运行管路规划算法
+            </button>
+            
+            <button class="btn success" onclick="exportResults()">
+                📥 导出设计结果
+            </button>
+            
+            <button class="btn secondary" onclick="clearAll()">
+                🗑 清除所有
+            </button>
+        </div>
+        
+        <div class="canvas-area">
+            <canvas id="canvas" width="900" height="700"></canvas>
+            
+            <div class="canvas-controls">
+                <button onclick="zoomIn()">放大</button>
+                <button onclick="zoomOut()">缩小</button>
+                <button onclick="resetView()">重置</button>
+                <button onclick="toggleGrid()">网格</button>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #22c55e;"></div>
+                    <span>绿化区域</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ef4444;"></div>
+                    <span>禁区(房屋)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #64748b;"></div>
+                    <span>硬化区域</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #3b82f6;"></div>
+                    <span>主管</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #06b6d4;"></div>
+                    <span>支管</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f59e0b;"></div>
+                    <span>喷头</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ec4899;"></div>
+                    <span>阀门</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #a855f7;"></div>
+                    <span>水源</span>
+                </div>
+            </div>
+            
+            <div class="stats-panel" id="statsPanel">
+                <h3>📊 设计统计</h3>
+                <div id="statsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============== 全局状态 ==============
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let scale = 0.08;
+        let offsetX = 0;
+        let offsetY = 0;
+        let showGrid = true;
+        let currentMode = 'green';
+        
+        // 数据
+        let zones = [];          // 区域列表
+        let sprinklers = [];     // 喷头列表
+        let valves = [];         // 阀门位置
+        let mainPipe = null;     // 主管路径
+        let branchPipes = [];    // 支管路径
+        let designResults = null; // 设计结果
+        
+        // ============== 测试数据：4.16图纸右侧灌溉图 ==============
+        const TEST_DATA = {
+            sprinklers: [
+                // KXF-8 (23个)
+                {type: 'KXF-8', x: 406380.3, y: -196050.2},
+                {type: 'KXF-8', x: 406448.4, y: -198567.9},
+                {type: 'KXF-8', x: 406448.4, y: -201119.6},
+                {type: 'KXF-8', x: 408641.4, y: -198462.7},
+                {type: 'KXF-8', x: 408725.5, y: -195794.5},
+                {type: 'KXF-8', x: 416949.4, y: -192792.4},
+                {type: 'KXF-8', x: 415645.9, y: -195121.3},
+                {type: 'KXF-8', x: 418895.9, y: -205435.3},
+                {type: 'KXF-8', x: 420954.6, y: -203784.4},
+                {type: 'KXF-8', x: 421290.0, y: -189978.4},
+                {type: 'KXF-8', x: 423825.7, y: -190196.9},
+                {type: 'KXF-8', x: 426383.2, y: -190328.0},
+                {type: 'KXF-8', x: 428962.6, y: -190568.3},
+                {type: 'KXF-8', x: 431353.8, y: -190851.6},
+                {type: 'KXF-8', x: 416949.4, y: -192792.4},
+                {type: 'KXF-8', x: 435698.6, y: -201880.3},
+                {type: 'KXF-8', x: 437995.3, y: -205378.4},
+                {type: 'KXF-8', x: 438056.8, y: -207791.2},
+                {type: 'KXF-8', x: 438041.4, y: -209758.3},
+                {type: 'KXF-8', x: 420200.6, y: -211988.5},
+                {type: 'KXF-8', x: 418020.7, y: -212004.4},
+                {type: 'KXF-8', x: 431347.7, y: -204569.7},
+                {type: 'KXF-8', x: 434130.5, y: -203939.6},
+                // KVF-10 (12个)
+                {type: 'KVF-10', x: 406447.8, y: -193297.1},
+                {type: 'KVF-10', x: 408777.5, y: -189778.1},
+                {type: 'KVF-10', x: 409908.1, y: -193241.4},
+                {type: 'KVF-10', x: 410029.9, y: -202092.0},
+                {type: 'KVF-10', x: 411549.9, y: -191482.1},
+                {type: 'KVF-10', x: 415084.6, y: -193125.1},
+                {type: 'KVF-10', x: 418673.7, y: -193277.3},
+                {type: 'KVF-10', x: 421993.8, y: -209476.1},
+                {type: 'KVF-10', x: 423114.9, y: -206183.9},
+                {type: 'KVF-10', x: 424586.5, y: -211133.8},
+                {type: 'KVF-10', x: 427109.1, y: -208215.2},
+                {type: 'KVF-10', x: 510633.8, y: -199738.0},
+                // KVF-12 (4个)
+                {type: 'KVF-12', x: 413042.6, y: -205371.5},
+                {type: 'KVF-12', x: 413149.3, y: -209496.5},
+                {type: 'KVF-12', x: 416644.6, y: -205439.0},
+                {type: 'KVF-12', x: 510645.1, y: -199735.6},
+                // KVF-15 (8个)
+                {type: 'KVF-15', x: 411659.0, y: -217397.0},
+                {type: 'KVF-15', x: 416669.2, y: -217354.8},
+                {type: 'KVF-15', x: 416674.6, y: -212261.9},
+                {type: 'KVF-15', x: 434624.2, y: -212297.9},
+                {type: 'KVF-15', x: 434639.3, y: -217346.2},
+                {type: 'KVF-15', x: 429483.6, y: -217331.1},
+                {type: 'KVF-15', x: 429483.6, y: -212162.3},
+                {type: 'KVF-15', x: 510658.9, y: -199773.9},
+                // KVF-17 (10个)
+                {type: 'KVF-17', x: 411614.2, y: -196133.9},
+                {type: 'KVF-17', x: 410690.3, y: -201890.1},
+                {type: 'KVF-17', x: 415374.4, y: -205305.2},
+                {type: 'KVF-17', x: 416194.2, y: -199957.1},
+                {type: 'KVF-17', x: 420875.0, y: -205176.4},
+                {type: 'KVF-17', x: 433587.0, y: -194261.6},
+                {type: 'KVF-17', x: 434787.6, y: -199733.0},
+                {type: 'KVF-17', x: 439307.6, y: -203439.4},
+                {type: 'KVF-17', x: 439554.8, y: -195956.0},
+                {type: 'KVF-17', x: 510642.4, y: -199686.1},
+            ],
+            // 从DXF提取的绿化区域（XS5779FP-P$0$绿化图层，右侧区域）
+            greenZones: [
+                {
+                    id: 'green-right-1',
+                    points: [
+                        [440002.0, -144360.7], [466494.8, -146445.8],
+                        [468383.9, -148489.4], [468383.9, -155652.7]
+                    ]
+                },
+                {
+                    id: 'green-right-2',
+                    points: [
+                        [440009.9, -144261.1], [466502.6, -146346.1],
+                        [468483.9, -148489.4], [468483.9, -155652.7]
+                    ]
+                },
+                {
+                    id: 'green-right-3',
+                    points: [
+                        [468383.9, -158252.7], [468383.9, -165282.7],
+                        [463333.9, -165282.7], [463333.9, -170332.7],
+                        [440033.9, -170332.7], [440033.9, -165282.7],
+                        [434983.9, -165282.7], [434983.9, -153248.0]
+                    ]
+                },
+                {
+                    id: 'green-right-4',
+                    points: [
+                        [468483.9, -148489.4], [468483.9, -165382.7],
+                        [463433.9, -165382.7], [463433.9, -170432.7],
+                        [439933.9, -170432.7], [439933.9, -165382.7],
+                        [434883.9, -165382.7], [434883.9, -153248.0]
+                    ]
+                }
+            ],
+            // 阀门（左侧控制线路图坐标，需要映射到右侧）
+            valves: [
+                {id: 'V1', x: 409669.4, y: -138842.9}
+            ]
+        };
+        
+        // ============== 坐标转换 ==============
+        function worldToCanvas(x, y) {
+            return {
+                x: (x - 400000) * scale + canvas.width / 2 + offsetX,
+                y: (y + 180000) * scale + canvas.height / 2 + offsetY
+            };
+        }
+        
+        // ============== 绘制函数 ==============
+        function drawGrid() {
+            if (!showGrid) return;
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            const gridSize = 10000 * scale;
+            const startX = ((offsetX + canvas.width / 2) % gridSize);
+            const startY = ((offsetY + canvas.height / 2) % gridSize);
+            
+            for (let x = startX; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = startY; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+        
+        function drawZone(zone, color) {
+            if (!zone.points || zone.points.length < 3) return;
+            ctx.fillStyle = color + '30';
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            const start = worldToCanvas(zone.points[0][0], zone.points[0][1]);
+            ctx.moveTo(start.x, start.y);
+            
+            for (let i = 1; i < zone.points.length; i++) {
+                const p = worldToCanvas(zone.points[i][0], zone.points[i][1]);
+                ctx.lineTo(p.x, p.y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // 标签
+            const center = getPolygonCenter(zone.points);
+            const c = worldToCanvas(center.x, center.y);
+            ctx.fillStyle = color;
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(zone.id || 'Zone', c.x, c.y);
+        }
+        
+        function getPolygonCenter(points) {
+            let x = 0, y = 0;
+            for (const p of points) {
+                x += p[0];
+                y += p[1];
+            }
+            return {x: x / points.length, y: y / points.length};
+        }
+        
+        function drawSprinkler(s) {
+            const p = worldToCanvas(s.x, s.y);
+            
+            // 射程圆
+            const range = getSprinklerRange(s.type);
+            ctx.strokeStyle = '#f59e0b40';
+            ctx.fillStyle = '#f59e0b15';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, range * 1000 * scale, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // 喷头点
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 标签
+            ctx.fillStyle = '#fbbf24';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(s.type, p.x, p.y - 8);
+        }
+        
+        function getSprinklerRange(type) {
+            const ranges = {
+                'KXF-8': 2.7,
+                'KVF-10': 3.4,
+                'KVF-12': 3.7,
+                'KVF-15': 5.0,
+                'KVF-17': 5.5
+            };
+            return ranges[type] || 3.0;
+        }
+        
+        function drawValve(v) {
+            const p = worldToCanvas(v.x, v.y);
+            ctx.fillStyle = '#ec4899';
+            ctx.strokeStyle = '#f472b6';
+            ctx.lineWidth = 2;
+            
+            // 画阀门符号（菱形）
+            const size = 8;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y - size);
+            ctx.lineTo(p.x + size, p.y);
+            ctx.lineTo(p.x, p.y + size);
+            ctx.lineTo(p.x - size, p.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#f9a8d4';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(v.id || 'V', p.x, p.y + 18);
+        }
+        
+        function drawWaterSource() {
+            const sx = parseFloat(document.getElementById('sourceX').value);
+            const sy = parseFloat(document.getElementById('sourceY').value);
+            const p = worldToCanvas(sx, sy);
+            
+            ctx.fillStyle = '#a855f7';
+            ctx.strokeStyle = '#c084fc';
+            ctx.lineWidth = 2;
+            
+            // 画水源符号（圆形带波浪）
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#e9d5ff';
+            ctx.font = '11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('水源', p.x, p.y - 14);
+        }
+        
+        function drawPipe(path, color, width = 2) {
+            if (!path || path.length < 2) return;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            ctx.beginPath();
+            const start = worldToCanvas(path[0][0], path[0][1]);
+            ctx.moveTo(start.x, start.y);
+            
+            for (let i = 1; i < path.length; i++) {
+                const p = worldToCanvas(path[i][0], path[i][1]);
+                ctx.lineTo(p.x, p.y);
+            }
+            ctx.stroke();
+        }
+        
+        function drawAll() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            
+            // 绘制区域
+            for (const zone of zones) {
+                const colors = {
+                    'green': '#22c55e',
+                    'forbidden': '#ef4444',
+                    'hard': '#64748b'
+                };
+                drawZone(zone, colors[zone.zone_type] || '#94a3b8');
+            }
+            
+            // 绘制管路
+            if (mainPipe) {
+                drawPipe(mainPipe, '#3b82f6', 4);
+            }
+            for (const bp of branchPipes) {
+                drawPipe(bp, '#06b6d4', 2);
+            }
+            
+            // 绘制水源
+            drawWaterSource();
+            
+            // 绘制阀门
+            for (const v of valves) {
+                drawValve(v);
+            }
+            
+            // 绘制喷头
+            for (const s of sprinklers) {
+                drawSprinkler(s);
+            }
+        }
+        
+        // ============== 交互控制 ==============
+        function zoomIn() {
+            scale *= 1.3;
+            drawAll();
+        }
+        
+        function zoomOut() {
+            scale /= 1.3;
+            drawAll();
+        }
+        
+        function resetView() {
+            scale = 0.08;
+            offsetX = 0;
+            offsetY = 0;
+            drawAll();
+        }
+        
+        function toggleGrid() {
+            showGrid = !showGrid;
+            drawAll();
+        }
+        
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-selector button').forEach(b => {
+                b.classList.toggle('active', false);
+            });
+            event.target.classList.toggle('active', true);
+        }
+        
+        // 鼠标拖动
+        let isDragging = false;
+        let dragStartX, dragStartY;
+        
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            dragStartX = e.clientX - offsetX;
+            dragStartY = e.clientY - offsetY;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                offsetX = e.clientX - dragStartX;
+                offsetY = e.clientY - dragStartY;
+                drawAll();
+            }
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+        
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const factor = e.deltaY > 0 ? 0.9 : 1.1;
+            scale *= factor;
+            drawAll();
+        });
+        
+        // ============== 功能函数 ==============
+        function loadTestData() {
+            // 清空现有数据
+            zones = [];
+            sprinklers = [];
+            valves = [];
+            mainPipe = null;
+            branchPipes = [];
+            
+            // 加载测试数据
+            for (const z of TEST_DATA.greenZones) {
+                zones.push({
+                    id: z.id,
+                    points: z.points,
+                    zone_type: 'green',
+                    plant_type: 'lawn'
+                });
+            }
+            
+            for (const s of TEST_DATA.sprinklers) {
+                sprinklers.push({...s});
+            }
+            
+            for (const v of TEST_DATA.valves) {
+                valves.push({...v});
+            }
+            
+            // 更新区域列表UI
+            updateZoneList();
+            
+            // 重置视图并绘制
+            resetView();
+            
+            document.getElementById('fileLabel').innerHTML = 
+                '✅ 已加载 4.16 图纸测试数据<br><small>57个喷头，4个绿化区域</small>';
+        }
+        
+        function updateZoneList() {
+            const list = document.getElementById('zoneList');
+            list.innerHTML = '';
+            for (const zone of zones) {
+                const div = document.createElement('div');
+                div.className = 'zone-item';
+                const typeNames = {green: '绿化', forbidden: '禁区', hard: '硬化'};
+                div.innerHTML = `
+                    <div class="zone-name">${zone.id} (${typeNames[zone.zone_type] || zone.zone_type})</div>
+                    <div class="zone-detail">${zone.points.length} 个顶点</div>
+                `;
+                list.appendChild(div);
+            }
+        }
+        
+        // 简单的管路规划算法（前端简化版）
+        function runAlgorithm() {
+            const waterFlow = parseFloat(document.getElementById('waterFlow').value);
+            const sourceX = parseFloat(document.getElementById('sourceX').value);
+            const sourceY = parseFloat(document.getElementById('sourceY').value);
+            
+            // 清空之前的结果
+            mainPipe = null;
+            branchPipes = [];
+            valves = [];
+            
+            // 1. 找到所有绿化区的中心点
+            const zoneCenters = [];
+            for (const zone of zones.filter(z => z.zone_type === 'green')) {
+                const center = getPolygonCenter(zone.points);
+                zoneCenters.push({zone, center});
+            }
+            
+            // 2. 规划主管：从水源连接各绿化区中心
+            const mainPath = [[sourceX, sourceY]];
+            
+            // 按距离水源远近排序
+            zoneCenters.sort((a, b) => {
+                const da = Math.hypot(a.center.x - sourceX, a.center.y - sourceY);
+                const db = Math.hypot(b.center.x - sourceX, b.center.y - sourceY);
+                return da - db;
+            });
+            
+            for (const {center} of zoneCenters) {
+                mainPath.push([center.x, center.y]);
+            }
+            
+            mainPipe = mainPath;
+            
+            // 3. 为每个绿化区规划支管和阀门
+            let valveCount = 0;
+            const sprinklerFlows = {
+                'KXF-8': 0.54,
+                'KVF-10': 0.56,
+                'KVF-12': 0.66,
+                'KVF-15': 0.69,
+                'KVF-17': 0.71
+            };
+            
+            for (const {zone, center} of zoneCenters) {
+                // 找到该区域的喷头
+                const zoneSprinklers = sprinklers.filter(s => 
+                    pointInPolygon([s.x, s.y], zone.points)
+                );
+                
+                if (zoneSprinklers.length === 0) continue;
+                
+                // 按喷头类型分组
+                const groups = {};
+                for (const s of zoneSprinklers) {
+                    if (!groups[s.type]) groups[s.type] = [];
+                    groups[s.type].push(s);
+                }
+                
+                // 为每组喷头放置阀门和支管
+                for (const [type, group] of Object.entries(groups)) {
+                    const flowPerSprinkler = sprinklerFlows[type] || 0.6;
+                    const maxPerValve = Math.floor(waterFlow / flowPerSprinkler);
+                    
+                    // 如果喷头数量超过流量限制，拆分多个阀门
+                    for (let i = 0; i < group.length; i += maxPerValve) {
+                        const subGroup = group.slice(i, i + maxPerValve);
+                        
+                        // 阀门位置：绿化区边缘靠近主管处
+                        const valvePos = {
+                            id: `V${++valveCount}`,
+                            x: center.x + (Math.random() - 0.5) * 5000,
+                            y: center.y - 3000
+                        };
+                        valves.push(valvePos);
+                        
+                        // 支管：从阀门到各喷头
+                        for (const s of subGroup) {
+                            branchPipes.push([
+                                [valvePos.x, valvePos.y],
+                                [s.x, s.y]
+                            ]);
+                        }
+                    }
+                }
+            }
+            
+            // 4. 显示统计
+            showStats(zoneCenters, valveCount);
+            
+            // 5. 重新绘制
+            drawAll();
+        }
+        
+        function pointInPolygon(point, polygon) {
+            // 简化的点在多边形内判断
+            let inside = false;
+            for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                const xi = polygon[i][0], yi = polygon[i][1];
+                const xj = polygon[j][0], yj = polygon[j][1];
+                
+                const intersect = ((yi > point[1]) !== (yj > point[1])) &&
+                    (point[0] < (xj - xi) * (point[1] - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        }
+        
+        function showStats(zoneCenters, valveCount) {
+            const panel = document.getElementById('statsPanel');
+            const content = document.getElementById('statsContent');
+            
+            const mainLength = calculatePathLength(mainPipe);
+            let branchLength = 0;
+            for (const bp of branchPipes) {
+                branchLength += calculatePathLength(bp);
+            }
+            
+            content.innerHTML = `
+                <div class="stat-row">
+                    <span>绿化区域</span>
+                    <span>${zoneCenters.length} 个</span>
+                </div>
+                <div class="stat-row">
+                    <span>喷头总数</span>
+                    <span>${sprinklers.length} 个</span>
+                </div>
+                <div class="stat-row">
+                    <span>阀门数量</span>
+                    <span>${valveCount} 个</span>
+                </div>
+                <div class="stat-row">
+                    <span>主管长度</span>
+                    <span>${mainLength.toFixed(1)} m</span>
+                </div>
+                <div class="stat-row">
+                    <span>支管总长</span>
+                    <span>${branchLength.toFixed(1)} m</span>
+                </div>
+                <div class="stat-row">
+                    <span>管长合计</span>
+                    <span>${(mainLength + branchLength).toFixed(1)} m</span>
+                </div>
+                <hr style="border-color: #334155; margin: 10px 0;">
+                <div class="stat-row">
+                    <span>KXF-8</span>
+                    <span>${sprinklers.filter(s => s.type === 'KXF-8').length} 个</span>
+                </div>
+                <div class="stat-row">
+                    <span>KVF-10</span>
+                    <span>${sprinklers.filter(s => s.type === 'KVF-10').length} 个</span>
+                </div>
+                <div class="stat-row">
+                    <span>KVF-12</span>
+                    <span>${sprinklers.filter(s => s.type === 'KVF-12').length} 个</span>
+                </div>
+                <div class="stat-row">
+                    <span>KVF-15</span>
+                    <span>${sprinklers.filter(s => s.type === 'KVF-15').length} 个</span>
+                </div>
+                <div class="stat-row">
+                    <span>KVF-17</span>
+                    <span>${sprinklers.filter(s => s.type === 'KVF-17').length} 个</span>
+                </div>
+            `;
+            
+            panel.classList.add('visible');
+        }
+        
+        function calculatePathLength(path) {
+            if (!path || path.length < 2) return 0;
+            let length = 0;
+            for (let i = 1; i < path.length; i++) {
+                const dx = path[i][0] - path[i-1][0];
+                const dy = path[i][1] - path[i-1][1];
+                length += Math.sqrt(dx*dx + dy*dy);
+            }
+            return length / 1000; // 转换为米（假设坐标是毫米）
+        }
+        
+        function clearAll() {
+            zones = [];
+            sprinklers = [];
+            valves = [];
+            mainPipe = null;
+            branchPipes = [];
+            document.getElementById('zoneList').innerHTML = '';
+            document.getElementById('statsPanel').classList.remove('visible');
+            document.getElementById('fileLabel').innerHTML = 
+                '点击上传 DXF/DWG 图纸<br><small>或直接使用下方测试数据</small>';
+            resetView();
+        }
+        
+        function exportResults() {
+            if (!mainPipe) {
+                alert('请先运行管路规划算法');
+                return;
+            }
+            
+            const result = {
+                project: '灌溉设计测试',
+                timestamp: new Date().toISOString(),
+                parameters: {
+                    waterFlow: document.getElementById('waterFlow').value,
+                    sourcePosition: {
+                        x: document.getElementById('sourceX').value,
+                        y: document.getElementById('sourceY').value
+                    },
+                    mainDiameter: document.getElementById('mainDia').value
+                },
+                statistics: {
+                    sprinklerCount: sprinklers.length,
+                    valveCount: valves.length,
+                    zoneCount: zones.filter(z => z.zone_type === 'green').length,
+                    mainPipeLength: calculatePathLength(mainPipe).toFixed(1),
+                    branchPipeLength: branchPipes.reduce((sum, bp) => sum + calculatePathLength(bp), 0).toFixed(1)
+                },
+                sprinklers: sprinklers,
+                valves: valves,
+                mainPipe: mainPipe,
+                branchPipes: branchPipes,
+                zones: zones
+            };
+            
+            const blob = new Blob([JSON.stringify(result, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `irrigation-design-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // API 基础地址（相对路径，同端口）
+        const API_BASE = '';
+
+        async function loadDXF(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('fileLabel').innerHTML =
+                `📄 ${file.name}<br><small>正在解析...</small>`;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_BASE}/api/parse-dxf`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.error || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // 清空旧数据
+                zones = [];
+                sprinklers = [];
+                valves = [];
+                mainPipe = null;
+                branchPipes = [];
+
+                // 加载绿化区域
+                for (const z of data.green_zones || []) {
+                    zones.push({
+                        id: z.layer || 'zone-' + (zones.length + 1),
+                        points: (z.points || []).map(p => [p.x, p.y]),
+                        zone_type: 'green',
+                        plant_type: 'lawn'
+                    });
+                }
+
+                // 加载喷头（提取纯型号如 KXF-8，避免使用带描述的名称）
+                for (const s of data.sprinklers || []) {
+                    const rawType = s.name || s.type?.name || 'KXF-8';
+                    const cleanType = rawType.split(' ')[0];
+                    sprinklers.push({
+                        type: cleanType,
+                        x: s.position?.x || s.x || 0,
+                        y: s.position?.y || s.y || 0
+                    });
+                }
+
+                // 加载阀门
+                for (const v of data.valves || []) {
+                    valves.push({
+                        id: v.name || 'V' + (valves.length + 1),
+                        x: v.position?.x || v.x || 0,
+                        y: v.position?.y || v.y || 0
+                    });
+                }
+
+                // 加载管道
+                for (const p of data.pipes || []) {
+                    if (p.start && p.end) {
+                        branchPipes.push([
+                            [p.start.x, p.start.y],
+                            [p.end.x, p.end.y]
+                        ]);
+                    }
+                }
+
+                // 自动调整视图到图纸边界
+                if (data.bounds) {
+                    const b = data.bounds;
+                    const cx = (b.min_x + b.max_x) / 2;
+                    const cy = (b.min_y + b.max_y) / 2;
+                    const w = b.width || (b.max_x - b.min_x);
+                    const h = b.height || (b.max_y - b.min_y);
+
+                    // 居中
+                    offsetX = canvas.width / 2 - (cx - 400000) * scale;
+                    offsetY = canvas.height / 2 - (cy + 180000) * scale;
+
+                    // 自动缩放适配画布
+                    const padding = 50;
+                    const scaleX = (canvas.width - padding * 2) / (w || 1);
+                    const scaleY = (canvas.height - padding * 2) / (h || 1);
+                    scale = Math.min(scaleX, scaleY, 0.5); // 上限别太大
+                }
+
+                updateZoneList();
+                drawAll();
+
+                const stats = [];
+                if (zones.length) stats.push(`${zones.length}个区域`);
+                if (sprinklers.length) stats.push(`${sprinklers.length}个喷头`);
+                if (valves.length) stats.push(`${valves.length}个阀门`);
+
+                document.getElementById('fileLabel').innerHTML =
+                    `✅ ${file.name}<br><small>${stats.join(' · ')}</small>`;
+
+            } catch (err) {
+                console.error('DXF解析失败:', err);
+                document.getElementById('fileLabel').innerHTML =
+                    `❌ ${file.name}<br><small>解析失败: ${err.message}</small>`;
+            }
+        }
+        
+        // ============== 初始化 ==============
+        resetView();
+    </script>
+</body>
+</html>

@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>蜜雪Ki城奶茶铺</title>
+ <script src="https://cdn.tailwindcss.com"></script>
+ <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+ <style>
+ body {
+ font-family: 'ZCOOL KuaiLe', cursive, sans-serif;
+ overflow: hidden;
+ user-select: none;
+ }
+
+ /* 雪花动画 */
+ .snowflake {
+ position: fixed;
+ top: -10px;
+ color: white;
+ font-size: 1em;
+ animation: fall linear infinite;
+ z-index: 5;
+ pointer-events: none;
+ }
+ @keyframes fall {
+ to { transform: translateY(100vh) rotate(360deg); }
+ }
+
+ /* 雪人弹跳 */
+ .snowman {
+ animation: bounce 2s ease-in-out infinite;
+ }
+ @keyframes bounce {
+ 0%, 100% { transform: translateY(0); }
+ 50% { transform: translateY(-20px); }
+ }
+
+ /* 奶茶杯 */
+ .cup {
+ width: 120px;
+ height: 160px;
+ background: linear-gradient(to bottom, #fff 0%, #f5f5f5 100%);
+ border: 4px solid #e11d48;
+ border-radius: 0 0 20px 20px;
+ position: relative;
+ overflow: hidden;
+ transition: all 0.3s;
+ }
+ .cup::before {
+ content: '';
+ position: absolute;
+ top: -15px;
+ left: 50%;
+ transform: translateX(-50%);
+ width: 100px;
+ height: 15px;
+ background: #e11d48;
+ border-radius: 50%;
+ }
+ .cup-straw {
+ position: absolute;
+ top: -40px;
+ left: 50%;
+ transform: translateX(-50%);
+ width: 8px;
+ height: 60px;
+ background: #fbbf24;
+ border-radius: 4px;
+ }
+ .cup-content {
+ position: absolute;
+ bottom: 0;
+ left: 0;
+ right: 0;
+ transition: height 0.5s ease;
+ border-radius: 0 0 16px 16px;
+ }
+
+ /* 原料 */
+ .ingredient {
+ cursor: grab;
+ transition: transform 0.2s, box-shadow 0.2s;
+ position: relative;
+ }
+ .ingredient:hover {
+ transform: scale(1.1);
+ }
+ .ingredient:active {
+ cursor: grabbing;
+ }
+ .ingredient.dragging {
+ opacity: 0.5;
+ transform: scale(1.2);
+ }
+
+ /* 顾客 */
+ .customer {
+ animation: customerEnter 0.5s ease-out;
+ }
+ @keyframes customerEnter {
+ from { transform: translateX(100px); opacity: 0; }
+ to { transform: translateX(0); opacity: 1; }
+ }
+ .customer-leave {
+ animation: customerLeave 0.5s ease-in forwards;
+ }
+ @keyframes customerLeave {
+ to { transform: translateX(-100px); opacity: 0; }
+ }
+
+ /* 耐心条 */
+ .patience-bar {
+ transition: width 0.1s linear;
+ }
+
+ /* 反馈动画 */
+ .feedback-popup {
+ animation: popUp 0.8s ease-out forwards;
+ }
+ @keyframes popUp {
+ 0% { transform: scale(0) translateY(0); opacity: 1; }
+ 50% { transform: scale(1.3) translateY(-20px); opacity: 1; }
+ 100% { transform: scale(1) translateY(-50px); opacity: 0; }
+ }
+
+ /* 开始按钮 */
+ .start-btn {
+ background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+ box-shadow: 0 8px 0 #881337, 0 15px 20px rgba(0,0,0,0.2);
+ transition: all 0.1s;
+ }
+ .start-btn:active {
+ transform: translateY(8px);
+ box-shadow: 0 0 0 #881337, 0 5px 10px rgba(0,0,0,0.2);
+ }
+
+ /* 拖拽时的幽灵元素 */
+ .drag-ghost {
+ position: fixed;
+ pointer-events: none;
+ z-index: 1000;
+ transform: scale(1.3);
+ opacity: 0.9;
+ }
+
+ /* 订单气泡 */
+ .order-bubble {
+ position: relative;
+ background: white;
+ border: 3px solid #e11d48;
+ border-radius: 20px;
+ padding: 10px 15px;
+ }
+ .order-bubble::after {
+ content: '';
+ position: absolute;
+ bottom: -10px;
+ left: 50%;
+ transform: translateX(-50%);
+ border-width: 10px 10px 0;
+ border-style: solid;
+ border-color: #e11d48 transparent transparent transparent;
+ }
+
+ .shake {
+ animation: shake 0.5s;
+ }
+ @keyframes shake {
+ 0%, 100% { transform: translateX(0); }
+ 25% { transform: translateX(-10px); }
+ 75% { transform: translateX(10px); }
+ }
+
+ .pulse-glow {
+ animation: pulseGlow 1s infinite;
+ }
+ @keyframes pulseGlow {
+ 0%, 100% { box-shadow: 0 0 5px rgba(225, 29, 72, 0.5); }
+ 50% { box-shadow: 0 0 20px rgba(225, 29, 72, 0.8); }
+ }
+ </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-red-500 via-red-300 to-white relative">
+
+ <!-- 雪花容器 -->
+ <div id="snow-container"></div>
+
+ <!-- 开始页面 -->
+ <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center z-10">
+ <!-- 雪人 -->
+ <div class="snowman mb-8">
+ <svg width="120" height="160" viewBox="0 0 120 160">
+ <!-- 身体 -->
+ <circle cx="60" cy="120" r="35" fill="white" stroke="#ddd" stroke-width="2"/>
+ <circle cx="60" cy="70" r="28" fill="white" stroke="#ddd" stroke-width="2"/>
+ <circle cx="60" cy="28" r="22" fill="white" stroke="#ddd" stroke-width="2"/>
+ <!-- 眼睛 -->
+ <circle cx="52" cy="24" r="3" fill="#333"/>
+ <circle cx="68" cy="24" r="3" fill="#333"/>
+ <!-- 鼻子 -->
+ <polygon points="60,28 80,32 60,36" fill="#f97316"/>
+ <!-- 嘴巴 -->
+ <circle cx="55" cy="36" r="1.5" fill="#333"/>
+ <circle cx="60" cy="38" r="1.5" fill="#333"/>
+ <circle cx="65" cy="36" r="1.5" fill="#333"/>
+ <!-- 围巾 -->
+ <rect x="38" y="48" width="44" height="10" rx="3" fill="#e11d48"/>
+ <rect x="70" y="52" width="12" height="30" rx="2" fill="#e11d48"/>
+ <!-- 手臂 -->
+ <line x1="32" y1="70" x2="10" y2="55" stroke="#8B4513" stroke-width="3" stroke-linecap="round"/>
+ <line x1="88" y1="70" x2="110" y2="55" stroke="#8B4513" stroke-width="3" stroke-linecap="round"/>
+ <!-- 纽扣 -->
+ <circle cx="60" cy="70" r="3" fill="#333"/>
+ <circle cx="60" cy="85" r="3" fill="#333"/>
+ <circle cx="60" cy="115" r="3" fill="#333"/>
+ <circle cx="60" cy="130" r="3" fill="#333"/>
+ <!-- 帽子 -->
+ <rect x="42" y="2" width="36" height="8" rx="2" fill="#1e293b"/>
+ <rect x="48" y="-12" width="24" height="16" rx="2" fill="#1e293b"/>
+ </svg>
+ </div>
+
+ <h1 class="text-6xl text-white mb-2 drop-shadow-lg" style="text-shadow: 3px 3px 0 #be123c;">蜜雪Ki城奶茶铺</h1>
+ <p class="text-2xl text-red-800 mb-10 font-bold">（奶茶版分手厨房）</p>
+
+ <button id="start-btn" class="start-btn text-white text-3xl px-16 py-5 rounded-2xl font-bold">
+ 开始游戏
+ </button>
+
+ <div class="mt-8 text-red-700 text-lg bg-white/70 px-6 py-3 rounded-xl">
+ 🎮 拖拽原料制作奶茶，满足顾客需求！
+ </div>
+ </div>
+
+ <!-- 游戏页面 -->
+ <div id="game-screen" class="hidden absolute inset-0 z-10">
+ <!-- 顶部信息栏 -->
+ <div class="flex justify-between items-center px-6 py-3 bg-white/90 shadow-lg">
+ <div class="flex items-center gap-4">
+ <div class="text-2xl text-red-600 font-bold">⏱️ <span id="timer">60</span>秒</div>
+ <div class="text-2xl text-red-600 font-bold">⭐ 得分: <span id="score">0</span></div>
+ </div>
+ <div class="text-2xl text-red-600 font-bold">✅ <span id="success-count">0</span> | ❌ <span id="fail-count">0</span></div>
+ </div>
+
+ <!-- 顾客区域 -->
+ <div id="customer-area" class="flex justify-center items-end mt-4 h-48 relative">
+ <!-- 顾客会动态插入这里 -->
+ </div>
+
+ <!-- 奶茶杯区域 -->
+ <div class="flex justify-center items-center mt-4 h-52">
+ <div class="relative">
+ <div class="cup-straw"></div>
+ <div id="cup" class="cup flex items-end justify-center">
+ <div id="cup-content" class="cup-content w-full" style="height: 0%;"></div>
+ </div>
+ <div id="cup-label" class="text-center mt-2 text-red-700 font-bold text-sm">空杯子</div>
+ <button id="submit-btn" class="absolute -right-24 top-1/2 -translate-y-1/2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-bold shadow-lg transition-all active:scale-95">
+ 提交！
+ </button>
+ <button id="clear-btn" class="absolute -right-24 top-1/2 translate-y-4 mt-2 bg-gray-400 hover:bg-gray-500 text-white px-4 py-1 rounded-lg text-sm shadow transition-all active:scale-95">
+ 清空
+ </button>
+ </div>
+ </div>
+
+ <!-- 原料区域 -->
+ <div class="absolute bottom-0 left-0 right-0 bg-white/95 rounded-t-3xl shadow-2xl p-6">
+ <div class="text-center text-red-600 font-bold mb-3 text-xl">🧋 原料台</div>
+ <div id="ingredients" class="flex justify-center gap-4 flex-wrap">
+ <!-- 原料会动态生成 -->
+ </div>
+ </div>
+ </div>
+
+ <!-- 结果页面 -->
+ <div id="result-screen" class="hidden absolute inset-0 flex flex-col items-center justify-center z-20 bg-black/50 backdrop-blur-sm">
+ <div class="bg-white rounded-3xl p-10 shadow-2xl text-center max-w-md w-full mx-4">
+ <div class="text-6xl mb-4">🎉</div>
+ <h2 class="text-4xl text-red-600 font-bold mb-6">游戏结束！</h2>
+
+ <div class="space-y-4 mb-8">
+ <div class="flex justify-between items-center bg-red-50 p-4 rounded-xl">
+ <span class="text-red-700 font-bold text-xl">✅ 成功制作</span>
+ <span id="result-success" class="text-3xl text-red-600 font-bold">0</span>
+ </div>
+ <div class="flex justify-between items-center bg-red-50 p-4 rounded-xl">
+ <span class="text-red-700 font-bold text-xl">❌ 失败次数</span>
+ <span id="result-fail" class="text-3xl text-red-600 font-bold">0</span>
+ </div>
+ <div class="flex justify-between items-center bg-gradient-to-r from-red-100 to-red-200 p-4 rounded-xl">
+ <span class="text-red-800 font-bold text-xl">🏆 最终得分</span>
+ <span id="result-score" class="text-4xl text-red-600 font-bold">0</span>
+ </div>
+ </div>
+
+ <div id="result-message" class="text-lg text-red-600 mb-6 font-bold"></div>
+
+ <button id="restart-btn" class="start-btn text-white text-2xl px-12 py-4 rounded-2xl font-bold">
+ 再来一局
+ </button>
+ </div>
+ </div>
+
+ <!-- 反馈弹窗容器 -->
+ <div id="feedback-container" class="fixed inset-0 pointer-events-none z-50"></div>
+
+ <script>
+ // ==================== 游戏数据 ====================
+ const INGREDIENTS = [
+ { id: 'milk_tea', name: '奶茶底', emoji: '🍵', color: '#C4A77D', type: 'base' },
+ { id: 'green_tea', name: '绿茶底', emoji: '🌿', color: '#90EE90', type: 'base' },
+ { id: 'black_tea', name: '红茶底', emoji: '🫖', color: '#8B4513', type: 'base' },
+ { id: 'milk', name: '牛奶', emoji: '🥛', color: '#FFFDD0', type: 'milk' },
+ { id: 'pearl', name: '珍珠', emoji: '⚫', color: '#2D2D2D', type: 'topping' },
+ { id: 'coconut', name: '椰果', emoji: '🥥', color: '#FFF8DC', type: 'topping' },
+ { id: 'pudding', name: '布丁', emoji: '🍮', color: '#FFE4B5', type: 'topping' },
+ { id: 'red_bean', name: '红豆', emoji: '🔴', color: '#8B0000', type: 'topping' },
+ { id: 'sugar', name: '糖浆', emoji: '🍯', color: '#FFD700', type: 'syrup' },
+ { id: 'ice', name: '冰块', emoji: '🧊', color: '#E0FFFF', type: 'ice' },
+ ];
+
+ const RECIPES = [
+ { name: '珍珠奶茶', ingredients: ['milk_tea', 'pearl', 'sugar'], emoji: '🧋' },
+ { name: '椰果奶茶', ingredients: ['milk_tea', 'coconut', 'sugar'], emoji: '🥥' },
+ { name: '布丁奶茶', ingredients: ['milk_tea', 'pudding', 'sugar'], emoji: '🍮' },
+ { name: '红豆奶茶', ingredients: ['milk_tea', 'red_bean', 'sugar'], emoji: '🔴' },
+ { name: '绿茶拿铁', ingredients: ['green_tea', 'milk', 'ice'], emoji: '🍃' },
+ { name: '红茶拿铁', ingredients: ['black_tea', 'milk', 'ice'], emoji: '☕' },
+ { name: '珍珠绿茶', ingredients: ['green_tea', 'pearl', 'sugar'], emoji: '🌱' },
+ { name: '椰果红茶', ingredients: ['black_tea', 'coconut', 'sugar'], emoji: '🍂' },
+ ];
+
+ const CUSTOMER_AVATARS = ['👧', '👦', '👩', '👨', '👵', '👴', '👱‍♀️', '👱‍♂️', '🧑', '👩‍🦰'];
+
+ // ==================== 游戏状态 ====================
+ let gameState = {
+ score: 0,
+ successCount: 0,
+ failCount: 0,
+ timeLeft: 60,
+ currentOrder: null,
+ cupIngredients: [],
+ isPlaying: false,
+ timerInterval: null,
+ patienceInterval: null,
+ currentPatience: 100,
+ maxPatience: 100,
+ customerPatienceDecrease: 0.5,
+ };
+
+ // ==================== DOM 元素 ====================
+ const startScreen = document.getElementById('start-screen');
+ const gameScreen = document.getElementById('game-screen');
+ const resultScreen = document.getElementById('result-screen');
+ const startBtn = document.getElementById('start-btn');
+ const restartBtn = document.getElementById('restart-btn');
+ const submitBtn = document.getElementById('submit-btn');
+ const clearBtn = document.getElementById('clear-btn');
+ const cup = document.getElementById('cup');
+ const cupContent = document.getElementById('cup-content');
+ const cupLabel = document.getElementById('cup-label');
+ const ingredientsContainer = document.getElementById('ingredients');
+ const customerArea = document.getElementById('customer-area');
+ const feedbackContainer = document.getElementById('feedback-container');
+
+ // ==================== 雪花效果 ====================
+ function createSnowflakes() {
+ const container = document.getElementById('snow-container');
+ const snowflakeChars = ['❄', '❅', '❆', '•'];
+
+ for (let i = 0; i < 50; i++) {
+ const flake = document.createElement('div');
+ flake.className = 'snowflake';
+ flake.textContent = snowflakeChars[Math.floor(Math.random() * snowflakeChars.length)];
+ flake.style.left = Math.random() * 100 + 'vw';
+ flake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+ flake.style.animationDelay = Math.random() * 5 + 's';
+ flake.style.fontSize = (Math.random() * 15 + 10) + 'px';
+ flake.style.opacity = Math.random() * 0.6 + 0.4;
+ container.appendChild(flake);
+ }
+ }
+
+ // ==================== 初始化原料台 ====================
+ function initIngredients() {
+ ingredientsContainer.innerHTML = '';
+ INGREDIENTS.forEach(ing => {
+ const div = document.createElement('div');
+ div.className = 'ingredient bg-white border-3 border-red-200 rounded-2xl p-3 flex flex-col items-center gap-1 shadow-md hover:shadow-xl w-20';
+ div.draggable = true;
+ div.dataset.id = ing.id;
+ div.innerHTML = `
+ <span class="text-3xl">${ing.emoji}</span>
+ <span class="text-xs text-red-700 font-bold">${ing.name}</span>
+ `;
+
+ // 拖拽事件
+ div.addEventListener('dragstart', handleDragStart);
+ div.addEventListener('dragend', handleDragEnd);
+
+ // 触摸事件（移动端）
+ div.addEventListener('touchstart', handleTouchStart, { passive: false });
+ div.addEventListener('touchmove', handleTouchMove, { passive: false });
+ div.addEventListener('touchend', handleTouchEnd);
+
+ ingredientsContainer.appendChild(div);
+ });
+ }
+
+ // ==================== 拖拽逻辑 ====================
+ let draggedElement = null;
+ let dragGhost = null;
+
+ function handleDragStart(e) {
+ draggedElement = e.target.closest('.ingredient');
+ draggedElement.classList.add('dragging');
+ e.dataTransfer.effectAllowed = 'copy';
+ }
+
+ function handleDragEnd(e) {
+ if (draggedElement) {
+ draggedElement.classList.remove('dragging');
+ draggedElement = null;
+ }
+ }
+
+ // 触摸拖拽
+ let touchDragItem = null;
+ let touchOffsetX = 0;
+ let touchOffsetY = 0;
+
+ function handleTouchStart(e) {
+ e.preventDefault();
+ const touch = e.touches[0];
+ touchDragItem = e.target.closest('.ingredient');
+ const rect = touchDragItem.getBoundingClientRect();
+ touchOffsetX = touch.clientX - rect.left;
+ touchOffsetY = touch.clientY - rect.top;
+
+ dragGhost = touchDragItem.cloneNode(true);
+ dragGhost.classList.add('drag-ghost');
+ dragGhost.style.left = (touch.clientX - touchOffsetX) + 'px';
+ dragGhost.style.top = (touch.clientY - touchOffsetY) + 'px';
+ document.body.appendChild(dragGhost);
+ touchDragItem.style.opacity = '0.5';
+ }
+
+ function handleTouchMove(e) {
+ e.preventDefault();
+ if (!dragGhost) return;
+ const touch = e.touches[0];
+ dragGhost.style.left = (touch.clientX - touchOffsetX) + 'px';
+ dragGhost.style.top = (touch.clientY - touchOffsetY) + 'px';
+ }
+
+ function handleTouchEnd(e) {
+ if (!touchDragItem) return;
+ const touch = e.changedTouches[0];
+ const cupRect = cup.getBoundingClientRect();
+
+ if (touch.clientX >= cupRect.left && touch.clientX <= cupRect.right &&
+ touch.clientY >= cupRect.top && touch.clientY <= cupRect.bottom) {
+ addIngredientToCup(touchDragItem.dataset.id);
+ }
+
+ if (dragGhost) {
+ dragGhost.remove();
+ dragGhost = null;
+ }
+ touchDragItem.style.opacity = '1';
+ touchDragItem = null;
+ }
+
+ // 杯子接收拖拽
+ cup.addEventListener('dragover', (e) => {
+ e.preventDefault();
+ e.dataTransfer.dropEffect = 'copy';
+ cup.classList.add('pulse-glow');
+ });
+
+ cup.addEventListener('dragleave', () => {
+ cup.classList.remove('pulse-glow');
+ });
+
+ cup.addEventListener('drop', (e) => {
+ e.preventDefault();
+ cup.classList.remove('pulse-glow');
+ if (draggedElement) {
+ addIngredientToCup(draggedElement.dataset.id);
+ }
+ });
+
+ // ==================== 添加原料到杯子 ====================
+ function addIngredientToCup(ingredientId) {
+ if (!gameState.isPlaying) return;
+
+ const ingredient = INGREDIENTS.find(i => i.id === ingredientId);
+ if (!ingredient) return;
+
+ // 限制原料数量
+ if (gameState.cupIngredients.length >= 5) {
+ showFeedback('杯子满了！', '⚠️', '#f59e0b');
+ cup.classList.add('shake');
+ setTimeout(() => cup.classList.remove('shake'), 500);
+ return;
+ }
+
+ gameState.cupIngredients.push(ingredient);
+ updateCupVisual();
+
+ // 添加音效视觉反馈
+ const ripple = document.createElement('div');
+ ripple.className = 'absolute inset-0 bg-white/30 rounded-full animate-ping';
+ cup.appendChild(ripple);
+ setTimeout(() => ripple.remove(), 500);
+ }
+
+ function updateCupVisual() {
+ const height = Math.min(gameState.cupIngredients.length * 20, 100);
+ cupContent.style.height = height + '%';
+
+ // 混合颜色
+ if (gameState.cupIngredients.length > 0) {
+ const colors = gameState.cupIngredients.map(i => i.color);
+ const gradient = colors.length === 1 
+ ? colors[0] 
+ : `linear-gradient(to top, ${colors.join(', ')})`;
+ cupContent.style.background = gradient;
+ } else {
+ cupContent.style.background = 'transparent';
+ }
+
+ // 更新标签
+ if (gameState.cupIngredients.length === 0) {
+ cupLabel.textContent = '空杯子';
+ } else {
+ const names = gameState.cupIngredients.map(i => i.name).join(' + ');
+ cupLabel.textContent = names;
+ }
+ }
+
+ // ==================== 顾客系统 ====================
+ function spawnCustomer() {
+ if (!gameState.isPlaying) return;
+
+ const recipe = RECIPES[Math.floor(Math.random() * RECIPES.length)];
+ gameState.currentOrder = recipe;
+ gameState.currentPatience = gameState.maxPatience;
+
+ const avatar = CUSTOMER_AVATARS[Math.floor(Math.random() * CUSTOMER_AVATARS.length)];
+
+ customerArea.innerHTML = `
+ <div id="customer" class="customer flex flex-col items-center">
+ <div class="order-bubble mb-3">
+ <div class="text-2xl">${recipe.emoji}</div>
+ <div class="text-red-700 font-bold text-sm">${recipe.name}</div>
+ <div class="text-xs text-gray-500 mt-1">
+ ${recipe.ingredients.map(id => INGREDIENTS.find(i => i.id === id).emoji).join(' ')}
+ </div>
+ </div>
+ <div class="text-6xl">${avatar}</div>
+ <div class="w-32 h-4 bg-gray-200 rounded-full mt-2 overflow-hidden border-2 border-red-300">
+ <div id="patience-bar" class="patience-bar h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full" style="width: 100%"></div>
+ </div>
+ </div>
+ `;
+
+ // 启动耐心条
+ startPatienceTimer();
+ }
+
+ function startPatienceTimer() {
+ if (gameState.patienceInterval) clearInterval(gameState.patienceInterval);
+
+ gameState.patienceInterval = setInterval(() => {
+ if (!gameState.isPlaying) return;
+
+ gameState.currentPatience -= gameState.customerPatienceDecrease;
+ const bar = document.getElementById('patience-bar');
+ if (bar) {
+ bar.style.width = gameState.currentPatience + '%';
+
+ // 颜色变化
+ if (gameState.currentPatience > 60) {
+ bar.className = 'patience-bar h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full';
+ } else if (gameState.currentPatience > 30) {
+ bar.className = 'patience-bar h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full';
+ } else {
+ bar.className = 'patience-bar h-full bg-gradient-to-r from-red-400 to-red-500 rounded-full';
+ }
+ }
+
+ if (gameState.currentPatience <= 0) {
+ // 顾客失去耐心离开
+ handleOrderFail('顾客等不及走掉了！');
+ }
+ }, 100);
+ }
+
+ // ==================== 提交订单 ====================
+ submitBtn.addEventListener('click', () => {
+ if (!gameState.isPlaying || !gameState.currentOrder) return;
+
+ const orderIngIds = gameState.currentOrder.ingredients.sort();
+ const cupIngIds = gameState.cupIngredients.map(i => i.id).sort();
+
+ const isCorrect = JSON.stringify(orderIngIds) === JSON.stringify(cupIngIds);
+
+ if (isCorrect) {
+ handleOrderSuccess();
+ } else {
+ handleOrderFail('配方不对哦！');
+ }
+ });
+
+ clearBtn.addEventListener('click', () => {
+ gameState.cupIngredients = [];
+ updateCupVisual();
+ });
+
+ function handleOrderSuccess() {
+ gameState.successCount++;
+ const bonus = Math.ceil(gameState.currentPatience / 10);
+ const points = 100 + bonus * 10;
+ gameState.score += points;
+
+ updateUI();
+ showFeedback(`+${points}分！`, '✅', '#22c55e');
+
+ // 顾客开心离开
+ const customer = document.getElementById('customer');
+ if (customer) {
+ customer.innerHTML += '<div class="text-4xl absolute -top-4">😊</div>';
+ customer.classList.add('customer-leave');
+ }
+
+ // 清空杯子
+ gameState.cupIngredients = [];
+ updateCupVisual();
+
+ // 下一个顾客
+ setTimeout(() => {
+ if (gameState.isPlaying) spawnCustomer();
+ }, 800);
+ }
+
+ function handleOrderFail(reason) {
+ gameState.failCount++;
+ updateUI();
+ showFeedback(reason, '❌', '#ef4444');
+
+ // 顾客生气离开
+ const customer = document.getElementById('customer');
+ if (customer) {
+ customer.innerHTML += '<div class="text-4xl absolute -top-4">😠</div>';
+ customer.classList.add('customer-leave');
+ }
+
+ // 清空杯子
+ gameState.cupIngredients = [];
+ updateCupVisual();
+
+ // 下一个顾客
+ setTimeout(() => {
+ if (gameState.isPlaying) spawnCustomer();
+ }, 800);
+ }
+
+ // ==================== 反馈弹窗 ====================
+ function showFeedback(text, emoji, color) {
+ const div = document.createElement('div');
+ div.className = 'feedback-popup fixed text-4xl font-bold z-50';
+ div.style.color = color;
+ div.style.left = '50%';
+ div.style.top = '40%';
+ div.style.transform = 'translateX(-50%)';
+ div.innerHTML = `<div class="text-center">${emoji}<br><span class="text-2xl">${text}</span></div>`;
+ feedbackContainer.appendChild(div);
+
+ setTimeout(() => div.remove(), 1000);
+ }
+
+ // ==================== 更新UI ====================
+ function updateUI() {
+ document.getElementById('score').textContent = gameState.score;
+ document.getElementById('success-count').textContent = gameState.successCount;
+ document.getElementById('fail-count').textContent = gameState.failCount;
+ }
+
+ // ==================== 计时器 ====================
+ function startTimer() {
+ gameState.timerInterval = setInterval(() => {
+ gameState.timeLeft--;
+ document.getElementById('timer').textContent = gameState.timeLeft;
+
+ if (gameState.timeLeft <= 10) {
+ document.getElementById('timer').classList.add('text-red-600', 'animate-pulse');
+ }
+
+ if (gameState.timeLeft <= 0) {
+ endGame();
+ }
+ }, 1000);
+ }
+
+ // ==================== 游戏控制 ====================
+ function startGame() {
+ gameState = {
+ score: 0,
+ successCount: 0,
+ failCount: 0,
+ timeLeft: 60,
+ currentOrder: null,
+ cupIngredients: [],
+ isPlaying: true,
+ timerInterval: null,
+ patienceInterval: null,
+ currentPatience: 100,
+ maxPatience: 100,
+ customerPatienceDecrease: 0.5,
+ };
+
+ startScreen.classList.add('hidden');
+ resultScreen.classList.add('hidden');
+ gameScreen.classList.remove('hidden');
+
+ updateUI();
+ document.getElementById('timer').textContent = '60';
+ document.getElementById('timer').classList.remove('text-red-600', 'animate-pulse');
+
+ initIngredients();
+ updateCupVisual();
+
+ spawnCustomer();
+ startTimer();
+ }
+
+ function endGame() {
+ gameState.isPlaying = false;
+ clearInterval(gameState.timerInterval);
+ clearInterval(gameState.patienceInterval);
+
+ gameScreen.classList.add('hidden');
+ resultScreen.classList.remove('hidden');
+
+ document.getElementById('result-success').textContent = gameState.successCount;
+ document.getElementById('result-fail').textContent = gameState.failCount;
+ document.getElementById('result-score').textContent = gameState.score;
+
+ // 评价
+ let message = '';
+ if (gameState.score >= 800) {
+ message = '🏆 奶茶大师！你是传说中的奶茶之神！';
+ } else if (gameState.score >= 500) {
+ message = '⭐ 优秀店员！顾客们都爱死你啦！';
+ } else if (gameState.score >= 200) {
+ message = '👍 不错的开始！继续加油！';
+ } else {
+ message = '💪 别灰心，多练习就能成为奶茶达人！';
+ }
+ document.getElementById('result-message').textContent = message;
+ }
+
+ // ==================== 事件绑定 ====================
+ startBtn.addEventListener('click', startGame);
+ restartBtn.addEventListener('click', startGame);
+
+ // ==================== 初始化 ====================
+ createSnowflakes();
+ </script>
+</body>
+</html>
