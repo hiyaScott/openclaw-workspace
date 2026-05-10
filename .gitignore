@@ -9,3 +9,17 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+
+# 运行时/临时数据
+*.log
+.openclaw/
+
+# 大文件（GitHub Releases 方式管理）
+backups/*.tar.gz
+
+# 嵌套 git 仓库（独立管理）
+projects/word-alchemy-2/
+reports/
+scott-portfolio-jekyll/
+hiyamax-blog-repo/
+hiyamax-home-jekyll/
