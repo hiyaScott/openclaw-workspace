@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C++ 核心课程</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 导航栏 -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="logo">{ }</span>
+      <span class="site-title">C++ 核心课程</span>
+    </div>
+    <div class="nav-links">
+      <a href="index.html" class="active">课程列表</a>
+      <a href="#progress">学习进度</a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
+    </div>
+  </nav>
+
+  <!-- Hero 区域 -->
+  <header class="hero">
+    <h1>C++ 核心课程</h1>
+    <p class="hero-subtitle">从基础语法到现代 C++ 特性的系统化学习路径</p>
+    <div class="hero-meta">
+      <span class="badge">20 节课程</span>
+      <span class="badge">7 大模块</span>
+      <span class="badge">视频 + PDF</span>
+    </div>
+  </header>
+
+  <!-- 课程列表 -->
+  <main class="container">
+    <div class="section-header">
+      <h2>全部课程</h2>
+      <div class="filter-tabs">
+        <button class="tab active" data-filter="all">全部</button>
+        <button class="tab" data-filter="入门">入门</button>
+        <button class="tab" data-filter="进阶">进阶</button>
+        <button class="tab" data-filter="综合">综合</button>
+      </div>
+    </div>
+
+    <div id="courseGroups">
+      <!-- 按部分分组的课程由 JS 渲染 -->
+    </div>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <p>C++ 核心课程 · 由 Scott 制作</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

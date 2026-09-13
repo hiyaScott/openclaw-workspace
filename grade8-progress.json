@@ -1,0 +1,16 @@
+{
+  "project": "八年级数学课件",
+  "total_chapters": 7,
+  "completed": 7,
+  "in_progress": "全部完成",
+  "started_at": "2026-05-14T01:48:00+08:00",
+  "chapters": [
+    {"id": "ch19", "name": "实数", "code": "REAL", "status": "completed", "semester": "sem1", "order": 1},
+    {"id": "ch20", "name": "二次根式", "code": "RADICAL", "status": "completed", "semester": "sem1", "order": 2},
+    {"id": "ch21", "name": "一元二次方程", "code": "QUAD", "status": "completed", "semester": "sem1", "order": 3},
+    {"id": "ch22", "name": "直角三角形", "code": "RIGHT", "status": "completed", "semester": "sem1", "order": 4},
+    {"id": "ch23", "name": "一次函数", "code": "LINEAR", "status": "completed", "semester": "sem2", "order": 5},
+    {"id": "ch24", "name": "四边形", "code": "QUADRI", "status": "completed", "semester": "sem2", "order": 6},
+    {"id": "ch25", "name": "数据的离散程度", "code": "STAT", "status": "completed", "semester": "sem2", "order": 7}
+  ]
+}

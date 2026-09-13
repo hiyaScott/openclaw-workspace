@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蜂巢中队 - 班徽设计稿 v0.1</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0e1a;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 40px 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  h1 {
+    color: #e2e8f0;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+  .subtitle {
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 30px;
+  }
+  .badge-container {
+    position: relative;
+    width: 400px;
+    height: 400px;
+    margin-bottom: 40px;
+  }
+  .badge-svg {
+    width: 100%;
+    height: 100%;
+  }
+  .annotation {
+    max-width: 600px;
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .annotation h3 {
+    color: #e2e8f0;
+    font-size: 16px;
+    margin: 20px 0 10px;
+    font-weight: 600;
+  }
+  .annotation code {
+    background: #1e293b;
+    color: #38bdf8;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+  .highlight { color: #f97316; }
+  .color-swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<h1>蜂巢中队 HIVE SIX</h1>
+<p class="subtitle">班徽设计稿 v0.1 · 上海外国语大学附属外国语学校 2606科创班</p>
+
+<div class="badge-container">
+  <svg class="badge-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- 外发光 -->
+      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <!-- 强发光 -->
+      <filter id="glow-strong" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+      <!-- 渐变 -->
+      <linearGradient id="grad-main" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#0ea5e9"/>
+        <stop offset="100%" style="stop-color:#1d4ed8"/>
+      </linearGradient>
+      <linearGradient id="grad-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#f97316"/>
+        <stop offset="100%" style="stop-color:#ea580c"/>
+      </linearGradient>
+    </defs>
+
+    <!-- 背景圆（微弱科技感） -->
+    <circle cx="200" cy="200" r="190" fill="none" stroke="#1e293b" stroke-width="1" opacity="0.5"/>
+    <circle cx="200" cy="200" r="170" fill="none" stroke="#1e293b" stroke-width="1" opacity="0.3"/>
+
+    <!-- 外框六边形 -->
+    <polygon points="200,25 355,112.5 355,287.5 200,375 45,287.5 45,112.5"
+             fill="none" stroke="url(#grad-main)" stroke-width="3" filter="url(#glow)"/>
+
+    <!-- 内框六边形 -->
+    <polygon points="200,55 325,127.5 325,272.5 200,345 75,272.5 75,127.5"
+             fill="none" stroke="#0ea5e9" stroke-width="1" opacity="0.6"/>
+
+    <!-- 蜂窝晶格 - 核心六边形 -->
+    <polygon points="200,130 270,170 270,230 200,270 130,230 130,170"
+             fill="none" stroke="#38bdf8" stroke-width="1.5" opacity="0.9"/>
+
+    <!-- 蜂窝晶格 - 周围六个六边形 -->
+    <!-- 右上 -->
+    <polygon points="270,90 340,130 340,190 270,230 200,190 200,130"
+             fill="none" stroke="#38bdf8" stroke-width="1" opacity="0.5"/>
+    <!-- 右 -->
+    <polygon points="270,170 340,210 340,270 270,310 200,270 200,210"
+             fill="none" stroke="#38bdf8" stroke-width="1" opacity="0.5"/>
+    <!-- 右下 -->
+    <polygon points="200,230 270,270 270,330 200,370 130,330 130,270"
+             fill="none" stroke="#38bdf8" stroke-width="1" opacity="0.5"/>
+    <!-- 左下 -->
+    <polygon points="130,170 200,210 200,270 130,310 60,270 60,210"
+             fill="none" stroke="#38bdf8" stroke-width="1" opacity="0.5"/>
+    <!-- 左 -->
+    <polygon points="130,90 200,130 200,190 130,230 60,190 60,130"
+             fill="none" stroke="#38bdf8" stroke-width="1" opacity="0.5"/>
+    <!-- 左上 -->
+    <polygon points="200,30 270,70 270,130 200,170 130,130 130,70"
+             fill="none" stroke="#38bdf8" stroke-width="1" opacity="0.5"/>
+
+    <!-- 连接节点（小圆点 = 原子/同学） -->
+    <!-- 核心六边形的6个顶点 -->
+    <circle cx="200" cy="130" r="4" fill="#38bdf8" filter="url(#glow)"/>
+    <circle cx="270" cy="170" r="4" fill="#38bdf8" filter="url(#glow)"/>
+    <circle cx="270" cy="230" r="4" fill="#38bdf8" filter="url(#glow)"/>
+    <circle cx="200" cy="270" r="4" fill="#38bdf8" filter="url(#glow)"/>
+    <circle cx="130" cy="230" r="4" fill="#38bdf8" filter="url(#glow)"/>
+    <circle cx="130" cy="170" r="4" fill="#38bdf8" filter="url(#glow)"/>
+
+    <!-- 额外点缀节点 -->
+    <circle cx="200" cy="85" r="3" fill="#0ea5e9" opacity="0.6"/>
+    <circle cx="305" cy="145" r="3" fill="#0ea5e9" opacity="0.6"/>
+    <circle cx="305" cy="255" r="3" fill="#0ea5e9" opacity="0.6"/>
+    <circle cx="200" cy="315" r="3" fill="#0ea5e9" opacity="0.6"/>
+    <circle cx="95" cy="255" r="3" fill="#0ea5e9" opacity="0.6"/>
+    <circle cx="95" cy="145" r="3" fill="#0ea5e9" opacity="0.6"/>
+
+    <!-- 中心发光点（共价键/集体） -->
+    <circle cx="200" cy="200" r="8" fill="#f97316" filter="url(#glow-strong)"/>
+    <circle cx="200" cy="200" r="3" fill="#fff"/>
+
+    <!-- "06" 数字 - 电路风格 -->
+    <g transform="translate(200, 335)" text-anchor="middle">
+      <text x="0" y="0" font-family="'SF Mono', 'Courier New', monospace" font-size="32" font-weight="700"
+            fill="url(#grad-main)" letter-spacing="4" filter="url(#glow)">06</text>
+      <!-- 电路线装饰 -->
+      <line x1="-35" y1="5" x2="-50" y2="5" stroke="#0ea5e9" stroke-width="1.5"/>
+      <line x1="-50" y1="5" x2="-50" y2="-15" stroke="#0ea5e9" stroke-width="1.5"/>
+      <circle cx="-50" cy="-15" r="2" fill="#f97316"/>
+      <line x1="35" y1="5" x2="50" y2="5" stroke="#0ea5e9" stroke-width="1.5"/>
+      <line x1="50" y1="5" x2="50" y2="-15" stroke="#0ea5e9" stroke-width="1.5"/>
+      <circle cx="50" cy="-15" r="2" fill="#f97316"/>
+    </g>
+
+    <!-- 顶部文字 - SFS / 上外附中 -->
+    <g transform="translate(200, 75)" text-anchor="middle">
+      <text x="0" y="0" font-family="'SF Mono', 'Courier New', monospace" font-size="11" font-weight="500"
+            fill="#64748b" letter-spacing="3">S F S</text>
+      <text x="0" y="14" font-family="-apple-system, sans-serif" font-size="9" font-weight="400"
+            fill="#475569" letter-spacing="1">上外附中</text>
+    </g>
+
+    <!-- 底部英文 -->
+    <g transform="translate(200, 362)" text-anchor="middle">
+      <text x="0" y="0" font-family="'SF Mono', monospace" font-size="7" font-weight="400"
+            fill="#475569" letter-spacing="1">HIVE SIX · SCI-TECH CLASS</text>
+    </g>
+
+  </svg>
+</div>
+
+<div class="annotation">
+<h3>🎯 设计说明</h3>
+<p>
+<strong>规避"邪恶感"的核心手法：</strong><br>
+传统六芒星是「六角星形」（两个三角叠加），我们用「<span class="highlight">六边形蜂窝晶格</span>」——这是石墨烯、蜂巢、苯环的科学结构，和神秘符号彻底切割。
+</p>
+
+<h3>🐝 队名由来</h3>
+<p>
+<b>蜂巢中队</b> — 蜂巢由无数六边形精密拼接，每只蜜蜂独立工作，最终汇成整体。没有蜂王发号施令，只有信息素和舞蹈的自发协作——这是最接近「分布式智能」的自然系统。
+</p>
+
+<h3>🧬 元素解读</h3>
+<p>
+<b>外框六边形</b> — 班级边界，规整、理性、没有尖角。<br>
+<b>蜂窝晶格</b> — 石墨烯结构，每一个六边形是一个同学，共享电子对（中心橙点）是集体。<br>
+<b>中心橙点</b> — <span class="highlight">共价键</span>，26个碳原子共享的势能焦点。<br>
+<b>"06"电路线</b> — 不是手写体，是走线，焊点，工程感。<br>
+<b>SFS</b> — 上海外国语大学附属外国语学校的英文缩写，克制地放在顶部。
+</p>
+
+<h3>🎨 配色</h3>
+<p>
+<span class="color-swatch" style="background:#0a0e1a;"></span><code>#0a0e1a</code> 深空黑（背景）<br>
+<span class="color-swatch" style="background:#0ea5e9;"></span><code>#0ea5e9</code> 电光蓝（主结构）<br>
+<span class="color-swatch" style="background:#1d4ed8;"></span><code>#1d4ed8</code> 深蓝（渐变终点）<br>
+<span class="color-swatch" style="background:#f97316;"></span><code>#f97316</code> 熔岩橙（点缀/中心）<br>
+<span class="color-swatch" style="background:#38bdf8;"></span><code>#38bdf8</code> 冰蓝（晶格线）
+</p>
+
+<h3>📐 尺寸建议</h3>
+<p>
+正式制作时建议矢量输出，最小可用尺寸 120×120px（胸针/徽章），最大可放至墙面喷绘。<br>
+蜂窝线宽可随尺寸等比缩放：外框3px，晶格1-1.5px，节点3-4px。
+</p>
+
+<h3>✏️ 可调整方向</h3>
+<p>
+1. <b>中心点</b> — 现在是一个抽象光点，也可以换成数字"26"或班级吉祥物。<br>
+2. <b>配色</b> — 如果学校有校色（如红白），可以把电光蓝替换成校色。<br>
+3. <b>文字</b> — SFS可以改成完整校名，也可以完全去掉只做图形。<br>
+4. <b>晶格密度</b> — 现在的7个六边形可以加密，也可以简化成只有中心和一圈6个。
+</p>
+
+<h3>🖼️ 参考</h3>
+<p>
+视觉参考对象：<b>Graphene molecular structure</b>（石墨烯分子结构图）+<b>MIT Media Lab logo</b>（极简科技标识）+<b>NASA mission patches</b>（NASA任务徽章的工业感排版）。<br><br>
+不是从「魔法阵」的眼睛看，是从「扫描隧道显微镜」的眼睛看。
+</p>
+</div>
+
+</body>
+</html>

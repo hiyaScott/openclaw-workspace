@@ -1,0 +1,26 @@
+{
+  "chapters": {
+    "grade8-sem1-ch00": { "name": "序言 踏上物理学奇妙旅途", "tutorial": true, "game": true, "status": "ready" },
+    "grade8-sem1-ch01": { "name": "第一章 测量", "tutorial": true, "game": true, "status": "ready" },
+    "grade8-sem1-ch02": { "name": "第二章 机械运动", "tutorial": true, "game": true, "status": "ready" },
+    "grade8-sem1-ch03": { "name": "第三章 声现象", "tutorial": true, "game": true, "status": "ready" },
+    "grade8-sem1-ch04": { "name": "第四章 光现象", "tutorial": true, "game": true, "status": "ready" },
+    "grade8-sem1-ch05": { "name": "第五章 运动和力", "tutorial": true, "game": true, "status": "ready" },
+    "grade8-sem2-ch06": { "name": "第六章 密度与压强", "tutorial": true, "game": true, "status": "ready" },
+    "grade8-sem2-ch07": { "name": "第七章 浮力", "tutorial": true, "game": true, "status": "ready" },
+    "grade8-sem2-ch08": { "name": "第八章 简单机械、功和能", "tutorial": true, "game": true, "status": "ready" },
+    "grade8-sem2-ch09": { "name": "第九章 物态变化", "tutorial": true, "game": true, "status": "ready" },
+    "grade9-sem1-ch10": { "name": "第十章 内能", "tutorial": true, "game": true, "status": "ready", "theme": "agent" },
+    "grade9-sem1-ch11": { "name": "第十一章 静电与电流", "tutorial": true, "game": true, "status": "ready", "theme": "agent" },
+    "grade9-sem1-ch12": { "name": "第十二章 欧姆定律", "tutorial": true, "game": true, "status": "ready", "theme": "agent" },
+    "grade9-sem1-ch13": { "name": "第十三章 电功率", "tutorial": true, "game": true, "status": "ready", "theme": "agent" },
+    "grade9-sem2-ch14": { "name": "第十四章 电与磁", "tutorial": true, "game": true, "status": "ready", "theme": "agent" },
+    "grade9-sem2-ch15": { "name": "第十五章 电磁波及其应用", "tutorial": true, "game": true, "status": "ready", "theme": "agent" },
+    "grade9-sem2-ch16": { "name": "第十六章 从原子到星系", "tutorial": true, "game": true, "status": "ready", "theme": "agent" },
+    "grade9-sem2-ch17": { "name": "第十七章 能量的转移和转化·能源", "tutorial": true, "game": true, "status": "ready", "theme": "agent" }
+  },
+  "completed": 18,
+  "pending": 0,
+  "theme_upgrade": { "agent_theme": "all 9 chapters unified", "navigation_added": "all 8 tutorials" },
+  "updated": "2026-05-14 12:44"
+}

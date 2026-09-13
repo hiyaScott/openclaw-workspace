@@ -1,0 +1,16 @@
+{
+  "grade": 9,
+  "total_chapters": 6,
+  "completed": 6,
+  "chapters": [
+    {"id": "ch24", "name": "相似三角形", "code": "SIMILAR", "sem": "sem1", "tutorial": true, "game": true},
+    {"id": "ch25", "name": "锐角的三角比", "code": "TRIG", "sem": "sem1", "tutorial": true, "game": true},
+    {"id": "ch26", "name": "二次函数", "code": "PARA", "sem": "sem1", "tutorial": true, "game": true},
+    {"id": "ch27", "name": "圆", "code": "CIRCLE", "sem": "sem2", "tutorial": true, "game": true},
+    {"id": "ch28", "name": "统计初步", "code": "STATS", "sem": "sem2", "tutorial": true, "game": true},
+    {"id": "ch29", "name": "平面向量", "code": "VECTOR", "sem": "sem2", "tutorial": true, "game": true}
+  ],
+  "started_at": "2026-05-14T08:15:00+08:00",
+  "completed_at": "2026-05-14T09:15:00+08:00",
+  "status": "ALL_COMPLETE"
+}

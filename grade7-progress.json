@@ -1,0 +1,19 @@
+{
+  "project": "七年级数学课件",
+  "total_chapters": 9,
+  "completed": 9,
+  "in_progress": "none",
+  "started_at": "2026-05-13T21:41:00+08:00",
+  "completed_at": "2026-05-14T01:26:00+08:00",
+  "chapters": [
+    {"id": "ch14", "name": "图形的运动", "code": "MOTION", "status": "completed", "semester": "sem1", "order": 1},
+    {"id": "ch16", "name": "相交线与平行线", "code": "LINE", "status": "completed", "semester": "sem2", "order": 2},
+    {"id": "ch10", "name": "整式的加减", "code": "TERM", "status": "completed", "semester": "sem1", "order": 3},
+    {"id": "ch11", "name": "整式的乘除", "code": "POWER", "status": "completed", "semester": "sem1", "order": 4},
+    {"id": "ch12", "name": "因式分解", "code": "FACTOR", "status": "completed", "semester": "sem1", "order": 5},
+    {"id": "ch13", "name": "分式", "code": "FRACT", "status": "completed", "semester": "sem1", "order": 6},
+    {"id": "ch15", "name": "一元一次不等式", "code": "INEQ", "status": "completed", "semester": "sem2", "order": 7},
+    {"id": "ch17", "name": "三角形", "code": "TRI", "status": "completed", "semester": "sem2", "order": 8},
+    {"id": "ch18", "name": "等腰三角形", "code": "ISO", "status": "completed", "semester": "sem2", "order": 9}
+  ]
+}
